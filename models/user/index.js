@@ -52,6 +52,77 @@ const UserSchema = new mongoose.Schema({
     token: { type: String, default: null },
     expiresAt: { type: Date, default: null },
   },
+
+  year: {
+    type: String,
+  },
+
+  dob: {
+    type: Date,
+  },
+
+  loginType: {
+    type: String,
+    enum: ["student", "admin", "teacher"],
+  },
+
+  rollNo: {
+    type: String,
+  },
+
+  _addedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  _class: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  guardian: {
+    fathersName: { type: String },
+    mothersName: { type: String },
+  },
+
+  isActive: { type: Boolean, default: true },
+
+  isAdmin: { type: Boolean },
+
+  isSuperAdmin: { type: Boolean },
+
+  joinDate: { type: Date },
+
+  leaveDate: { type: Date },
+
+  bankAdded: {
+    type: Boolean,
+    default: false,
+  },
+
+  bankDetails: {
+    bankName: String,
+    accountNumber: String,
+    ifscCode: String,
+  },
+
+  _school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "School",
+  },
+
+  customerStripeId: {
+    type: String,
+  },
+
+  signature: {
+    type: String,
+  },
+
+  isPaid: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 UserSchema.pre("validate", function (next) {
