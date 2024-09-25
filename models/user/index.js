@@ -42,18 +42,13 @@ const UserSchema = new mongoose.Schema({
     enum: ["Male", "Female", "Other"],
   },
 
-  isActive: {
-    type: Boolean,
-    default: false,
-  },
-
   forgotpassword: {
     requestedAt: { type: Date, default: null },
     token: { type: String, default: null },
     expiresAt: { type: Date, default: null },
   },
 
-  year: {
+  admissionYear: {
     type: String,
   },
 
@@ -77,7 +72,7 @@ const UserSchema = new mongoose.Schema({
 
   _class: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Class",
   },
 
   guardian: {
@@ -87,9 +82,9 @@ const UserSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: true },
 
-  isAdmin: { type: Boolean },
+  isAdmin: { type: Boolean, defaul:false },
 
-  isSuperAdmin: { type: Boolean },
+  isSuperAdmin: { type: Boolean, default:false },
 
   joinDate: { type: Date },
 
@@ -125,15 +120,15 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-UserSchema.pre("validate", function (next) {
-  if (this.isNew) {
-    if (this.password === undefined || this.password === null) {
-      this.generatedPassword = randomstring.generate(8); // for usage in post save hook to send welcome email
-      this.password = this.generatedPassword;
-    }
-  }
-  return next();
-});
+// UserSchema.pre("validate", function (next) {
+//   if (this.isNew) {
+//     if (this.password === undefined || this.password === null) {
+//       this.generatedPassword = randomstring.generate(8); // for usage in post save hook to send welcome email
+//       this.password = this.generatedPassword;
+//     }
+//   }
+//   return next();
+// });
 
 // Hash & save user's password:
 UserSchema.pre("save", async function (next) {
@@ -186,7 +181,7 @@ UserSchema.virtual("name.full").get(function () {
     this.name.last === undefined || this.name.last === null
       ? ""
       : ` ${this.name.last}`;
-  return `${first}${last}`;
+  return `${first} ${last}`;
 });
 
 UserSchema.virtual("name.full").set(function (v) {
