@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const chatMessageSchema = new mongoose.Schema({
+  _thread: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ChatThread",
+    required: true,
+  },
+
   _from: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
