@@ -1,19 +1,15 @@
 const mongoose = require("mongoose");
 
 const TrnsactionSchema = new mongoose.schema({
-  _school: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "School",
-  },
+  // _school: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "School",
+  // },
   _user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  userType: {
-    type: String,
-    enum: ["student", "teacher"],
-  },
-  paymentMonth: {
+  month: {
     type: String,
   },
   amount: {
