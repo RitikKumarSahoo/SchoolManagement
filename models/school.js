@@ -2,67 +2,67 @@ const mongoose = require("mongoose");
 
 const SchoolSchema = new mongoose.Schema({
   name: {
-    type: String
+    type: String,
   },
   registrationNumber: {
-    type: String
+    type: String,
   },
   address: {
     city: {
-      type: String
+      type: String,
     },
     state: {
-      type: String
+      type: String,
     },
     country: {
-      type: String
+      type: String,
     },
     pinCode: {
-      type: String
-    }
+      type: String,
+    },
   },
   contact: {
     phoneNo: {
-      type: String
+      type: String,
     },
     email: {
-      type: String
+      type: String,
     },
     website: {
-      type: String
-    }
+      type: String,
+    },
   },
   location: {
     type: {
       type: String,
-      enum: ['Point'],
-      default: 'Point'
+      enum: ["Point"],
+      default: "Point",
     },
     coordinates: {
       type: [Number],
-      index: '2dsphere'
-    }
+      index: "2dsphere",
+    },
   },
   principalName: {
-    type: String
+    type: String,
   },
   establishYear: {
-    type: Number
+    type: Number,
   },
   schoolType: {
     type: String,
-    enum: ['primary', 'secondary', 'highSchool']
+    enum: ["primary", "secondary", "highSchool"],
   },
   totalStudents: {
-    type: Number
+    type: Number,
   },
   totalClasses: {
-    type: Number
+    type: Number,
   },
   isActive: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  }, // Comment
 });
 
 module.exports = mongoose.model("School", SchoolSchema);
