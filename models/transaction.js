@@ -14,26 +14,29 @@ const TrnsactionSchema = new mongoose.schema({
     enum: ["student", "teacher"],
   },
   paymentMonth: {
-    type: String
+    type: String,
   },
   totalAmount: {
-    type: Number
+    type: Number,
   },
   busFee: {
-    type: String
+    type: String,
   },
   paymentHistory: {
     paymentDate: {
-      type: Date
+      type: Date,
     },
     finalAmount: {
-      type: Number
+      type: Number,
     },
-    paymentMethod:{
-      type: String
-    }
-  }
+    paymentMethod: {
+      type: String,
+    },
+    status: {
+      type: String,
+      enum: ["success", "pending"],
+    },
+  },
+});
 
-})
-
-module.exports = mongoose.model("Transaction", TrnsactionSchema)
+module.exports = mongoose.model("Transaction", TrnsactionSchema);
