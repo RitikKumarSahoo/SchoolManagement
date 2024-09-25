@@ -1,6 +1,10 @@
 const mongoose = require("mongoose")
 
 const ClassSchema = new mongoose.schema({
+  _school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "School",
+  },
   name: {
     type: String
   },
