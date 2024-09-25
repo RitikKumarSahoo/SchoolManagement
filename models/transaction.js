@@ -16,7 +16,7 @@ const TrnsactionSchema = new mongoose.schema({
   paymentMonth: {
     type: String,
   },
-  totalAmount: {
+  amount: {
     type: Number,
   },
   busFee: {
