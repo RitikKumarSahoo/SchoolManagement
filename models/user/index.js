@@ -42,11 +42,6 @@ const UserSchema = new mongoose.Schema({
     enum: ["Male", "Female", "Other"],
   },
 
-  isActive: {
-    type: Boolean,
-    default: false,
-  },
-
   forgotpassword: {
     requestedAt: { type: Date, default: null },
     token: { type: String, default: null },
