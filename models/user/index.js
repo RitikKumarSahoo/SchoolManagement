@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema({
   },
 
   dob: {
-    type: Date,
+    type: String,
   },
 
   loginType: {
@@ -86,9 +86,9 @@ const UserSchema = new mongoose.Schema({
 
   isSuperAdmin: { type: Boolean, default:false },
 
-  joinDate: { type: Date },
+  joinDate: { type: String },
 
-  leaveDate: { type: Date },
+  leaveDate: { type: String },
 
   bankAdded: {
     type: Boolean,
@@ -172,17 +172,9 @@ UserSchema.post("save", function (doc) {
   }
 });
 
-UserSchema.virtual("name.full").get(function () {
-  const first =
-    this.name.first === undefined || this.name.first === null
-      ? ""
-      : this.name.first;
-  const last =
-    this.name.last === undefined || this.name.last === null
-      ? ""
-      : ` ${this.name.last}`;
-  return `${first} ${last}`;
-});
+UserSchema.virtual("fullname").get(function () {
+  return `${this.firstName} ${this.lastName}`
+})
 
 UserSchema.virtual("name.full").set(function (v) {
   this.name.first = v.substr(0, v.indexOf(" "));

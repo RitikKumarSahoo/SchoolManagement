@@ -12,7 +12,7 @@ router.post("/students/create-student", studentRoutes.createStudent)
 
 
 
-router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
+// router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
 router.get("/user/:id", users.get)
 

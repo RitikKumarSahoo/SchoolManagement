@@ -1,17 +1,142 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>New Student Created</title>
-  </head>
-  <body>
-    <h1>New Student Created</h1>
-    <p>Dear Admin,</p>
-    <p>A new student has been successfully added to the system.</p>
-    <p>Full Name: <%= fullName %></p>
-    <p><strong>Username:</strong> <%= username %></p>
-    <p><strong>Password:</strong> <%= password %></p>
-    <p>Please ensure that the student has been informed about these credentials.</p>
-    <p>Best regards,</p>
-    <p>The School Management System</p>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our School!</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 100px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background: linear-gradient(45deg, #ff6ec7, #ffc107);
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            color: white;
+        }
+        .header h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+            position: relative;
+        }
+        .header .celebration-icons {
+            font-size: 30px;
+            margin-top: 10px;
+        }
+
+        /* Footer with wavy gradient */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 0;
+            background: linear-gradient(135deg, #36c9c6, #ff6ec7);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            color: white;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 14px;
+            color: white;
+        }
+
+        /* Celebration Icons (Balloons, Confetti) */
+        .celebration-icons {
+            margin-top: 15px;
+        }
+
+        /* Welcome message */
+        .welcome-message {
+            background-color: #ffffe0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ff6ec7;
+        }
+        .welcome-message p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Button */
+        .cta-button {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background-color: #ffc107;
+            color: #fff;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Colorful Thank You -->
+        <div class="header">
+            <h1>THANK YOU!</h1>
+            <div class="celebration-icons">🎉🎈🎊</div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <% if (studentEmail) { %>
+                <div class="welcome-message">
+                    <p>Hello <strong><%= studentName %></strong>,</p>
+                    <p>We are absolutely thrilled to welcome you to our school community! 🌟</p>
+                    <p>Your journey with us is about to begin, filled with new opportunities, friends, and exciting learning experiences. 
+                    We can't wait to see you grow, learn, and shine in every way possible!</p>
+                    <p>Below are your login details to help you get started:</p>
+                    <p><strong>Username:</strong> <%= username %><br>
+                       <strong>Password:</strong> <%= password %></p>
+                    <p>Remember, we are here to support you every step of the way. Your adventure at our school will be full of knowledge, creativity, and fun. So, let’s embark on this beautiful journey together!</p>
+                    <p>Welcome aboard! We’re so happy to have you with us. 🎉</p>
+                </div>
+            <% } else { %>
+                <div class="admin-notification">
+                    <p>Hello <strong><%= adminName %></strong>,</p>
+                    <p>We would like to inform you that a new student has joined our school community, but they do not have an email address registered.</p>
+                    <p>Here are the student’s credentials:</p>
+                    <p><strong>Student Name:</strong> <%= studentName %><br>
+                       <strong>Username:</strong> <%= username %><br>
+                       <strong>Password:</strong> <%= password %></p>
+                    <p>Please make sure to reach out to the student to provide them with necessary support and assistance in their onboarding process.</p>
+                    <p>Thank you for your attention!</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- CTA Button -->
+        <a href="#" class="cta-button">Let's Get Started!</a>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© Great Learning - Welcome to our community! 🎓</p>
+        </div>
+    </div>
+</body>
 </html>
