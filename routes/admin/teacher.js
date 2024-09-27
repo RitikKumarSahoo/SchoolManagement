@@ -14,7 +14,6 @@ module.exports = {
         phone,
         _school,
         dob,
-        joinDate,
         signature,
         bankDetails, // pending
       } = req.body;
@@ -50,22 +49,6 @@ module.exports = {
         return res
           .status(400)
           .json({ error: true, message: "Date of birth is required" });
-      }
-      if (!addedBy) {
-        return res.status(400).json({
-          error: true,
-          message: "AddedBy (Admin/User ID) is required",
-        });
-      }
-      if (!joinDate) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Join date is required" });
-      }
-      if (!signature) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Student Signature is required" });
       }
 
       // check user already exists
@@ -115,7 +98,7 @@ module.exports = {
         dob,
         _class,
         _addedBy: req.user,
-        joinDate,
+        joinDate: new Date(),
         signature,
         username,
         password,
