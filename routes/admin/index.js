@@ -13,6 +13,7 @@ router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 router.get("/user/:id", users.get);
 
 // teacher
+router.get("/teacher/find", teacher.find);
 router.post("/teacher/create", teacher.createTeacher);
 router.put("/teacher/update/:id", teacher.updateTeacher);
 router.delete("/teacher/delete/:id", teacher.deleteTeacher);
