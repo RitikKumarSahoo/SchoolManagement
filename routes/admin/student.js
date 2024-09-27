@@ -7,7 +7,7 @@ module.exports = {
   async createStudent(req,res){
     
     try {
-      const { firstName, lastName, email, gender, guardian, phone, admissionYear, _schoolId, dob, rollNo, _classId, _adminId, joinDate, signature  } = req.body;
+      const { firstName, lastName, email, gender, guardian, phone, admissionYear, _schoolId, dob, rollNo, _classId, _adminId, joinDate, signature,profileImage  } = req.body;
 
       // if(!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !schoolId || !dob || !rollNo || !classId || !addedBy || !joinDate || !signature){
       //   return res.status(400).json({error: true, message: "All fields are required"})
@@ -53,8 +53,8 @@ module.exports = {
       if (!signature) {
         return res.status(400).json({ error: true, message: "Student Signature is required" });
       }
-
-
+      
+      
       const query = {phone,rollNo}
       const studentExists = await users.findOne(query).lean().exec()
 
@@ -84,7 +84,10 @@ module.exports = {
         joinDate,
         signature,
         username,
-        password
+        password,
+        profileImage,
+        loginType:"student"
+        
       })
       
       const adminDetails = await users.findById(_adminId).exec()
@@ -114,5 +117,74 @@ module.exports = {
       
       return res.status(500).json({error: true, message: error.message})
     }
+  },
+
+  async  editStudentDetails(req, res) {
+    try {
+      // Get student ID from params
+      const { studentId } = req.params;
+      const { adminId } = req.body; // Get adminId from the request body
+
+    // Verify if the user is an admin by checking the database
+    const adminUser = await users.findOne({_id:adminId}).lean().exec();
+
+    // Check if the user exists and has the 'admin' role
+    if (!adminUser || adminUser.loginType !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can edit student details' });
+    }
+  
+      // Get editable fields from the request body
+      const {
+        firstName,
+        lastName,
+        email,
+        gender,
+        guardian,
+        phone,
+        admissionYear,
+        _schoolId,
+        dob,
+        rollNo,
+        _classId,
+        signature,
+        profileImage
+      } = req.body;
+  
+      // Build the update object (only update fields that are provided)
+      const updateData = {};
+      if (firstName) updateData.firstName = firstName;
+      if (lastName) updateData.lastName = lastName;
+      if (email) updateData.email = email;
+      if (gender) updateData.gender = gender;
+      if (guardian) updateData.guardian = guardian;
+      if (phone) updateData.phone = phone;
+      if (admissionYear) updateData.admissionYear = admissionYear;
+      if (_schoolId) updateData._schoolId = _schoolId;
+      if (dob) updateData.dob = dob;
+      if (rollNo) updateData.rollNo = rollNo;
+      if (_classId) updateData._classId = _classId;
+      if (signature) updateData.signature = signature;
+      if (profileImage) updateData.profileImage = profileImage;
+  
+      // Update the student record in the database
+      const updatedStudent = await Student.findByIdAndUpdate(
+        studentId,
+        { $set: updateData },
+        { new: true } // Return the updated document
+      );
+  
+      // If the student is not found
+      if (!updatedStudent) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      // Return the updated student
+      res.status(200).json({ message: 'Student details updated successfully', student: updatedStudent });
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+      res.status(500).json({ message: 'An error occurred while updating student details', error });
+    }
   }
+  
 }

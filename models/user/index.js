@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
   firstName: String,
 
   lastName: String,
-
+  profileImage: String,
   email: {
     type: String,
     lowercase: true,

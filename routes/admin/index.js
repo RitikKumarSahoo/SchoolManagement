@@ -9,6 +9,7 @@ const studentRoutes = require("./student")
 
 //list of all routers
 router.post("/students/create-student", studentRoutes.createStudent)
+router.post("/students/edit-student",studentRoutes.editStudentDetails)
 
 
 
