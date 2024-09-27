@@ -185,6 +185,127 @@ module.exports = {
       console.error(error);
       res.status(500).json({ message: 'An error occurred while updating student details', error });
     }
-  }
+  },
+
+  async viewAllStudents(req,res){
+    try {
+        const {schoolId} = req.params
+        const students = await Student.find({_school:schoolId}).exec()
+        return res.json({error: false, students})
+    } catch (error) {
+      log.error(error)
+      return res.status(500).json({error: true, message: error.message})
+    }
+  },
+
+  async viewStudentDetails(req, res) {
+    try {
+      // Get student ID from params
+      const { studentId } = req.params;
+      const {adminId} = req.body
+
+      //This may be changed as in this route only admin have access to enter this route
+      const admin = await users.findOne({ _id: adminId, loginType: "admin" }).lean().exec();
+      if(!adminId) return res.status(403).json({ error: true, message: "Unauthorized" });
+
+      const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).populate('_schoolId', 'schoolName')
+      .populate('_classId', 'className').exec();
+       
+      if(!student) return res.status(404).json({ error: true, message: "Student not found" });
+      
+
+      return res.json({ error: false, student });   
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * Deactivate a student
+   * @api {put} /students/deactivate/:studentId 5.0 Deactivate a student
+   * @apiName deactivateStudent
+   * @apiGroup Student
+   * @apiPermission Admin
+   *
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiParam {String} studentId `URL Param` The _id of the student to deactivate
+   * @apiParam {String} adminId `Body Param` The _id of the admin who is deactivating the student
+   *
+   * @apiSuccessExample {type} Success-Response: 200 OK
+   * {
+   *     error : false,
+   *     message: "Student deactivated successfully"
+   * }
+   */
+  async deactivateStudent(req, res) {
+    try {
+        const {studentId} = req.params
+        const {adminId} = req.body
+
+        const admin = await users.findOne({ _id: adminId, loginType: "admin" }).lean().exec();
+        if(!adminId) return res.status(403).json({ error: true, message: "Unauthorized" }); 
+
+        const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).exec();
+
+        if(!student) return res.status(404).json({ error: true, message: "Student not found" });
+
+        student.isActive = false
+        await student.save()
+        return res.json({ error: false, message: "Student deactivated successfully" });
+
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  
+  async searchStudents(req, res) {
+    try {
+      // Assuming adminId is part of the request, verify if the user is an admin
+      const adminId = req.body.adminId; // You might want to pass this in the headers or token
+  
+      // Check if the adminId corresponds to an admin in your database
+      const admin = await users.findOne({_id:adminId, loginType: "admin"}); 
+      if (!admin) return res.status(403).json({ message: 'Forbidden: You do not have permission to access this resource.' });
+      
+  
+      // Extracting search criteria from the query
+      const { name, rollNo, classId } = req.query;
+  
+      // Validations
+      const searchCriteria = {};
+      if (name) {
+        if (typeof name !== 'string' || name.trim().length === 0) {
+          return res.status(400).json({ message: 'Invalid name provided.' });
+        }
+        searchCriteria.name = { $regex: name, $options: 'i' };
+      }
+      if (rollNo) {
+        if (typeof rollNo !== 'string' || rollNo.trim().length === 0) {
+          return res.status(400).json({ message: 'Invalid roll number provided.' });
+        }
+        searchCriteria.rollNo = rollNo;
+      }
+      if (classId) {
+        // Assuming classId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(classId)) {
+          return res.status(400).json({ message: 'Invalid class ID provided.' });
+        }
+        searchCriteria._classId = classId;
+      }
+  
+      // Searching for students based on criteria
+      const students = await users.find(searchCriteria);
+      
+      // Returning the search results
+      res.status(200).json(students);
+    } catch (error) {
+      res.status(500).json({ message: 'Error searching students', error });
+    }
+  },
+
+  
+  
   
 }

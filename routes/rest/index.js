@@ -17,4 +17,6 @@ router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
 router.get("/user/:id", users.get)
 
+router.post("/user/edit-profile/:id", users.editData)
+
 module.exports = router
