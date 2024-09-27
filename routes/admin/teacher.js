@@ -8,20 +8,38 @@ module.exports = {
   async find(req, res) {
     try {
       const { isAdmin } = req.user;
+      const { searchText } = req.body;
       if (!isAdmin) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not Admin" });
       }
-      const users = await User.find({ loginType: "teacher", isActive: true });
+
+      const query = {
+        loginType: "teacher",
+        isActive: true,
+      };
+
+      // text search
+      if (searchText !== undefined) {
+        const newSearch = searchText.trim();
+
+        const searchRegex = new RegExp(newSearch, "i");
+        query.$or = [
+          { firstName: { $regex: searchRegex } },
+          { lastName: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+          { phone: { $regex: searchRegex } },
+        ];
+      }
+
+      const users = await User.find(query);
       if (users.length === 0) {
         return res
           .status(400)
           .json({ error: true, reason: "No teacher found" });
       }
-      const usersCount = await User.countDocuments({
-        loginType: "teacher",
-      }).exec();
+      const usersCount = await User.countDocuments(query).exec();
 
       return res.status(200).json({ error: false, users, usersCount });
     } catch (error) {
