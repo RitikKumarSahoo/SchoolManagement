@@ -29,6 +29,32 @@ module.exports = {
     }
   },
 
+  // get teacher by id
+  async get(req, res) {
+    try {
+      const { isAdmin } = req.user;
+      if (!isAdmin) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not Admin" });
+      }
+
+      const user = await User.findOne({
+        loginType: "teacher",
+        isActive: true,
+        _id: req.params.id,
+      });
+      if (user === null) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "No teacher found" });
+      }
+
+      return res.status(200).json({ error: false, user });
+    } catch (error) {
+      return res.status(400).json({ error: true, reason: error });
+    }
+  },
   // create teacher
   async createTeacher(req, res) {
     try {
