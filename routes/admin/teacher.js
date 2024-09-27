@@ -4,6 +4,31 @@ const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 
 module.exports = {
+  // fetch all teachers
+  async find(req, res) {
+    try {
+      const { isAdmin } = req.user;
+      if (!isAdmin) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not Admin" });
+      }
+      const users = await User.find({ loginType: "teacher", isActive: true });
+      if (users.length === 0) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "No teacher found" });
+      }
+      const usersCount = await User.countDocuments({
+        loginType: "teacher",
+      }).exec();
+
+      return res.status(200).json({ error: false, users, usersCount });
+    } catch (error) {
+      return res.status(400).json({ error: true, reason: error });
+    }
+  },
+
   // create teacher
   async createTeacher(req, res) {
     try {
