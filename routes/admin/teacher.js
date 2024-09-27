@@ -4,6 +4,7 @@ const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 
 module.exports = {
+  // create teacher
   async createTeacher(req, res) {
     try {
       const {
@@ -73,11 +74,6 @@ module.exports = {
         }
       }
 
-      const schoolName = await School.findOne(_school)
-        .select("name")
-        .lean()
-        .exec();
-
       const randomStr = randomstring.generate({
         length: 8,
         charset:
@@ -86,10 +82,6 @@ module.exports = {
 
       const username = firstName.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
-
-      if (bankDetails) {
-        const bankAdded = true;
-      }
 
       const user = await User.create({
         firstName,
@@ -104,21 +96,73 @@ module.exports = {
         password,
         loginType: "teacher",
         bankDetails,
-        bankAdded,
+        bankAdded: bankDetails !== undefined ? true : false,
       });
+
+      const schoolName = await School.findOne(_school)
+        .select("name")
+        .lean()
+        .exec();
 
       if (user.email !== undefined) {
         await mail("teacher-welcome", {
           to: user.email,
           subject: `Welcome to the ${schoolName}`,
           locals: {
-            userName: firstName,
-            email,
+            username,
+            firstName,
             password,
             schoolName,
           },
         });
       }
-    } catch (error) {}
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message });
+    }
+  },
+
+  // update teacher using :id
+  async updateTeacher(req, res) {
+    try {
+      const { isAdmin } = req.user;
+
+      if (!isAdmin) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not Admin" });
+      }
+
+      const { firstName, lastName, email, isActive, phone, bankDetails } =
+        req.body;
+
+      const user = await User.findOne({
+        _id: req.params.id,
+        loginType: "teacher",
+        isActive: true,
+      })
+        .select("firstName lastName phone email isActive")
+        .exec();
+
+      if (user === null) {
+        return res.status(400).json({ error: true, message: "No User Found" });
+      }
+
+      if (firstName !== undefined) user.firstName = firstName;
+      if (lastName !== undefined) user.lastName = lastName;
+      if (phone !== undefined) user.phone = phone;
+      if (isActive !== undefined) user.isActive = isActive;
+      if (bankDetails !== undefined) {
+        user.bankDetails = bankDetails;
+        user.bankAdded = true;
+      }
+      if (email !== undefined) {
+        user.email = email;
+      }
+
+      await user.save();
+      return res.status(200).json({ error: false, user });
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message });
+    }
   },
 };
