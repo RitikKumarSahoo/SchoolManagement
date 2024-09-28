@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const ClassSchema = new mongoose.schema({
   _school: {
@@ -6,27 +6,25 @@ const ClassSchema = new mongoose.schema({
     ref: "School",
   },
   name: {
-    type: String
+    type: String,
   },
   section: {
-    type: String
+    type: String,
   },
   academicYear: {
-    type: String
+    type: String,
   },
-  totalStudents: {
-    type: Number
-  },
+
   _schedule: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Schedule"
+    ref: "Schedule",
   },
   totalClassTill: {
-    type: Number
+    type: Number,
   },
   tillNowAttend: {
-    type: Number
-  }
-})
+    type: Number,
+  },
+});
 
-module.exports = mongoose.model("Class", ClassSchema)
+module.exports = mongoose.model("Class", ClassSchema);
