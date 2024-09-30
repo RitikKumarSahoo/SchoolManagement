@@ -5,7 +5,8 @@ const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['RS256'] 
 
 const users = require("./users")
 const studentRoutes = require("./student")
-const noticeRoutes = require("./notice")
+const noticeRoutes = require("./notices")
+const scheduleRoutes = require("./schedules")
 
 
 //list of all routers
@@ -23,7 +24,12 @@ router.post("/notice",  noticeRoutes.post); // Create a new notice
 router.put("/notice/:id",  noticeRoutes.put); // Edit a notice by ID
 router.delete("/notice/:id",  noticeRoutes.delete); // Delete a notice by ID
 
-
+//Schedule Route
+router.get("/schedules", scheduleRoutes.find); // Fetch all schedules
+router.get("/schedule/:id",  scheduleRoutes.get); // Get a schedule by ID
+router.post("/schedule",  scheduleRoutes.post); // Create a new schedule
+router.put("/schedule/:id",  scheduleRoutes.put); // Edit a schedule by ID
+router.delete("/schedule/:id",  scheduleRoutes.delete); // Delete a schedule by ID
 
 router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
 
