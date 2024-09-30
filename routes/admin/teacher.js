@@ -2,6 +2,7 @@ const User = require("../../models/user");
 const School = require("../../models/school");
 const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
+const moment = require("moment");
 
 module.exports = {
   // fetch all teachers
@@ -82,7 +83,6 @@ module.exports = {
         gender,
         email,
         phone,
-        _school,
         dob,
         signature,
         bankDetails, // pending
@@ -121,6 +121,14 @@ module.exports = {
           .json({ error: true, message: "Date of birth is required" });
       }
 
+      const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+      if (!dateOfBirth.isValid()) {
+        return res.status(400).json({
+          error: true,
+          message: "Invalid date of birth format. Use DD/MM/YYYY.",
+        });
+      }
+
       // check user already exists
       const checkUserData = await User.findOne({ phone, email })
         .select("email phone")
@@ -145,8 +153,7 @@ module.exports = {
 
       const randomStr = randomstring.generate({
         length: 8,
-        charset:
-          'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}|:"<>?[];,./`~',
+        charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
       });
 
       const username = firstName.slice(0, 3) + phone.slice(-3);
@@ -156,9 +163,10 @@ module.exports = {
         firstName,
         lastName,
         gender,
-        dob,
-        _class,
-        _addedBy: req.user,
+        email,
+        dob: dateOfBirth,
+        _school: req.user._school,
+        _addedBy: req.user.id,
         joinDate: new Date(),
         signature,
         username,
@@ -166,25 +174,32 @@ module.exports = {
         loginType: "teacher",
         bankDetails,
         bankAdded: bankDetails !== undefined ? true : false,
+        isActive: true,
       });
 
-      const schoolName = await School.findOne(_school)
+      const schoolName = await School.findOne({ _id: req.user._school })
         .select("name")
         .lean()
         .exec();
 
       if (user.email !== undefined) {
-        await mail("teacher-welcome", {
-          to: user.email,
-          subject: `Welcome to the ${schoolName}`,
-          locals: {
-            username,
-            firstName,
-            password,
-            schoolName,
-          },
-        });
+        try {
+          await mail("teacher-welcome", {
+            to: user.email,
+            subject: `Welcome to ${schoolName.name}`,
+            locals: {
+              email: user.email,
+              firstName,
+              password,
+              schoolName: schoolName.name,
+            },
+          });
+        } catch (error) {
+          console.error(error).message;
+          return res.status(400).json({ error: true, Error: error.message });
+        }
       }
+      return res.status(200).json({ error: true, user });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }

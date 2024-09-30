@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ClassSchema = new mongoose.schema({
+const ClassSchema = new mongoose.Schema({
   _school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "School",
@@ -21,9 +21,11 @@ const ClassSchema = new mongoose.schema({
   },
   totalClassTill: {
     type: Number,
+    default: 0,
   },
   tillNowAttend: {
     type: Number,
+    default: 0,
   },
 });
 
