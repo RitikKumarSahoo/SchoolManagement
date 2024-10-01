@@ -29,6 +29,7 @@ router.post("/createschool", school.Post);
 router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
 router.post("/attendance/mark", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
+router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
 
 //class
 router.get("/class/getallassignclass", classRoute.getAssignedClasses);

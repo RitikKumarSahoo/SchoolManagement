@@ -10,7 +10,7 @@ const users = require("./users");
 const teacher = require("./teacher");
 const classRoute = require("./class");
 const transaction = require("./transaction");
-
+const student = require("./student");
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
 router.get("/user/:id", users.get);
@@ -25,6 +25,8 @@ router.get("/teacher/get", teacher.get);
 router.post("/teacher/create", teacher.createTeacher);
 router.put("/teacher/update/:id", teacher.updateTeacher);
 router.delete("/teacher/delete/:id", teacher.deleteTeacher);
+
+router.post("/student/create", student.createStudent);
 
 // class
 router.post("/class/create", classRoute.Post);
