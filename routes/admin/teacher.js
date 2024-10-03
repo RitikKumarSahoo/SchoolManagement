@@ -3,6 +3,9 @@ const School = require("../../models/school");
 const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 const moment = require("moment");
+const stripe = require("stripe")(
+  "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
+);
 
 module.exports = {
   // fetch all teachers
@@ -159,6 +162,10 @@ module.exports = {
       const username = firstName.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
 
+      const customer = await stripe.customers.create({
+        email,
+      });
+
       const user = await User.create({
         firstName,
         lastName,
@@ -175,6 +182,7 @@ module.exports = {
         bankDetails,
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
+        customerStripeId: customer.id,
       });
 
       const schoolName = await School.findOne({ _id: req.user._school })

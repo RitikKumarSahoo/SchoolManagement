@@ -2,17 +2,6 @@ const User = require("../../models/user/index");
 const Transaction = require("../../models/transaction");
 const mail = require("../../lib/mail");
 const moment = require("moment");
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_AUTH_USER,
-    pass: process.env.SMTP_AUTH_PASSWORD,
-  },
-});
 
 module.exports = {
   // pending payment fees
@@ -71,25 +60,6 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
-    }
-  },
-
-  // student transaction
-  async studentTransaction(req, res) {
-    try {
-      const newTransaction = await Transaction.create(req.body);
-
-      res.status(201).json({
-        error: false,
-        transaction: newTransaction,
-      });
-    } catch (error) {
-      console.log(error.message);
-
-      res.status(400).json({
-        message: "Error creating transaction",
-        error: error.message,
-      });
     }
   },
 };

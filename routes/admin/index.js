@@ -11,13 +11,23 @@ const teacher = require("./teacher");
 const classRoute = require("./class");
 const transaction = require("./transaction");
 const student = require("./student");
-router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
+const stripe = require("../../lib/stripe");
+
+//stripe
+router.get("/return", stripe.onboardingComplete);
+router.get("/reauth", stripe.reauth);
+router.post("/stripe/verifyconnectedaccount", stripe.verifyConnectedAccount);
+router.post("/stripe/addcard", stripe.cardAdd);
+router.post("/confirmpayment", stripe.confirmpayment);
+
+router.all("*", checkJwt);
 
 router.get("/user/:id", users.get);
 
 //transaction
-router.post("/transaction/create", transaction.studentTransaction);
+// router.post("/transaction/create", transaction.studentTransaction);
 router.get("/transaction/pendingfee", transaction.pendingPayment);
+router.post("/transaction/paymentfee", stripe.pay);
 
 // teacher
 router.get("/teacher/find", teacher.find);
