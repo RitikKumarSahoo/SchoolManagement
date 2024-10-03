@@ -6,7 +6,7 @@ const Attendance = require("../../models/attendance");
 
 module.exports = {
   //get all classes assigned to teacher
-  async getAssignedClasses(req, res) {
+  async getAllAssignedClasses(req, res) {
     try {
       const { id, loginType } = req.user;
 

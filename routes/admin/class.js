@@ -59,6 +59,7 @@ module.exports = {
         _school: user._school,
         _class: classReponse._id,
       });
+
       const name_section = name.trim() + section;
       return res.status(200).json({
         error: false,

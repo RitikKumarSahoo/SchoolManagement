@@ -118,6 +118,10 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  messagingEnabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 UserSchema.pre("validate", function (next) {
