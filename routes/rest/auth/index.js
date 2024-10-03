@@ -61,11 +61,15 @@ module.exports = {
       const payload = {
         id: user._id,
         _id: user._id,
-        fullName: user.name.full,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
         phone: user.phone,
-        isAdmin: user.isAdmin
-      }
+        isAdmin: user.isAdmin,
+        isActive: user.isActive,
+        _school: user._school,
+        loginType: user.loginType,
+      };
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30 // 1 month
       })
