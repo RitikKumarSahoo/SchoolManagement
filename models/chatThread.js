@@ -15,11 +15,6 @@ const chatThreadSchema = new mongoose.Schema({
   lastMessageTime: {
     type: Date,
   },
-
-  isAllowed: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 module.exports = mongoose.model("ChatThread", chatThreadSchema);

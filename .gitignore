@@ -67,3 +67,5 @@ typings/
 *.swap
 .vscode/
 tempCodeRunnerFile.javascript
+
+apidoc/

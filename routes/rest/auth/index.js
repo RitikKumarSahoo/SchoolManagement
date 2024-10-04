@@ -1,6 +1,6 @@
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 
-const User = require("../../../models/user")
+const User = require("../../../models/user");
 
 module.exports = {
   /**
@@ -36,28 +36,21 @@ module.exports = {
   async post(req, res) {
     try {
       // const { type } = req.params
-      const {
-        handle,
-        password
-      } = req.body
-      if (handle === undefined || password === undefined) {
+      const { email, password } = req.body;
+      if (email === undefined || password === undefined) {
         return res.status(400).json({
           error: true,
-          reason: "Fields `handle` and `password` are mandatory"
-        })
+          reason: "Fields `email` and `password` are mandatory",
+        });
       }
       const user = await User.findOne({
-        $or: [{
-          email: handle.toLowerCase()
-        }, {
-          phone: handle
-        }]
-      }).exec()
-      if (user === null) throw new Error("User Not Found")
-      if (user.isActive === false) throw new Error("User Inactive")
+        email,
+      }).exec();
+      if (user === null) throw new Error("User Not Found");
+      if (user.isActive === false) throw new Error("User Inactive");
+
       // check pass
-      await user.comparePassword(password)
-      // No error, send jwt
+      await user.comparePassword(password);
       const payload = {
         id: user._id,
         _id: user._id,
@@ -71,18 +64,17 @@ module.exports = {
         loginType: user.loginType,
       };
       const token = jwt.sign(payload, process.env.SECRET, {
-        expiresIn: 3600 * 24 * 30 // 1 month
-      })
+        expiresIn: 3600 * 24 * 30, // 1 month
+      });
       return res.json({
         error: false,
-        handle,
-        token
-      })
+        token,
+      });
     } catch (err) {
       return res.status(500).json({
         error: true,
-        reason: err.message
-      })
+        reason: err.message,
+      });
     }
-  }
-}
+  },
+};

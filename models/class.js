@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ClassSchema = new mongoose.Schema({ // Corrected casing here
+const ClassSchema = new mongoose.Schema({
   _school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "School",
@@ -14,18 +14,18 @@ const ClassSchema = new mongoose.Schema({ // Corrected casing here
   academicYear: {
     type: String,
   },
-  totalStudents: {
-    type: Number,
-  },
+
   _schedule: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Schedule",
   },
   totalClassTill: {
     type: Number,
+    default: 0,
   },
   tillNowAttend: {
     type: Number,
+    default: 0,
   },
 });
 

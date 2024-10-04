@@ -1,39 +1,27 @@
 const mongoose = require("mongoose");
 
-const TrnsactionSchema = new mongoose.schema({
-  _school: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "School",
-  },
+const TransactionSchema = new mongoose.Schema({
   _user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  userType: {
+  date: {
     type: String,
-    enum: ["student", "teacher"],
+    default: Date.now(),
   },
-  paymentMonth: {
-    type: String
-  },
-  totalAmount: {
-    type: Number
+  amount: {
+    type: Number,
   },
   busFee: {
-    type: String
+    type: Number,
   },
-  paymentHistory: {
-    paymentDate: {
-      type: Date
-    },
-    finalAmount: {
-      type: Number
-    },
-    paymentMethod:{
-      type: String
-    }
-  }
+  totalAmount: {
+    type: Number,
+  },
+  status: {
+    type: String,
+    enum: ["success", "pending"],
+  },
+});
 
-})
-
-module.exports = mongoose.model("Transaction", TrnsactionSchema)
+module.exports = mongoose.model("Transaction", TransactionSchema);

@@ -1,24 +1,32 @@
-const express = require("express")
-const expressJwt = require("express-jwt")
-const router = express.Router()
-const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['HS256'] }) // the JWT auth check middleware
+const express = require("express");
+const router = express.Router();
+const expressJwt = require("express-jwt");
+const checkJwt = expressJwt({
+  secret: process.env.SECRET,
+  algorithms: ["HS256"],
+}); // the JWT auth check middleware
 
+const users = require("./users");
+const login = require("./auth");
+const signup = require("./auth/signup");
+const forgotpassword = require("./auth/password");
+const school = require("../rest/school");
+const attendance = require("../rest/attendance");
+const classRoute = require("../rest/class");
+const message = require("../rest/message");
+const progressReportRoutes = require("../rest/progressReport");
 
-const multer = require('multer');
-const upload = multer({ dest: '../../public/docs/uploads' });
+router.post("/login", login.post); // UNAUTHENTICATED
+router.post("/signup", signup.post); // UNAUTHENTICATED
+router.post("/signup/admin", signup.signupByAdmin);
+router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
+router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
-const users = require("./users")
-const login = require("./auth")
-const signup = require("./auth/signup")
-const forgotpassword = require("./auth/password")
-const progressReportRoutes = require("./progressReport")
-
-router.post("/login", login.post) // UNAUTHENTICATED
-router.post("/signup", signup.post) // UNAUTHENTICATED
-router.post("/forgotpassword", forgotpassword.startWorkflow) // UNAUTHENTICATED; AJAX
-router.post("/resetpassword", forgotpassword.resetPassword) // UNAUTHENTICATED; AJAX
-
-router.all("*", checkJwt) // use this auth middleware for ALL subsequent routes
+router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
+//school
+router.post("school/createschool", school.Post);
+router.put("school/update", school.updateSchool);
+//transaction
 
 router.get("/user/:id", users.get)
 router.post("/user/edit-profile/:id", users.editData)
@@ -26,5 +34,23 @@ router.post("/user/edit-profile/:id", users.editData)
 router.post("/progressReport/teachers/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
 router.get("/progressReport/:id", progressReportRoutes.get)
 
+router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
+router.post("/attendance/mark", attendance.markAttendance);
+router.get("/attendance/absent", attendance.getAbsentStudents);
+router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
+router.post("/attendance/checkin", attendance.teacherCheckIn);
+router.get("/attendance/viewattendance", attendance.viewAttendance);
 
-module.exports = router
+//class
+router.get("/class/getallassignclass", classRoute.getAllAssignedClasses);
+
+// message
+router.post("/message/permission", message.messagePermission);
+router.post("/message/createthread/:userId", message.createChatThread);
+router.post("/message/sendmessage", message.sendMessage);
+router.get("/message/readmessage/:id", message.getMessages);
+router.get("/message/thread/:id", message.getChatThread);
+
+router.get("/user/:id", users.get);
+
+module.exports = router;

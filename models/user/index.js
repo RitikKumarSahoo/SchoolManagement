@@ -66,7 +66,7 @@ const UserSchema = new mongoose.Schema({
   },
 
   _addedBy: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId, // admin will add student and
     ref: "User",
   },
 
@@ -115,6 +115,10 @@ const UserSchema = new mongoose.Schema({
   },
 
   isPaid: {
+    type: Boolean,
+    default: false,
+  },
+  messagingEnabled: {
     type: Boolean,
     default: false,
   },

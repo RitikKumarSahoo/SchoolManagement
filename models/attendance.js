@@ -11,9 +11,6 @@ const attendanceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
   },
-
-  section: { type: String },
-
   _teacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -21,10 +18,8 @@ const attendanceSchema = new mongoose.Schema({
 
   presentIds: [
     {
-      _student: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
   ],
 

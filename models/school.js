@@ -63,6 +63,9 @@ const SchoolSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   }, // Comment
+  stripeAccountId: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model("School", SchoolSchema);
