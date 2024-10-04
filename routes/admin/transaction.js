@@ -113,4 +113,67 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  /**
+   * @api {post} /transaction/create Create Transaction
+   * @apiName CreateTransaction
+   * @apiGroup Transaction
+   *
+   * @apiParam {String} userId The ID of the user creating the transaction.
+   * @apiParam {Number} amount The amount for the transaction.
+   * @apiParam {Number} busFee The bus fee associated with the transaction.
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error.
+   * @apiSuccess {Object} transaction The transaction object that was created.
+   * @apiSuccess {String} transaction._id The unique ID of the transaction.
+   * @apiSuccess {String} transaction._user The ID of the user associated with the transaction.
+   * @apiSuccess {Number} transaction.amount The amount for the transaction.
+   * @apiSuccess {Number} transaction.busFee The bus fee associated with the transaction.
+   * @apiSuccess {Number} transaction.totalAmount The total amount of the transaction (amount + busFee).
+   * @apiSuccess {String} transaction.status The status of the transaction.
+   * @apiSuccess {Date} transaction.date The date of the transaction creation.
+   *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 201 Created
+   *     {
+   *       "error": false,
+   *       "transaction": {
+   *         "_id": "609c2e08f74b612b6c345c44",
+   *         "_user": "609c2e08f74b612b6c345c40",
+   *         "amount": 100,
+   *         "busFee": 10,
+   *         "totalAmount": 110,
+   *         "status": "pending",
+   *         "date": "2024-10-01T10:00:00.000Z"
+   *       }
+   *     }
+   *
+   * @apiError InternalServerError There was an error creating the transaction.
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Error message here"
+   *     }
+   */
+  async createTransaction(req, res) {
+    const { userId, amount, busFee } = req.body;
+
+    try {
+      const transaction = await Transaction.create({
+        _user: userId,
+        amount: amount,
+        busFee: busFee,
+        totalAmount: amount + busFee,
+        status: "pending",
+        date: new Date(),
+      });
+
+      return res.status(201).json({ error: false, transaction });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
 };
