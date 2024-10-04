@@ -7,7 +7,47 @@ const moment = require("moment");
 const attendance = require("../../models/attendance");
 
 module.exports = {
-  // get all students for a specific class that the assigned teacher
+  /**
+   *
+   * @api {post} /attendance/getstudents Get StudentsForAttendance
+   * @apiName GetClassStudentsForAttendance
+   * @apiGroup Attendance
+   *
+   * @apiHeader {String} Authorization Bearer token for teacher access.
+   *
+   * @apiParam {String} _class The ID of the class for which students are being retrieved.
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false for success).
+   * @apiSuccess {Object[]} students Array of students in the specified class.
+   * @apiSuccess {String} students._id The unique ID of the student.
+   * @apiSuccess {String} students.rollNo The roll number of the student.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "students": [
+   *     {
+   *       "_id": "60c72b2f9b1e8a3b4c3e4f6a",
+   *       "rollNo": "001"
+   *     },
+   *     {
+   *       "_id": "60c72b2f9b1e8a3b4c3e4f6b",
+   *       "rollNo": "002"
+   *     }
+   *   ]
+   * }
+   *
+   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (400) {String} reason The reason for the error (e.g., "You are not teacher", "you are not assigned to this class").
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "You are not teacher"
+   * }
+   *
+   */
+
   async getClassStudentsForAttendance(req, res) {
     try {
       const { _class } = req.body;
@@ -48,6 +88,40 @@ module.exports = {
     }
   },
 
+  /**
+   *
+   * @api {post} /attendance/mark  Mark Student Attendance
+   * @apiName MarkAttendance
+   * @apiGroup Attendance
+   *
+   * @apiHeader {String} Authorization Bearer token for teacher access.
+   *
+   * @apiParam {String} _class The ID of the class for which attendance is being marked.
+   * @apiParam {String} studentId The ID of the student whose attendance is being marked.
+   *
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "message": "Student has been marked present",
+   *   "attendance": {
+   *     "_id": "60c72b2f9b1e8a3b4c3e4f6c",
+   *     "_class": "60c72b2f9b1e8a3b4c3e4f6a",
+   *     "date": "2024-10-04T00:00:00.000Z",
+   *     "presentIds": ["60c72b2f9b1e8a3b4c3e4f6b"]
+   *   }
+   * }
+   *
+   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (400) {String} reason The reason for the error (e.g., "You are not a teacher", "You are not assigned to this class", "Student is not assigned to this class").
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "You are not a teacher"
+   * }
+   *
+   */
   async markAttendance(req, res) {
     try {
       const { _class, studentId } = req.body;
@@ -148,7 +222,43 @@ module.exports = {
     }
   },
 
-  // check by admin
+  /**
+   *
+   * @api {get} /attendance/absent Get Absent Students
+   * @apiName GetAbsentStudents
+   * @apiGroup Attendance
+   *
+   * @apiHeader {String} Authorization Bearer token for admin or teacher access.
+   *
+   * @apiParam {String} _class The ID of the class for which absent students are being retrieved.
+   * @apiParam {String} date The date for which the attendance is checked (in ISO format).
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "absentStudents": [
+   *     {
+   *       "_id": "60c72b2f9b1e8a3b4c3e4f6b",
+   *       "roll": "001"
+   *     },
+   *     {
+   *       "_id": "60c72b2f9b1e8a3b4c3e4f6c",
+   *       "roll": "002"
+   *     }
+   *   ],
+   *   "totalAbsent": 2
+   * }
+   *
+   * @apiError (500) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (500) {String} Error Detailed error message.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "Error": "Internal Server Error"
+   * }
+   *
+   */
   async getAbsentStudents(req, res) {
     try {
       const { _class, date } = req.body;
@@ -213,7 +323,49 @@ module.exports = {
     }
   },
 
-  //student attendance percentage
+  /**
+   *
+   * @api {get} /attendance/percentage Student_Attendance_Percentage
+   * @apiName GetStudentAttendancePercentage
+   * @apiGroup Attendance
+   *
+   * @apiParam {String} studentId The ID of the student for whom the attendance percentage is being requested.
+   *
+   * @apiSuccess {String} student.id The unique ID of the student.
+   * @apiSuccess {String} student.name The full name of the student.
+   * @apiSuccess {String} student.rollNo The roll number of the student.
+   * @apiSuccess {String} student.attendancePercentage The attendance percentage of the student.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "student": {
+   *     "id": "60c72b2f9b1e8a3b4c3e4f6b",
+   *     "name": "John Doe",
+   *     "rollNo": "001",
+   *     "attendancePercentage": "75.00%"
+   *   }
+   * }
+   *
+   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (404) {String} message Error message for not found student or class.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "Student not found"
+   * }
+   *
+   * @apiError (500) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (500) {String} message Detailed error message.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "Internal Server Error"
+   * }
+   *
+   */
   async getStudentAttendancePercentage(req, res) {
     try {
       const { studentId } = req.body;
@@ -274,7 +426,57 @@ module.exports = {
     }
   },
 
-  // student view their attendance
+  /**
+   *
+   * @api {get} /attendance/viewattendance View Attendance Records
+   * @apiName ViewAttendance
+   * @apiGroup Attendance
+   *
+   * @apiHeader {String} Authorization Bearer token for student access.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "attendanceStatus": [
+   *     {
+   *       "date": "2024-10-01T00:00:00.000Z",
+   *       "isPresent": true
+   *     },
+   *     {
+   *       "date": "2024-10-02T00:00:00.000Z",
+   *       "isPresent": false
+   *     }
+   *   ]
+   * }
+   *
+   * @apiError (403) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (403) {String} reason Error message for not being a student.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "You are not a student"
+   * }
+   *
+   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (404) {String} message Message indicating no attendance records were found.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": false,
+   *   "message": "No attendance records found."
+   * }
+   *
+   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (400) {String} reason Detailed error message.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "Internal Server Error"
+   * }
+   *
+   */
   async viewAttendance(req, res) {
     try {
       const { id } = req.user;
@@ -315,6 +517,57 @@ module.exports = {
     }
   },
 
+  /**
+   * @api {post} /attendance/checkin Teacher Check-In
+   * @apiName TeacherCheckIn
+   * @apiGroup Attendance
+   *
+   * @apiHeader {String} Authorization Bearer token for teacher access.
+   *
+   * @apiParam {Object} location Coordinates of the teacher's check-in location.
+   * @apiParam {Date} date The date and time of the check-in.
+   *
+   * @apiParamExample {json} Request-Example:
+   * {
+   *   "location": {
+   *     "coordinates": [88.4352966284463, 22.574465111576152]
+   *   },
+   *   "date": "2024-10-01T10:00:00Z"
+   * }
+   *
+   * @apiSuccess {String} message Success message indicating check-in success.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "message": "Check-in successful"
+   * }
+   *
+   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (404) {String} message Error message for teacher not found.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "Teacher not found"
+   * }
+   *
+   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (400) {String} error Message indicating the teacher is not within the radius.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": "Teacher is not within the 50-meter radius"
+   * }
+   *
+   * @apiError (500) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (500) {String} error Message indicating internal server error.
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": "Internal server error"
+   * }
+   *
+   */
   async teacherCheckIn(req, res) {
     try {
       const { location, date } = req.body;

@@ -4,7 +4,53 @@ const mail = require("../../lib/mail");
 const moment = require("moment");
 
 module.exports = {
-  // pending payment fees
+  /**
+   * @api {get} /transaction/pendingfee Get Pending Fee Payments
+   * @apiName GetPendingPayments
+   * @apiGroup Transaction
+   *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   *
+   * @apiSuccess {Object[]} studentsWithPendingPayments List of students with pending fees.
+   * @apiSuccess {String} studentsWithPendingPayments.studentId ID of the student.
+   * @apiSuccess {String[]} studentsWithPendingPayments.pendingMonths Months for which fees are pending.
+   * @apiSuccess {String} studentsWithPendingPayments.studentEmail Email of the student.
+   * @apiSuccess {Number} studentsWithPendingPayments.amountDue Total amount due.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "studentsWithPendingPayments": [
+   *     {
+   *       "studentId": "60d5f60c9b4d7635e8aebaf7",
+   *       "pendingMonths": ["September", "October"],
+   *       "studentEmail": "student@example.com",
+   *       "amountDue": 150
+   *     }
+   *   ]
+   * }
+   *
+   * @apiError AdminNotFound The user making the request is not an admin.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "admin not found"
+   * }
+   *
+   * @apiError NoStudentsFound No students found in the school.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "No students found"
+   * }
+   *
+   * @apiError InternalServerError Internal server error during the fetching process.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "Internal server error"
+   * }
+   */
   async pendingPayment(req, res) {
     try {
       // const { _school } = req.body;
@@ -37,7 +83,7 @@ module.exports = {
         if (pendingTransactions.length > 0) {
           const pendingMonths = pendingTransactions.map((transaction) => {
             totalAmount += transaction.amount;
-            return moment(transaction.date).format("MMMM");
+            return moment.unix(transaction.date / 1000).format("MMMM");
           });
 
           studentsWithPendingPayments.push({

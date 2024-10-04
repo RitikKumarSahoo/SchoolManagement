@@ -131,6 +131,39 @@ module.exports = {
     }
   },
 
+  /**
+   * @api {put} /school Update School Information
+   * @apiName UpdateSchool
+   * @apiGroup School
+   *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   *
+   * @apiParam {String} [name] The name of the school.
+   * @apiParam {Object} [address] The address of the school.
+   * @apiParam {String} [address.city] The city of the school.
+   * @apiParam {String} [address.state] The state of the school.
+   * @apiParam {String} [address.country] The country of the school.
+   * @apiParam {String} [address.pinCode] The pin code of the school.
+   * @apiParam {Object} [contact] The contact details of the school.
+   * @apiParam {String} [contact.phoneNo] The phone number of the school.
+   * @apiParam {String} [contact.email] The email address of the school.
+   * @apiParam {String} [contact.website] The website of the school.
+   * @apiParam {String} [principalName] The name of the principal.
+   * @apiParam {Boolean} [isActive] Whether the school is active or not.
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error.
+   * @apiSuccess {Object} school The updated school object.
+   * @apiSuccess {String} school._id The unique ID of the school.
+   * @apiSuccess {String} school.name The name of the school.
+   * @apiSuccess {Object} school.address The address of the school.
+   * @apiSuccess {Object} school.contact The contact details of the school.
+   * @apiSuccess {String} school.principalName The name of the principal.
+   * @apiSuccess {Boolean} school.isActive Whether the school is active or not.
+   *
+   * @apiError {Boolean} error Indicates whether there was an error.
+   * @apiError {String} reason The reason for the error (e.g., "you are not admin", "school not found").
+   */
+
   async updateSchool(req, res) {
     try {
       const { loginType } = req.user;

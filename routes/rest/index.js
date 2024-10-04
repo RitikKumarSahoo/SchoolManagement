@@ -31,7 +31,7 @@ router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance);
 router.post("/attendance/mark", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
 router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
-router.get("/attendance/checkin", attendance.teacherCheckIn);
+router.post("/attendance/checkin", attendance.teacherCheckIn);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
 
 //class
