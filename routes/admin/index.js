@@ -59,6 +59,7 @@ router.get("/user/:id", users.get);
 // router.post("/transaction/create", transaction.studentTransaction);
 router.get("/transaction/pendingfee", transaction.pendingPayment);
 router.post("/transaction/paymentfee", stripe.pay);
+router.post("/transaction/create", transaction.createTransaction);
 
 // teacher
 router.get("/teacher/find", teacher.find);
