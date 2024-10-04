@@ -23,8 +23,8 @@ router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED;
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 //school
-router.post("/createschool", school.Post);
-
+router.post("school/createschool", school.Post);
+router.put("school/update", school.updateSchool);
 //transaction
 
 router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class

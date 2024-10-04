@@ -1,9 +1,71 @@
+const { response } = require("express");
 const School = require("../../models/school");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
 
 module.exports = {
+  /**
+   * @api {post} /api/v1/schools Create a new school with Stripe account
+   * @apiName CreateSchool
+   * @apiGroup School
+   * @apiVersion 1.0.0
+   * @apiDescription Creates a new school in the system and sets up a Stripe account for payment processing.
+   *
+   * @apiHeader {String} Authorization User's unique JWT token with "Bearer " prefix.
+   * @apiHeader {String} Content-Type `application/json`
+   *
+   * @apiParam {String} name Name of the school.
+   * @apiParam {String} registrationNumber Registration number of the school.
+   * @apiParam {Object} address Address of the school.
+   * @apiParam {String} address.city City of the school.
+   * @apiParam {String} address.state State of the school.
+   * @apiParam {String} address.country Country of the school.
+   * @apiParam {String} address.pinCode Postal code of the school.
+   * @apiParam {Object} contact Contact information of the school.
+   * @apiParam {String} contact.phoneNo Phone number of the school.
+   * @apiParam {String} contact.email Email address of the school.
+   * @apiParam {String} contact.website Website of the school (optional).
+   * @apiParam {Object} location Geographical location of the school.
+   * @apiParam {String} location.type Type of the location, always set to `"Point"`.
+   * @apiParam {Number[]} location.coordinates Longitude and latitude of the school as an array.
+   * @apiParam {String} principalName Name of the school's principal.
+   * @apiParam {Number} establishYear Year the school was established.
+   * @apiParam {String} schoolType Type of the school, e.g., `"primary"`, `"secondary"`, `"highSchool"`.
+   *
+   * @apiSuccess {String} message Success message.
+   * @apiSuccess {Object} school Details of the created school.
+   * @apiSuccess {String} school._id ID of the school.
+   * @apiSuccess {String} school.name Name of the school.
+   * @apiSuccess {String} school.registrationNumber Registration number of the school.
+   * @apiSuccess {Object} school.address Address details of the school.
+   * @apiSuccess {Object} school.contact Contact details of the school.
+   * @apiSuccess {Object} school.location Location coordinates of the school.
+   * @apiSuccess {String} school.principalName Name of the school's principal.
+   * @apiSuccess {Number} school.establishYear Establishment year of the school.
+   * @apiSuccess {String} school.schoolType Type of the school.
+   * @apiSuccess {String} stripeAccountId Stripe account ID created for the school.
+   * @apiSuccess {Object} accountLink Stripe account onboarding link.
+   * @apiSuccess {String} accountLink.url URL for Stripe account onboarding.
+   * @apiSuccess {Number} accountLink.expires_at Expiration timestamp of the account link.
+   *
+   * @apiError (400) BadRequest The user is not an admin or the request is invalid.
+   * @apiError (500) InternalServerError Server error during school creation.
+   *
+   * @apiErrorExample {json} 400 Error Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "You are not admin"
+   *     }
+   *
+   * @apiErrorExample {json} 500 Error Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": "Error message explaining the issue"
+   *     }
+   */
+
   async Post(req, res) {
     const {
       name,
@@ -17,6 +79,12 @@ module.exports = {
     } = req.body;
 
     try {
+      const { loginType } = req.user;
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not admin" });
+      }
       const account = await stripe.accounts.create({
         type: "custom",
         country: "US",
@@ -60,6 +128,35 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async updateSchool(req, res) {
+    try {
+      const { loginType } = req.user;
+      const { name, address, contact, principalName, isActive } = req.body;
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "you are not admin" });
+      }
+      const school = await School.findOne({ _id: req.user.id });
+      if (school === null) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school not found" });
+      }
+      if (name !== undefined) school.name = name;
+      if (address !== undefined) school.address = address;
+      if (contact !== undefined) school.contact = contact;
+      if (principalName !== undefined) school.principalName = principalName;
+      if (isActive !== undefined) school.isActive = isActive;
+
+      await school.save();
+
+      return response.status(400).json({ error: false, school });
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message });
     }
   },
 };

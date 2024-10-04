@@ -8,10 +8,15 @@ module.exports = {
   async pendingPayment(req, res) {
     try {
       // const { _school } = req.body;
+      const { loginType, _school } = req.user;
+      if (loginType !== "admin") {
+        return res.status(400).json({ error: true, reason: "admin not found" });
+      }
 
       // Fetch all students in the school
       const students = await User.find({
         loginType: "student",
+        _school,
       }).exec();
 
       if (students.length === 0) {
