@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const expressJwt = require("express-jwt");
+const multer = require('multer');
 const checkJwt = expressJwt({
   secret: process.env.SECRET,
   algorithms: ["HS256"],
@@ -31,6 +32,7 @@ router.put("school/update", school.updateSchool);
 router.get("/user/:id", users.get)
 router.post("/user/edit-profile/:id", users.editData)
 
+const upload = multer({ dest: '../../public/uploads' });
 router.post("/progressReport/teachers/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
 router.get("/progressReport/:id", progressReportRoutes.get)
 
