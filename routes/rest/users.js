@@ -51,6 +51,30 @@ module.exports = {
     }
   },
 
+  /**
+   * Edit user details
+   * 
+   * This endpoint is restricted to admins only.
+   * 
+   * @param {string} userId - The ID of the user to be edited
+   * @param {string} userType - The type of user to be edited, either "teacher" or "student"
+   * @param {object} req.body - The request body containing the fields to be updated
+   * @param {string} [req.body.firstName] - The new first name of the user
+   * @param {string} [req.body.lastName] - The new last name of the user
+   * @param {string} [req.body.phone] - The new phone number of the user
+   * @param {string} [req.body.dob] - The new date of birth of the user
+   * @param {string} [req.body.signature] - The new signature of the user
+   * @param {string} [req.body.profileImage] - The new profile image of the user
+   * @param {string} [req.body.email] - The new email of the user (only for students)
+   * @param {string} [req.body.bankDetails] - The new bank details of the user (only for students)
+   * @param {string} [req.body.gender] - The new gender of the user (only for students)
+   * 
+   * @returns {object} - The updated user object
+   * 
+   * @throws {Error} - If the user is not found
+   * @throws {Error} - If the request is not authorized (not an admin)
+   * @throws {Error} - If the request body is invalid
+   */
   async editData(req, res) {
     try {
       const { userId } = req.params;

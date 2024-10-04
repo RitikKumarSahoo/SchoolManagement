@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const expressJwt = require("express-jwt")
-const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['RS256'] }) // the JWT auth check middleware
+const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['HS256'] }) // the JWT auth check middleware
 
 const users = require("./users")
 const studentRoutes = require("./student")
@@ -19,7 +19,7 @@ router.get("/user/:id", users.get)
 
 //list of all routers
 router.post("/students/create-student", studentRoutes.createStudent)
-router.put("/students/edit-student",studentRoutes.editStudentDetails)
+router.put("/student/edit/:id",studentRoutes.editStudentDetails)
 router.get("/students/view-students/:SchoolId", studentRoutes.viewAllStudents)
 router.get("/students/view-student/:studentId", studentRoutes.viewStudentDetails)
 router.put("/students/deactivate/:studentId", studentRoutes.deactivateStudent)
@@ -41,6 +41,6 @@ router.delete("/schedule/:id",  scheduleRoutes.delete); // Delete a schedule by 
 
 //Progress Report Rooute
 router.post("/progressReport/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
-router.post("/progressReport/:studentId", progressReportRoutes.get)
+router.get("/progressReport/:studentId", progressReportRoutes.get)
 
 module.exports = router

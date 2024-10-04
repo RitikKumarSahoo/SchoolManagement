@@ -30,7 +30,7 @@
     "ejs": "^3.1.10",
     "email-templates": "^8.0.10",
     "express": "^4.21.0",
-    "express-jwt": "^8.4.1",
+    "express-jwt": "^5.3.1",
     "fs": "^0.0.1-security",
     "helmet": "^5.0.2",
     "http-errors": "~1.6.3",
@@ -45,7 +45,7 @@
     "bin/"
   ],
   "devDependencies": {
-    "apidoc": "^1.2.0",
+    "apidoc": "^0.29.0",
     "ava": "^4.1.0",
     "eslint": "^8.10.0",
     "eslint-config-airbnb-base": "^15.0.0",

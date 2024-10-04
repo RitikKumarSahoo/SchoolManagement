@@ -4,6 +4,85 @@ const Class = require('../../models/class')
 const mail = require("../../lib/mail")
 
 module.exports = {
+  /**
+   * Create a new student   * @api {post} /student 3.0 Create a new student
+   * @apiName createStudent
+   * @apiGroup Student
+   * @apiPermission Public
+   *
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiParam  {String} firstName
+   * @apiParam  {String} lastName
+   * @apiParam  {String} email
+   * @apiParam  {String} gender
+   * @apiParam  {Object} guardian
+   * @apiParam  {String} guardian.fathersName
+   * @apiParam  {String} guardian.mothersName
+   * @apiParam  {String} phone
+   * @apiParam  {Number} admissionYear
+   * @apiParam  {ObjectID} _schoolId
+   * @apiParam  {Date} dob
+   * @apiParam  {Number} rollNo
+   * @apiParam  {ObjectID} _classId
+   * @apiParam  {ObjectID} _adminId
+   * @apiParam  {Date} joinDate
+   * @apiParam  {String} signature
+   * @apiParam  {String} profileImage
+   *
+   * @apiSuccess (201) {json} Student
+   *
+   * @apiParamExample  {json} Request-Example:
+   * {
+   *   "firstName": "John",
+   *   "lastName": "Doe",
+   *   "email": "john@example.com",
+   *   "gender": "Male",
+   *   "guardian": {
+   *     "fathersName": "John Doe Sr.",
+   *     "mothersName": "Jane Doe"
+   *   },
+   *   "phone": "0000000000",
+   *   "admissionYear": 2019,
+   *   "schoolId": "123456789012",
+   *   "dob": "2000-01-01",
+   *   "rollNo": 1,
+   *   "classId": "123456789012",
+   *   "addedBy": "123456789012",
+   *   "joinDate": "2019-01-01",
+   *   "signature": "John Doe",
+   *   "profileImage": "https://example.com/johndoe.jpg"
+   * }
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "Student": {
+   *     "firstName": "John",
+   *     "lastName": "Doe",
+   *     "email": "john@example.com",
+   *     "gender": "Male",
+   *     "guardian": {
+   *       "fathersName": "John Doe Sr.",
+   *       "mothersName": "Jane Doe"
+   *     },
+   *     "phone": "0000000000",
+   *     "admissionYear": 2019,
+   *     "schoolId": "123456789012",
+   *     "dob": "2000-01-01",
+   *     "rollNo": 1,
+   *     "classId": "123456789012",
+   *     "addedBy": "123456789012",
+   *     "joinDate": "2019-01-01",
+   *     "signature": "John Doe",
+   *     "profileImage": "https://example.com/johndoe.jpg"
+   *   }
+   * }
+   *
+   * @apiError (400) {json} MissingFields Student creation failed due to missing required fields
+   * @apiError (400) {json} StudentExists Student already exists
+   * @apiError (500) {json} ServerError Server error occurred while creating student
+   */
   async createStudent(req,res){
     
     try {
@@ -119,6 +198,33 @@ module.exports = {
     }
   },
 
+  /**
+   * Edit student details
+   * 
+   * This endpoint is restricted to admins only.
+   * 
+   * @param {string} studentId - The ID of the student to be edited
+   * @param {object} req.body - The request body containing the fields to be updated
+   * @param {string} req.body.adminId - The ID of the admin making the request
+   * @param {string} [req.body.firstName] - The new first name of the student
+   * @param {string} [req.body.lastName] - The new last name of the student
+   * @param {string} [req.body.email] - The new email of the student
+   * @param {string} [req.body.gender] - The new gender of the student
+   * @param {string} [req.body.guardian] - The new guardian of the student
+   * @param {string} [req.body.phone] - The new phone number of the student
+   * @param {string} [req.body.admissionYear] - The new admission year of the student
+   * @param {string} [req.body._schoolId] - The new school ID of the student
+   * @param {string} [req.body.dob] - The new date of birth of the student
+   * @param {string} [req.body.rollNo] - The new roll number of the student
+   * @param {string} [req.body._classId] - The new class ID of the student
+   * @param {string} [req.body.signature] - The new signature of the student
+   * @param {string} [req.body.profileImage] - The new profile image of the student
+   * 
+   * @returns {object} - The updated student object
+   * 
+   * @throws {Error} - If the student is not found
+   * @throws {Error} - If the request is not authorized (not an admin)
+   */
   async  editStudentDetails(req, res) {
     try {
       // Get student ID from params
@@ -187,6 +293,17 @@ module.exports = {
     }
   },
 
+  /**
+   * View all students in a school
+   * 
+   * This endpoint is restricted to admins only.
+   * 
+   * @param {string} schoolId - The ID of the school
+   * @returns {object} - The list of students in the school
+   * 
+   * @throws {Error} - If the school is not found
+   * @throws {Error} - If the request is not authorized (not an admin)
+   */
   async viewAllStudents(req,res){
     try {
         const {schoolId} = req.params
@@ -197,6 +314,7 @@ module.exports = {
       return res.status(500).json({error: true, message: error.message})
     }
   },
+
 
   async viewStudentDetails(req, res) {
     try {
@@ -260,6 +378,22 @@ module.exports = {
   },
 
   
+  /**
+   * Search students based on name, roll number, or class
+   * @api {get} /students/search 5.0 Search students
+   * @apiName searchStudents
+   * @apiGroup Student
+   * @apiPermission Admin
+   *
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiParam {String} name `Query Param` The name of the student
+   * @apiParam {String} rollNo `Query Param` The roll number of the student
+   * @apiParam {ObjectId} classId `Query Param` The _id of the class
+   *
+   * @apiSuccessExample {type} Success-Response: 200 OK
+   * { students: [{}] }
+   */
   async searchStudents(req, res) {
     try {
       // Assuming adminId is part of the request, verify if the user is an admin

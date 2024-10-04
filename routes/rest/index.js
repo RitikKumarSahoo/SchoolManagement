@@ -1,7 +1,7 @@
 const express = require("express")
-const router = express.Router()
 const expressJwt = require("express-jwt")
-const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['RS256'] }) // the JWT auth check middleware
+const router = express.Router()
+const checkJwt = expressJwt({ secret: process.env.SECRET, algorithms: ['HS256'] }) // the JWT auth check middleware
 
 
 const multer = require('multer');

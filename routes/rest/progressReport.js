@@ -6,6 +6,8 @@ const fs = require('fs');
 
 
 module.exports = {
+
+
   async post(req, res) {
     try {
       // Extract user details from JWT token
@@ -91,6 +93,22 @@ module.exports = {
 
 
 
+  /**
+   * Retrieves a progress report for a user based on the provided parameters.
+   * 
+   * Route: GET /progressReport/:id/:year/:termType
+   * 
+   * @param {string} id - The ID of the user
+   * @param {string} year - The academic year (optional)
+   * @param {string} termType - The term type (optional)
+   * 
+   * @returns {object} - The progress report object
+   * 
+   * @throws {Error} - If the user is not found
+   * @throws {Error} - If the user is not a teacher or student
+   * @throws {Error} - If the school is not found
+   * @throws {Error} - If the progress report is not found
+   */
   async get(req, res) {
     try {
       const { id, year, termType } = req.params
