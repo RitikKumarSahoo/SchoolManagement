@@ -36,16 +36,34 @@ module.exports = {
   async post(req, res) {
     try {
       // const { type } = req.params
-      const { email, password } = req.body;
-      if (email === undefined || password === undefined) {
+      const { email, password, username, loginType } = req.body;
+      if (loginType === undefined || password === undefined) {
         return res.status(400).json({
           error: true,
-          reason: "Fields `email` and `password` are mandatory",
+          reason: "Fields `loginType` and `password` are mandatory",
         });
       }
-      const user = await User.findOne({
-        email,
-      }).exec();
+      let query = {};
+      if (loginType === "student") {
+        if (username === undefined) {
+          return res
+            .status(400)
+            .json({ error: true, reason: "Field `username` is mandatory" });
+        }
+        query = { username: username, loginType: "student" };
+      }
+
+      if (loginType === "admin" || loginType === "teacher") {
+        if (email === undefined) {
+          return res
+            .status(400)
+            .json({ error: true, reason: "Field `email` is mandatory" });
+        }
+        query = { email: email, loginType: loginType };
+      }
+
+      const user = await User.findOne(query).exec();
+
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
 
