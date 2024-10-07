@@ -478,11 +478,12 @@ module.exports = {
     try {
       const { id } = req.user;
 
-      const student = await User.findOne({ _id: id, loginType: "student" });
+      const student = await User.findOne({
+        _id: id,
+        loginType: { $in: ["student", "admin"] },
+      });
       if (!student) {
-        return res
-          .status(403)
-          .json({ error: true, reason: "You are not a student" });
+        return res.status(403).json({ error: true, reason: "no permission" });
       }
 
       let attendanceRecords = await Attendance.find({
