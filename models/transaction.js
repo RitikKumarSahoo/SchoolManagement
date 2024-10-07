@@ -6,7 +6,7 @@ const TransactionSchema = new mongoose.Schema({
     ref: "User",
   },
   date: {
-    type: String,
+    type: Date,
     default: Date.now(),
   },
   amount: {
