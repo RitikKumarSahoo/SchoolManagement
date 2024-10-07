@@ -4,7 +4,6 @@ const Class = require("../../models/class");
 const Attendance = require("../../models/attendance");
 const CheckIn = require("../../models/teachersCheckin");
 const moment = require("moment");
-const attendance = require("../../models/attendance");
 
 module.exports = {
   /**
@@ -165,7 +164,6 @@ module.exports = {
         });
       }
 
-      // Get today's date without the time
       const today = moment().startOf("day");
 
       // Find the attendance record for today for this class
@@ -205,7 +203,6 @@ module.exports = {
         });
         await attendanceRecord.save();
 
-        //  Increment totalClassTill for this class only once
         const classRecord = await Class.findOne({ _id: _class });
         if (classRecord) {
           classRecord.totalClassTill += 1;
@@ -568,6 +565,7 @@ module.exports = {
    * }
    *
    */
+
   async teacherCheckIn(req, res) {
     try {
       const { location, date } = req.body;
@@ -616,6 +614,114 @@ module.exports = {
     } catch (error) {
       console.error("Error during check-in:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  },
+  async updateAttendance(req, res) {
+    try {
+      const { _class, studentId, action, date } = req.body;
+      const { id } = req.user;
+
+      // Check if the user is a teacher
+      const teacher = await User.findOne({
+        _id: id,
+        loginType: "teacher",
+      }).exec();
+
+      if (!teacher) {
+        return res.status(400).json({
+          error: true,
+          reason: "You are not a teacher",
+        });
+      }
+
+      const targetDate = date
+        ? moment(date).startOf("day")
+        : moment().startOf("day");
+
+      if (!targetDate.isValid()) {
+        return res.status(400).json({
+          error: true,
+          reason: "Invalid date provided",
+        });
+      }
+
+      // Find the attendance record for the target date
+      let attendanceRecord = await Attendance.findOne({
+        _class,
+        date: {
+          $gte: targetDate.toDate(),
+          $lte: moment(targetDate).endOf("day").toDate(),
+        },
+        _school: teacher._school,
+      }).exec();
+
+      if (!attendanceRecord) {
+        return res.status(404).json({
+          error: true,
+          reason: `No attendance record found for ${targetDate.format(
+            "MMMM Do YYYY"
+          )}`,
+        });
+      }
+
+      // Check if the student is assigned to the class
+      const student = await User.findOne({
+        _id: studentId,
+        _class,
+        loginType: "student",
+        _school: teacher._school,
+      }).exec();
+
+      if (!student) {
+        return res.status(400).json({
+          error: true,
+          reason: "Student is not assigned to this class",
+        });
+      }
+
+      if (action === "add") {
+        if (attendanceRecord.presentIds.includes(studentId)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Student has already been marked present",
+          });
+        }
+
+        attendanceRecord.presentIds.push(studentId);
+      } else if (action === "remove") {
+        if (!attendanceRecord.presentIds.includes(studentId)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Student was not marked present",
+          });
+        }
+
+        attendanceRecord.presentIds = attendanceRecord.presentIds.filter(
+          (id) => id.toString() !== studentId
+        );
+      } else {
+        return res.status(400).json({
+          error: true,
+          reason: "Invalid action provided. Use 'add' or 'remove'",
+        });
+      }
+
+      await attendanceRecord.save();
+
+      return res.status(200).json({
+        error: false,
+        message: `Attendance for ${targetDate.format(
+          "MMMM Do YYYY"
+        )} successfully updated. Student ${
+          action === "add" ? "added to" : "removed from"
+        } attendance`,
+        attendance: attendanceRecord,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        reason: error.message,
+      });
     }
   },
 };
