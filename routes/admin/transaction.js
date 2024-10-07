@@ -120,12 +120,13 @@ module.exports = {
    * @apiName CreateTransaction
    * @apiGroup Transaction
    *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   *
    * @apiParam {String} userId The ID of the user creating the transaction.
    * @apiParam {Number} amount The amount for the transaction.
    * @apiParam {Number} busFee The bus fee associated with the transaction.
+   * @apiParam {String="success","pending"} [status] The new status of the transaction.
    *
-   * @apiSuccess {Boolean} error Indicates if there was an error.
-   * @apiSuccess {Object} transaction The transaction object that was created.
    * @apiSuccess {String} transaction._id The unique ID of the transaction.
    * @apiSuccess {String} transaction._user The ID of the user associated with the transaction.
    * @apiSuccess {Number} transaction.amount The amount for the transaction.
@@ -183,6 +184,67 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  /**
+   * @api {put} //transaction/update Update Transaction
+   * @apiName UpdateTransaction
+   * @apiGroup Transaction
+   * @apiPermission Admin
+   *
+   * @apiDescription This endpoint allows an admin to update an existing transaction's details such as the amount, bus fee, and status.
+   *
+   * @apiHeader {String} Authorization Bearer token (Admin's token)
+   *
+   * @apiBody {String} transactionId The ID of the transaction to be updated.
+   * @apiBody {String} [userId] The ID of the user associated with the transaction.
+   * @apiBody {Number} [amount] The new transaction amount.
+   * @apiBody {Number} [busFee] The new bus fee amount.
+   * @apiBody {String="success","pending"} [status] The new status of the transaction.
+   *
+   * @apiSuccess {Boolean} error Indicates whether the operation was successful or not.
+   * @apiSuccess {String} message Success message.
+   * @apiSuccess {Object} transaction The updated transaction object.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *  HTTP/1.1 200 OK
+   *  {
+   *    "error": false,
+   *    "message": "Transaction updated successfully",
+   *    "transaction": {
+   *      "_id": "652def8a7a39a61056fb8654",
+   *      "_user": "652dc8b95a36b92434b54e88",
+   *      "amount": 1000,
+   *      "busFee": 50,
+   *      "totalAmount": 1050,
+   *      "status": "pending",
+   *      "date": "2024-10-01T10:00:00.000Z"
+   *    }
+   *  }
+   *
+   * @apiError (400) {Boolean} error Indicates that there was an error.
+   * @apiError (400) {String} reason The reason for the error.
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 400 Bad Request
+   *  {
+   *    "error": true,
+   *    "reason": "Invalid transaction data provided."
+   *  }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 403 Forbidden
+   *  {
+   *    "error": true,
+   *    "reason": "You are not authorized to update this transaction."
+   *  }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 404 Not Found
+   *  {
+   *    "error": true,
+   *    "reason": "Transaction not found."
+   *  }
+   */
 
   async updateTransaction(req, res) {
     const { transactionId, userId, amount, busFee, status } = req.body;
