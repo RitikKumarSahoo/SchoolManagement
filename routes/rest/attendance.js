@@ -616,6 +616,70 @@ module.exports = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
+  /**
+   * @api {put} /attendance/update Update Attendance
+   * @apiName UpdateAttendance
+   * @apiGroup Attendance
+   * @apiPermission admin, teacher
+   *
+   * @apiDescription Allows both teachers and admins to update attendance for a class.
+   * The update can be for the current day or a previous day. The action can either add a student to the present list or remove them.
+   *
+   * @apiHeader {String} Authorization Bearer token.
+   *
+   * @apiParam {String} _class The ID of the class.
+   * @apiParam {String} studentId The ID of the student whose attendance is being updated.
+   * @apiParam {String} action The action to perform, either "add" (to mark as present) or "remove" (to mark as absent).
+   * @apiParam {String} [date] The date for which attendance is being updated (optional, defaults to today).
+   *
+   * @apiExample {json} Request Example:
+   *     {
+   *       "_class": "652def8a7a39a61056fb8654",
+   *       "studentId": "652dc8b95a36b92434b54e88",
+   *       "action": "add",
+   *       "date": "2024-10-01"
+   *     }
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false means success).
+   * @apiSuccess {String} message The success message describing the action performed.
+   * @apiSuccess {Object} attendance The updated attendance record.
+   *
+   * @apiSuccessExample {json} Success Response:
+   *     {
+   *       "error": false,
+   *       "message": "Attendance for October 1st 2024 successfully updated. Student added to attendance",
+   *       "attendance": {
+   *         "_id": "652def8a7a39a61056fb8654",
+   *         "_class": "652def8a7a39a61056fb8654",
+   *         "presentIds": ["652dc8b95a36b92434b54e88"],
+   *         "date": "2024-10-01T00:00:00.000Z",
+   *         "_school": "652ce46b5b9634070e541dbc"
+   *       }
+   *     }
+   *
+   * @apiError {Boolean} error Indicates whether there was an error (true means failure).
+   * @apiError {String} reason A description of the error that occurred.
+   *
+   * @apiErrorExample {json} Error Response (Student Not Assigned):
+   *     {
+   *       "error": true,
+   *       "reason": "Student is not assigned to this class"
+   *     }
+   *
+   * @apiErrorExample {json} Error Response (Unauthorized User):
+   *     {
+   *       "error": true,
+   *       "reason": "You are not authorized to update attendance"
+   *     }
+   *
+   * @apiErrorExample {json} Error Response (Invalid Action):
+   *     {
+   *       "error": true,
+   *       "reason": "Invalid action provided. Use 'add' or 'remove'"
+   *     }
+   */
+
   async updateAttendance(req, res) {
     try {
       const { _class, studentId, action, date } = req.body;
@@ -624,7 +688,7 @@ module.exports = {
       // Check if the user is a teacher
       const teacher = await User.findOne({
         _id: id,
-        loginType: "teacher",
+        loginType: { $in: ["teacher", "admin"] },
       }).exec();
 
       if (!teacher) {
