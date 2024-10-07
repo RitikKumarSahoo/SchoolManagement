@@ -1,5 +1,7 @@
 const User = require("../../../models/user");
-
+const stripe = require("stripe")(
+  "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
+);
 module.exports = {
   /**
     *
@@ -94,12 +96,15 @@ module.exports = {
       // Check if the admin already exists
       const existingAdmin = await User.findOne({ email });
       if (existingAdmin) {
-        return res.status(409).json({
+        return res.status(400).json({
           error: true,
           message: "Admin with this email already exists.",
         });
       }
 
+      const customer = await stripe.customers.create({
+        email,
+      });
       const response = await User.create({
         username,
         email,
@@ -110,6 +115,8 @@ module.exports = {
         isAdmin: true,
         isActive: true,
         _school,
+        customerStripeId: customer.id,
+        messagingEnabled: true,
       });
 
       return res.status(201).json({
