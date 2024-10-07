@@ -33,6 +33,7 @@ router.get("/attendance/absent", attendance.getAbsentStudents);
 router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
 router.post("/attendance/checkin", attendance.teacherCheckIn);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
+router.put("/attendance/update", attendance.updateAttendance);
 
 //class
 router.get("/class/getallassignclass", classRoute.getAllAssignedClasses);
