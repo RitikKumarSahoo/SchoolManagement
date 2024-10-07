@@ -560,6 +560,147 @@ define({ "api": [
     "groupTitle": "Attendance"
   },
   {
+    "type": "put",
+    "url": "/attendance/update",
+    "title": "Update Attendance",
+    "name": "UpdateAttendance",
+    "group": "Attendance",
+    "permission": [
+      {
+        "name": "admin, teacher"
+      }
+    ],
+    "description": "<p>Allows both teachers and admins to update attendance for a class. The update can be for the current day or a previous day. The action can either add a student to the present list or remove them.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "_class",
+            "description": "<p>The ID of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "studentId",
+            "description": "<p>The ID of the student whose attendance is being updated.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "action",
+            "description": "<p>The action to perform, either &quot;add&quot; (to mark as present) or &quot;remove&quot; (to mark as absent).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "date",
+            "description": "<p>The date for which attendance is being updated (optional, defaults to today).</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "{\n  \"_class\": \"652def8a7a39a61056fb8654\",\n  \"studentId\": \"652dc8b95a36b92434b54e88\",\n  \"action\": \"add\",\n  \"date\": \"2024-10-01\"\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether there was an error (false means success).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>The success message describing the action performed.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "attendance",
+            "description": "<p>The updated attendance record.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Attendance for October 1st 2024 successfully updated. Student added to attendance\",\n  \"attendance\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_class\": \"652def8a7a39a61056fb8654\",\n    \"presentIds\": [\"652dc8b95a36b92434b54e88\"],\n    \"date\": \"2024-10-01T00:00:00.000Z\",\n    \"_school\": \"652ce46b5b9634070e541dbc\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether there was an error (true means failure).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>A description of the error that occurred.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response (Student Not Assigned):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Student is not assigned to this class\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Unauthorized User):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not authorized to update attendance\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Invalid Action):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Invalid action provided. Use 'add' or 'remove'\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/attendance.js",
+    "groupTitle": "Attendance"
+  },
+  {
     "type": "get",
     "url": "/attendance/viewattendance",
     "title": "View Attendance Records",
@@ -3061,6 +3202,19 @@ define({ "api": [
     "title": "Create Transaction",
     "name": "CreateTransaction",
     "group": "Transaction",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin access.</p>"
+          }
+        ]
+      }
+    },
     "parameter": {
       "fields": {
         "Parameter": [
@@ -3084,6 +3238,17 @@ define({ "api": [
             "optional": false,
             "field": "busFee",
             "description": "<p>The bus fee associated with the transaction.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"success\"",
+              "\"pending\""
+            ],
+            "optional": true,
+            "field": "status",
+            "description": "<p>The new status of the transaction.</p>"
           }
         ]
       }
@@ -3091,20 +3256,6 @@ define({ "api": [
     "success": {
       "fields": {
         "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "transaction",
-            "description": "<p>The transaction object that was created.</p>"
-          },
           {
             "group": "Success 200",
             "type": "String",
@@ -3291,6 +3442,151 @@ define({ "api": [
         {
           "title": "Error-Response:",
           "content": "{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/admin/transaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
+    "type": "put",
+    "url": "//transaction/update",
+    "title": "Update Transaction",
+    "name": "UpdateTransaction",
+    "group": "Transaction",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>This endpoint allows an admin to update an existing transaction's details such as the amount, bus fee, and status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token (Admin's token)</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "transactionId",
+            "description": "<p>The ID of the transaction to be updated.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "userId",
+            "description": "<p>The ID of the user associated with the transaction.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "amount",
+            "description": "<p>The new transaction amount.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "busFee",
+            "description": "<p>The new bus fee amount.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"success\"",
+              "\"pending\""
+            ],
+            "optional": true,
+            "field": "status",
+            "description": "<p>The new status of the transaction.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether the operation was successful or not.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "transaction",
+            "description": "<p>The updated transaction object.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Transaction updated successfully\",\n  \"transaction\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_user\": \"652dc8b95a36b92434b54e88\",\n    \"amount\": 1000,\n    \"busFee\": 50,\n    \"totalAmount\": 1050,\n    \"status\": \"pending\",\n    \"date\": \"2024-10-01T10:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that there was an error.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The reason for the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid transaction data provided.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You are not authorized to update this transaction.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Transaction not found.\"\n}",
           "type": "json"
         }
       ]

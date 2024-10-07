@@ -195,11 +195,11 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token (Admin's token)
    *
-   * @apiBody {String} transactionId The ID of the transaction to be updated.
-   * @apiBody {String} [userId] The ID of the user associated with the transaction.
-   * @apiBody {Number} [amount] The new transaction amount.
-   * @apiBody {Number} [busFee] The new bus fee amount.
-   * @apiBody {String="success","pending"} [status] The new status of the transaction.
+   * @apiParam {String} transactionId The ID of the transaction to be updated.
+   * @apiParam {String} [userId] The ID of the user associated with the transaction.
+   * @apiParam {Number} [amount] The new transaction amount.
+   * @apiParam {Number} [busFee] The new bus fee amount.
+   * @apiParam {String="success","pending"} [status] The new status of the transaction.
    *
    * @apiSuccess {Boolean} error Indicates whether the operation was successful or not.
    * @apiSuccess {String} message Success message.
