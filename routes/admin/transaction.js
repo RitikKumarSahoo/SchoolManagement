@@ -55,6 +55,7 @@ module.exports = {
     try {
       // const { _school } = req.body;
       const { loginType, _school } = req.user;
+
       if (loginType !== "admin") {
         return res.status(400).json({ error: true, reason: "admin not found" });
       }
@@ -63,11 +64,11 @@ module.exports = {
       const students = await User.find({
         loginType: "student",
         _school,
-      }).exec();
+      });
 
       if (students.length === 0) {
         return res
-          .status(404)
+          .status(400)
           .json({ error: true, message: "No students found" });
       }
 
@@ -82,7 +83,7 @@ module.exports = {
 
         if (pendingTransactions.length > 0) {
           const pendingMonths = pendingTransactions.map((transaction) => {
-            totalAmount += transaction.amount;
+            totalAmount += transaction.totalAmount;
             return moment.unix(transaction.date / 1000).format("MMMM");
           });
 
@@ -158,19 +159,70 @@ module.exports = {
    *     }
    */
   async createTransaction(req, res) {
-    const { userId, amount, busFee } = req.body;
+    const { userId, amount, busFee, status } = req.body;
+    const { loginType } = req.user;
 
     try {
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "you are not admin" });
+      }
       const transaction = await Transaction.create({
         _user: userId,
-        amount: amount,
-        busFee: busFee,
+        amount: Number(amount),
+        busFee: Number(busFee),
         totalAmount: amount + busFee,
-        status: "pending",
+        status,
         date: new Date(),
       });
 
       return res.status(201).json({ error: false, transaction });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  async updateTransaction(req, res) {
+    const { transactionId, userId, amount, busFee, status } = req.body;
+    const { loginType } = req.user;
+
+    try {
+      if (transactionId === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "transactionId is required" });
+      }
+      if (loginType !== "admin") {
+        return res.status(403).json({
+          error: true,
+          reason: "You are not authorized to update this transaction.",
+        });
+      }
+
+      const transaction = await Transaction.findOne({ _id: transactionId });
+
+      if (transaction === null) {
+        return res
+          .status(404)
+          .json({ error: true, reason: "Transaction not found." });
+      }
+
+      if (userId) transaction._user = userId;
+      if (amount) transaction.amount = Number(amount);
+      if (busFee) transaction.busFee = Number(busFee);
+      if (amount && busFee)
+        transaction.totalAmount = Number(amount) + Number(busFee);
+      if (status) transaction.status = status;
+
+      await transaction.save();
+
+      return res.status(200).json({
+        error: false,
+        message: "Transaction updated successfully",
+        transaction,
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: true, message: error.message });
