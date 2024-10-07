@@ -29,6 +29,7 @@ router.get("/user/:id", users.get);
 router.get("/transaction/pendingfee", transaction.pendingPayment);
 router.post("/transaction/paymentfee", stripe.pay);
 router.post("/transaction/create", transaction.createTransaction);
+router.put("/transaction/update", transaction.updateTransaction);
 
 // teacher
 router.get("/teacher/find", teacher.find);
