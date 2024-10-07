@@ -186,6 +186,82 @@ module.exports = {
   },
 
   /**
+   * @api {get} /transaction/get/:id Get Transaction by ID
+   * @apiName GetTransactionById
+   * @apiGroup Transactions
+   * @apiPermission Admin
+   *
+   * @apiParam {String} id Transaction's unique ID.
+   *
+   * @apiHeader {String} Authorization User's access token.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *    HTTP/1.1 200 OK
+   *    {
+   *      "error": false,
+   *      "message": "Transaction retrieved successfully",
+   *      "data": {
+   *        "_id": "652def8a7a39a61056fb8654",
+   *        "_user": {
+   *          "_id": "652dc8b95a36b92434b54e88",
+   *          "firstName": "John",
+   *          "lastName": "Doe",
+   *          "email": "john.doe@example.com"
+   *        },
+   *        "amount": 1000,
+   *        "busFee": 50,
+   *        "totalAmount": 1050,
+   *        "status": "pending",
+   *        "date": "2024-10-07T10:00:00Z"
+   *      }
+   *    }
+   *
+   * @apiError TransactionNotFound The transaction with the given ID was not found.
+   *
+   * @apiErrorExample {json} TransactionNotFound:
+   *    HTTP/1.1 404 Not Found
+   *    {
+   *      "error": true,
+   *      "message": "Transaction not found"
+   *    }
+   *
+   * @apiError InternalServerError Server-side issue occurred while retrieving transaction.
+   *
+   * @apiErrorExample {json} InternalServerError:
+   *    HTTP/1.1 500 Internal Server Error
+   *    {
+   *      "error": true,
+   *      "message": "An error occurred while processing the request"
+   *    }
+   */
+
+  async get(req, res) {
+    try {
+      const { id } = req.params;
+      const transaction = await Transaction.findOne({
+        _id: id,
+      }).populate("_user", "firstName lastName email");
+
+      if (!transaction) {
+        return res.status(404).json({
+          error: true,
+          message: "Transaction not found",
+        });
+      }
+
+      return res.status(200).json({
+        error: false,
+        message: "Transaction retrieved successfully",
+        data: transaction,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  },
+  /**
    * @api {put} //transaction/update Update Transaction
    * @apiName UpdateTransaction
    * @apiGroup Transaction
