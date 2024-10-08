@@ -32,6 +32,7 @@ router.post("/transaction/create", transaction.createTransaction);
 router.put("/transaction/update", transaction.updateTransaction);
 
 // teacher
+router.get("/teacher/all", teacher.getAllTeachers);
 router.get("/teacher/find", teacher.find);
 router.get("/teacher/get/:id", teacher.get);
 router.post("/teacher/create", teacher.createTeacher);
