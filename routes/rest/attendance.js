@@ -516,109 +516,6 @@ module.exports = {
   },
 
   /**
-   * @api {post} /attendance/checkin Teacher Check-In
-   * @apiName TeacherCheckIn
-   * @apiGroup Attendance
-   *
-   * @apiHeader {String} Authorization Bearer token for teacher access.
-   *
-   * @apiParam {Object} location Coordinates of the teacher's check-in location.
-   * @apiParam {Date} date The date and time of the check-in.
-   *
-   * @apiParamExample {json} Request-Example:
-   * {
-   *   "location": {
-   *     "coordinates": [88.4352966284463, 22.574465111576152]
-   *   },
-   *   "date": "2024-10-01T10:00:00Z"
-   * }
-   *
-   * @apiSuccess {String} message Success message indicating check-in success.
-   *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *   "message": "Check-in successful"
-   * }
-   *
-   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (404) {String} message Error message for teacher not found.
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "message": "Teacher not found"
-   * }
-   *
-   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (400) {String} error Message indicating the teacher is not within the radius.
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": "Teacher is not within the 50-meter radius"
-   * }
-   *
-   * @apiError (500) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (500) {String} error Message indicating internal server error.
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": "Internal server error"
-   * }
-   *
-   */
-
-  async teacherCheckIn(req, res) {
-    try {
-      const { location, date } = req.body;
-      const { id, _school } = req.user;
-      // Find the school by id
-      const teacher = await User.findOne({ _id: id, loginType: "teacher" });
-      if (teacher === null) {
-        return res
-          .status(404)
-          .json({ error: true, message: "Teacher not found" });
-      }
-      const school = await School.findOne({ _id: _school });
-
-      const schoolLocation = school.location.coordinates;
-      console.log("schoolLocation", schoolLocation);
-
-      // Check if the teacher is within a 50-meter radius
-      const distanceCheck = await CheckIn.aggregate([
-        {
-          $geoNear: {
-            near: { type: "Point", coordinates: schoolLocation },
-            distanceField: "dist.calculated",
-            maxDistance: 50, // 50 meters
-            spherical: true,
-          },
-        },
-        {
-          $match: { "location.coordinates": location.coordinates },
-        },
-      ]);
-      console.log(distanceCheck.length);
-
-      if (distanceCheck.length > 0) {
-        await CheckIn.create({
-          teachers: { _teacher: id, time: moment(date).format("HH:mm:ss") },
-          checkInDate: date,
-          _school,
-        });
-
-        return res.status(200).json({ message: "Check-in successful" });
-      } else {
-        return res
-          .status(400)
-          .json({ error: "Teacher is not within the 50-meter radius" });
-      }
-    } catch (error) {
-      console.error("Error during check-in:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  },
-
-  /**
    * @api {put} /attendance/update Update Attendance
    * @apiName UpdateAttendance
    * @apiGroup Attendance
@@ -787,6 +684,138 @@ module.exports = {
         error: true,
         reason: error.message,
       });
+    }
+  },
+
+  /**
+   * @api {post} /checkin Check In
+   * @apiName CheckIn
+   * @apiGroup Attendance
+   * @apiVersion 1.0.0
+   *
+   * @apiDescription Allows a teacher to check in at the school if they are within a 5km radius.
+   * If they have already checked in today, they will not be allowed to check in again.
+   *
+   * @apiHeader {String} Authorization Bearer token of the teacher.
+   *
+   * @apiParam {Number[]} coordinates The current location of the teacher in the format [longitude, latitude].
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error.
+   * @apiSuccess {String} message Success or error message.
+   * @apiSuccess {Object} checkIn The check-in object containing details of the check-in.
+   *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "message": "Checked in successfully",
+   *       "checkIn": {
+   *         "_school": "school_id",
+   *         "teachers": [
+   *           {
+   *             "_teacher": "teacher_id",
+   *             "time": "2024-10-08T10:00:00.000Z",
+   *             "remark": "Checked in successfully"
+   *           }
+   *         ],
+   *         "checkinDate": "2024-10-08T10:00:00.000Z"
+   *       }
+   *     }
+   *
+   * @apiError TeacherNotFound The teacher was not found in the system.
+   * @apiError SchoolNotFound The school associated with the teacher was not found.
+   * @apiError OutOfRadius The teacher is outside the 5km radius from the school.
+   * @apiError AlreadyCheckedIn The teacher has already checked in today.
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "You are outside the 5km radius from the school."
+   *     }
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Internal server error."
+   *     }
+   */
+  async checkIn(req, res) {
+    const { coordinates } = req.body;
+    const teacherId = req.user._id;
+
+    try {
+      const teacher = await User.findOne({
+        _id: teacherId,
+        loginType: "teacher",
+      }).populate("_school");
+
+      if (!teacher) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Teacher not found" });
+      }
+      const school = await School.findOne({ _id: teacher._school });
+      if (!school) {
+        return res
+          .status(400)
+          .json({ error: true, message: "School not found" });
+      }
+
+      const isWithinDistance = await School.findOne({
+        location: {
+          $nearSphere: {
+            $geometry: { type: "Point", coordinates: coordinates },
+            $maxDistance: 5000,
+          },
+        },
+        _id: school._id,
+      });
+
+      if (!isWithinDistance) {
+        return res.status(400).json({
+          error: true,
+          message: "You are outside the 5km radius from the school.",
+        });
+      }
+
+      const alreadyCheckedIn = await CheckIn.findOne({
+        _school: school._id,
+        checkinDate: {
+          $gte: moment().startOf("day").toDate(),
+          $lte: moment().endOf("day").toDate(),
+        },
+        "teachers._teacher": teacherId,
+      });
+
+      if (alreadyCheckedIn) {
+        return res.status(400).json({
+          error: true,
+          message: "You have already checked in today.",
+        });
+      }
+
+      // Create a new check-in record
+      const newCheckIn = await CheckIn.create({
+        _school: school._id,
+        teachers: [
+          {
+            _teacher: teacherId,
+            time: new Date(),
+            remark: "Checked in successfully",
+          },
+        ],
+        checkinDate: new Date(),
+      });
+
+      return res.status(200).json({
+        error: false,
+        message: "Checked in successfully",
+        checkIn: newCheckIn,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 };
