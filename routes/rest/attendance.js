@@ -688,7 +688,7 @@ module.exports = {
   },
 
   /**
-   * @api {post} /checkin Check In
+   * @api {post} attendance/checkin Check In
    * @apiName CheckIn
    * @apiGroup Attendance
    * @apiVersion 1.0.0
@@ -829,6 +829,87 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * @api {get} /attendance/checkins Get Teacher Check-in Records
+   * @apiName GetTeacherCheckIns
+   * @apiGroup Teacher
+   * @apiPermission Teacher
+   * @apiDescription This endpoint returns the check-in attendance records of a teacher, showing which days they were present or absent.
+   *
+   * @apiHeader {String} Authorization Bearer token for teacher authentication.
+   *
+   * @apiSuccess {Boolean} error Indicates if the operation was successful (false for success).
+   * @apiSuccess {Object[]} attendance Array of attendance records for the teacher.
+   * @apiSuccess {String} attendance.date The date of the check-in.
+   * @apiSuccess {Boolean} attendance.present Whether the teacher was present on that date.
+   * @apiSuccess {String|null} attendance.time The exact check-in time if the teacher was present, null otherwise.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "attendance": [
+   *         {
+   *           "date": "2024-10-01T00:00:00.000Z",
+   *           "present": true,
+   *           "time": "2024-10-01T09:15:00.000Z"
+   *         },
+   *         {
+   *           "date": "2024-10-02T00:00:00.000Z",
+   *           "present": false,
+   *           "time": null
+   *         },
+   *         {
+   *           "date": "2024-10-03T00:00:00.000Z",
+   *           "present": true,
+   *           "time": "2024-10-03T08:45:00.000Z"
+   *         }
+   *       ]
+   *     }
+   *
+   * @apiError {Boolean} error Indicates if the operation was successful (true for failure).
+   * @apiError {String} message Description of the error that occurred.
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Internal server error."
+   *     }
+   */
+
+  async getTeacherCheckIns(req, res) {
+    const teacherId = req.user._id;
+
+    try {
+      const checkIns = await CheckIn.find({
+        "teachers._teacher": teacherId,
+      }).select("checkinDate teachers");
+
+      const attendanceRecords = checkIns.map((record) => {
+        const teacherCheckIn = record.teachers.find(
+          (t) => t._teacher.toString() === teacherId
+        );
+
+        return {
+          date: record.checkinDate,
+          present: teacherCheckIn ? true : false,
+          time: teacherCheckIn ? teacherCheckIn.time : null,
+        };
+      });
+
+      return res.status(200).json({
+        error: false,
+        attendance: attendanceRecords,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
     }
   },
 };

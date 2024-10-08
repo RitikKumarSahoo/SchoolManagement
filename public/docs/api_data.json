@@ -1,5 +1,143 @@
 [
   {
+    "type": "put",
+    "url": "/admin/update",
+    "title": "Update Admin Profile",
+    "name": "UpdateAdminProfile",
+    "group": "Admin",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "admin"
+      }
+    ],
+    "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token authorization.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "firstName",
+            "description": "<p>The new first name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "lastName",
+            "description": "<p>The new last name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "phone",
+            "description": "<p>The new phone number of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "email",
+            "description": "<p>(optional) The new email of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether the request encountered an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating the profile was updated.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Admin profile updated successfully.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if the user is not an admin or the admin was not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if there was a server error.</p>"
+          }
+        ],
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message explaining the failure reason.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response (Admin not found):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Admin not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Not admin):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Server error):",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An unexpected error occurred\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/auth/index.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "get",
     "url": "/user/:id",
     "title": "get user details",
