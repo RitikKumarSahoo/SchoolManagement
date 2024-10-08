@@ -835,7 +835,7 @@ module.exports = {
   /**
    * @api {get} /attendance/checkins Get Teacher Check-in Records
    * @apiName GetTeacherCheckIns
-   * @apiGroup Teacher
+   * @apiGroup Attendance
    * @apiPermission Teacher
    * @apiDescription This endpoint returns the check-in attendance records of a teacher, showing which days they were present or absent.
    *
