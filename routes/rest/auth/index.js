@@ -110,7 +110,7 @@ module.exports = {
    * @apiParam {String} [firstName] The new first name of the admin.
    * @apiParam {String} [lastName] The new last name of the admin.
    * @apiParam {String} [phone] The new phone number of the admin.
-   * @apiParam {String} [email] (optional) The new email of the admin.
+   * @apiParam {String} [email] The new email of the admin.
    *
    * @apiSuccess {Boolean} error Indicates whether the request encountered an error.
    * @apiSuccess {String} message Success message indicating the profile was updated.
@@ -150,7 +150,7 @@ module.exports = {
 
   async updateAdmin(req, res) {
     try {
-      const { firstName, lastName, phone } = req.body;
+      const { firstName, lastName, phone, email } = req.body;
       const { loginType, id } = req.user;
 
       if (loginType !== "admin") {
@@ -158,7 +158,7 @@ module.exports = {
           .status(400)
           .json({ error: true, reason: "You are not admin" });
       }
-      const admin = await User.findOne({ _id: req.user.id });
+      const admin = await User.findOne({ _id: id });
 
       if (admin === null) {
         return res.status(400).json({ error: true, reason: "Admin not found" });
