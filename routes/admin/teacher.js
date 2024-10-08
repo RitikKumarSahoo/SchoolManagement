@@ -8,6 +8,33 @@ const stripe = require("stripe")(
 );
 
 module.exports = {
+  async getAllTeachers(req, res) {
+    try {
+      const teachers = await User.find({
+        loginType: "teacher",
+        _school: _school,
+      }).select("-password -bankDetails");
+
+      if (teachers.length === 0) {
+        return res.status(404).json({
+          error: true,
+          message: "No teachers found for this school.",
+        });
+      }
+
+      return res.status(200).json({
+        error: false,
+        message: "Teachers retrieved successfully.",
+        data: teachers,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        reason: error.message,
+      });
+    }
+  },
+
   /**
    * @api {get} /teacher/find Find Teachers
    * @apiName FindTeachers
