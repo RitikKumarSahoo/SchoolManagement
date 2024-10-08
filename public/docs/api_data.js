@@ -61,6 +61,119 @@ define({ "api": [
     "groupTitle": "Admin_User"
   },
   {
+    "type": "post",
+    "url": "/checkin",
+    "title": "Check In",
+    "name": "CheckIn",
+    "group": "Attendance",
+    "version": "1.0.0",
+    "description": "<p>Allows a teacher to check in at the school if they are within a 5km radius. If they have already checked in today, they will not be allowed to check in again.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of the teacher.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number[]",
+            "optional": false,
+            "field": "coordinates",
+            "description": "<p>The current location of the teacher in the format [longitude, latitude].</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success or error message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "checkIn",
+            "description": "<p>The check-in object containing details of the check-in.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Checked in successfully\",\n  \"checkIn\": {\n    \"_school\": \"school_id\",\n    \"teachers\": [\n      {\n        \"_teacher\": \"teacher_id\",\n        \"time\": \"2024-10-08T10:00:00.000Z\",\n        \"remark\": \"Checked in successfully\"\n      }\n    ],\n    \"checkinDate\": \"2024-10-08T10:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "TeacherNotFound",
+            "description": "<p>The teacher was not found in the system.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "SchoolNotFound",
+            "description": "<p>The school associated with the teacher was not found.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "OutOfRadius",
+            "description": "<p>The teacher is outside the 5km radius from the school.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "AlreadyCheckedIn",
+            "description": "<p>The teacher has already checked in today.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"You are outside the 5km radius from the school.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal server error.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/attendance.js",
+    "groupTitle": "Attendance"
+  },
+  {
     "type": "get",
     "url": "/attendance/absent",
     "title": "Get Absent Students",
@@ -426,131 +539,6 @@ define({ "api": [
         {
           "title": "Error-Response:",
           "content": "{\n  \"error\": true,\n  \"reason\": \"You are not a teacher\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/attendance.js",
-    "groupTitle": "Attendance"
-  },
-  {
-    "type": "post",
-    "url": "/attendance/checkin",
-    "title": "Teacher Check-In",
-    "name": "TeacherCheckIn",
-    "group": "Attendance",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for teacher access.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "location",
-            "description": "<p>Coordinates of the teacher's check-in location.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": false,
-            "field": "date",
-            "description": "<p>The date and time of the check-in.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"location\": {\n    \"coordinates\": [88.4352966284463, 22.574465111576152]\n  },\n  \"date\": \"2024-10-01T10:00:00Z\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Success message indicating check-in success.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"message\": \"Check-in successful\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          }
-        ],
-        "404": [
-          {
-            "group": "404",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          },
-          {
-            "group": "404",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message for teacher not found.</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Teacher not found\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": \"Teacher is not within the 50-meter radius\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": \"Internal server error\"\n}",
           "type": "json"
         }
       ]
