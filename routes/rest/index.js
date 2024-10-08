@@ -22,6 +22,10 @@ router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
+
+//admin
+router.put("/admin/update", login.updateAdmin);
+
 //school
 router.post("/school/createschool", school.Post);
 router.put("/school/update", school.updateSchool);
