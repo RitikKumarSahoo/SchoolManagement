@@ -40,7 +40,6 @@ const SchoolSchema = new mongoose.Schema({
     },
     coordinates: {
       type: [Number],
-      index: "2dsphere",
     },
   },
   principalName: {
@@ -68,4 +67,5 @@ const SchoolSchema = new mongoose.Schema({
   },
 });
 
+SchoolSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model("School", SchoolSchema);
