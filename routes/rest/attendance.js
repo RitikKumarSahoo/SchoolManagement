@@ -845,7 +845,7 @@ module.exports = {
    * @apiSuccess {Object[]} attendance Array of attendance records for the teacher.
    * @apiSuccess {String} attendance.date The date of the check-in.
    * @apiSuccess {Boolean} attendance.present Whether the teacher was present on that date.
-   * @apiSuccess {String|null} attendance.time The exact check-in time if the teacher was present, null otherwise.
+   * @apiSuccess {String} attendance.time The exact check-in time if the teacher was present, null otherwise.
    *
    * @apiSuccessExample {json} Success-Response:
    *     HTTP/1.1 200 OK

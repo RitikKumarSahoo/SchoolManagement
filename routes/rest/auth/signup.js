@@ -73,7 +73,57 @@ module.exports = {
     }
   },
 
-  //admin signup
+  /**
+   * @api {post} /admin/signup Create Admin
+   * @apiName SignupByAdmin
+   * @apiGroup Admin
+   * @apiPermission Admin
+   * @apiDescription This endpoint allows an admin to create a new admin user. It requires the admin to provide essential details such as username, email, password, first name, last name, and school information.
+   *
+   * @apiHeader {String} Authorization Bearer token for admin authentication.
+   *
+   * @apiParam {String} username The unique username for the new admin.
+   * @apiParam {String} email The email address of the new admin.
+   * @apiParam {String} password The password for the new admin.
+   * @apiParam {String} firstName The first name of the new admin.
+   * @apiParam {String} lastName The last name of the new admin.
+   * @apiParam {String} phone The phone number of the new admin.
+   * @apiParam {String} _school The school ID associated with the new admin.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *     HTTP/1.1 201 Created
+   *     {
+   *       "error": false,
+   *       "message": "Admin successfully created.",
+   *       "response": {
+   *         "_id": "5f7a5bc6f59c320017c4f1a4",
+   *         "username": "newAdmin",
+   *         "email": "admin@example.com",
+   *         "firstName": "John",
+   *         "lastName": "Doe",
+   *         "isAdmin": true,
+   *         "_school": "5f7a5bc6f59c320017c4f1a5"
+   *       }
+   *     }
+   *
+   * @apiError {Boolean} error Indicates if the operation was successful (true for failure).
+   * @apiError {String} message Description of the error that occurred.
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "Admin with this email already exists."
+   *     }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Internal server error."
+   *     }
+   */
+
   async signupByAdmin(req, res) {
     try {
       const { username, email, password, firstName, lastName, phone, _school } =

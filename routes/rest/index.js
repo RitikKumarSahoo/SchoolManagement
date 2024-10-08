@@ -17,7 +17,7 @@ const message = require("../rest/message");
 
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/signup", signup.post); // UNAUTHENTICATED
-router.post("/signup/admin", signup.signupByAdmin);
+router.post("/admin/signup", signup.signupByAdmin);
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
