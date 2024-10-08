@@ -741,6 +741,7 @@ module.exports = {
    *       "message": "Internal server error."
    *     }
    */
+
   async checkIn(req, res) {
     const { coordinates } = req.body;
     const teacherId = req.user._id;
@@ -751,59 +752,71 @@ module.exports = {
         loginType: "teacher",
       }).populate("_school");
 
-      if (!teacher) {
+      if (teacher === null) {
         return res
           .status(400)
           .json({ error: true, message: "Teacher not found" });
       }
-      const school = await School.findOne({ _id: teacher._school });
-      if (!school) {
-        return res
-          .status(400)
-          .json({ error: true, message: "School not found" });
-      }
 
-      const isWithinDistance = await School.findOne({
-        location: {
-          $nearSphere: {
-            $geometry: { type: "Point", coordinates: coordinates },
-            $maxDistance: 5000,
-          },
+      const schoolId = teacher._school;
+      const checkInRecord = await CheckIn.findOne({
+        _school: schoolId,
+        checkinDate: {
+          $gte: moment().startOf("day").toDate(),
+          $lte: moment().endOf("day").toDate(),
         },
-        _id: school._id,
       });
 
-      if (!isWithinDistance) {
+      const isWithinDistance = checkInRecord
+        ? true
+        : await School.findOne({
+            _id: schoolId,
+            location: {
+              $nearSphere: {
+                $geometry: { type: "Point", coordinates: coordinates },
+                $maxDistance: 5000,
+              },
+            },
+          });
+
+      if (isWithinDistance === null) {
         return res.status(400).json({
           error: true,
           message: "You are outside the 5km radius from the school.",
         });
       }
 
-      const alreadyCheckedIn = await CheckIn.findOne({
-        _school: school._id,
-        checkinDate: {
-          $gte: moment().startOf("day").toDate(),
-          $lte: moment().endOf("day").toDate(),
-        },
-        "teachers._teacher": teacherId,
-      });
+      if (checkInRecord) {
+        const existingTeacherCheckIn = checkInRecord.teachers.find(
+          (t) => t._teacher.toString() === teacherId
+        );
 
-      if (alreadyCheckedIn) {
-        return res.status(400).json({
-          error: true,
-          message: "You have already checked in today.",
+        if (existingTeacherCheckIn) {
+          return res.status(400).json({
+            error: true,
+            message: "You have already checked in today.",
+          });
+        }
+
+        // Update the existing check-in record
+        checkInRecord.teachers.push({
+          _teacher: teacherId,
+          time: new Date(),
+        });
+
+        await checkInRecord.save();
+        return res.status(200).json({
+          error: false,
+          checkIn: checkInRecord,
         });
       }
 
-      // Create a new check-in record
       const newCheckIn = await CheckIn.create({
-        _school: school._id,
+        _school: schoolId,
         teachers: [
           {
             _teacher: teacherId,
             time: new Date(),
-            remark: "Checked in successfully",
           },
         ],
         checkinDate: new Date(),
@@ -811,7 +824,7 @@ module.exports = {
 
       return res.status(200).json({
         error: false,
-        message: "Checked in successfully",
+        message: "Checked in successfully.",
         checkIn: newCheckIn,
       });
     } catch (error) {
