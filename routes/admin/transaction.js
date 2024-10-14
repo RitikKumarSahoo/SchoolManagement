@@ -188,7 +188,7 @@ module.exports = {
   /**
    * @api {get} /transaction/get/:id Get Transaction by ID
    * @apiName GetTransactionById
-   * @apiGroup Transactions
+   * @apiGroup Transaction
    * @apiPermission Admin
    *
    * @apiParam {String} id Transaction's unique ID.
