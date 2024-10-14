@@ -29,22 +29,22 @@ router.all("*", checkJwt);
 //list of all routers
 router.post("/students/create-student", studentRoutes.createStudent)
 router.put("/student/edit/:id",studentRoutes.editStudentDetails)
-router.get("/students/view-students/:SchoolId", studentRoutes.viewAllStudents)
+router.get("/students/view-students/:schoolId", studentRoutes.viewAllStudents)  //id: SchoolId
 router.get("/students/view-student/:studentId", studentRoutes.viewStudentDetails)
 router.put("/students/deactivate/:studentId", studentRoutes.deactivateStudent)
-router.get("/students/search/:query", studentRoutes.searchStudents)
+router.get("/students/search", studentRoutes.searchStudents)
 
 // Noice board Rute
-router.get("/notices", noticeRoutes.find); // Fetch all notices
-router.get("/notice/:id",  noticeRoutes.get); // Get a notice by ID
-router.post("/notice",  noticeRoutes.post); // Create a new notice
-router.put("/notice/:id",  noticeRoutes.put); // Edit a notice by ID
-router.delete("/notice/:id",  noticeRoutes.delete); // Delete a notice by ID
+router.get("/notices/find-all-notices", noticeRoutes.findAllNotices); // Fetch all notices
+router.get("/notice/getNotice/:id",  noticeRoutes.get); // Get a notice by ID
+router.post("/notice/createNotice",  noticeRoutes.post); // Create a new notice
+router.put("/notice/edit-notice/:id",  noticeRoutes.put); // Edit a notice by ID
+router.delete("/notice/delete-notice/:id",  noticeRoutes.delete); // Delete a notice by ID
 
 //Schedule Route
-router.get("/schedules", scheduleRoutes.find); // Fetch all schedules
-router.get("/schedule/:id",  scheduleRoutes.get); // Get a schedule by ID
-router.post("/schedule",  scheduleRoutes.post); // Create a new schedule
+router.get("/schedules/find-all-schedules", scheduleRoutes.find); // Fetch all schedules
+router.get("/schedule/get-schedule/:id",  scheduleRoutes.ge); // Get a schedule by ID
+router.post("/schedule/create-schedule",  scheduleRoutes.post); // Create a new schedule
 router.put("/schedule/:id",  scheduleRoutes.put); // Edit a schedule by ID
 router.delete("/schedule/:id",  scheduleRoutes.delete); // Delete a schedule by ID
 

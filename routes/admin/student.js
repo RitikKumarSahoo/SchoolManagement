@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const users = require("../../models/user")
 const School = require("../../models/school")
 const Class = require('../../models/class')
@@ -86,11 +87,17 @@ module.exports = {
   async createStudent(req,res){
     
     try {
-      const { firstName, lastName, email, gender, guardian, phone, admissionYear, _schoolId, dob, rollNo, _classId, _adminId, joinDate, signature,profileImage  } = req.body;
 
+      const { firstName, lastName, email, gender, guardian, phone, admissionYear, dob, rollNo, _classId, joinDate, signature,profileImage  } = req.body;
+      const {loginType,id}=req.user
       // if(!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !schoolId || !dob || !rollNo || !classId || !addedBy || !joinDate || !signature){
       //   return res.status(400).json({error: true, message: "All fields are required"})
       // }
+      if(loginType!=='admin'){
+        return res.status(403).json({ error: true, message: "Unauthorized" });
+      }
+      const admin=await users.findOne({ _id: id, loginType: "admin" }).lean().exec();
+      if(!admin) return res.status(403).json({ error: true, message: "Unauthorized" });
       
 
       if (!firstName) {
@@ -111,9 +118,6 @@ module.exports = {
       if (!admissionYear) {
         return res.status(400).json({ error: true, message: "Admission year is required" });
       }
-      if (!_schoolId) {
-        return res.status(400).json({ error: true, message: "School ID is required" });
-      }
       if (!dob) {
         return res.status(400).json({ error: true, message: "Date of birth is required" });
       }
@@ -123,15 +127,10 @@ module.exports = {
       if (!_classId) {
         return res.status(400).json({ error: true, message: "Class ID is required" });
       }
-      if (!_adminId) {
-        return res.status(400).json({ error: true, message: "AddedBy (Admin/User ID) is required" });
-      }
       if (!joinDate) {
         return res.status(400).json({ error: true, message: "Join date is required" });
       }
-      if (!signature) {
-        return res.status(400).json({ error: true, message: "Student Signature is required" });
-      }
+      
       
       
       const query = {phone,rollNo}
@@ -140,9 +139,9 @@ module.exports = {
       if(studentExists)  return res.status(400).json({error: true, message: "Student already exists"})
        
 
-      const schoolName = await School.findOne({_id:_schoolId}).select("name").exec()
+      const schoolName = await School.findOne({_id:admin._school}).select("name").exec()
       
-  console.log("School Name:",schoolName);
+      console.log("School Name:",schoolName);
   
       const username  = firstName.slice(0,3)+schoolName.name.slice(0,3)+phone.slice(-3)
       const password = schoolName.name.slice(0,3)+admissionYear+phone.slice(-3)
@@ -155,11 +154,11 @@ module.exports = {
         guardian,
         phone,
         admissionYear,
-        _school:_schoolId,
+        _school:admin._school,
         dob,
         rollNo,
         _class:_classId,
-        _addedBy:_adminId,
+        _addedBy:req.user.id,
         joinDate,
         signature,
         username,
@@ -169,9 +168,9 @@ module.exports = {
         
       })
       
-      const adminDetails = await users.findById(_adminId).exec()
-      const adminName = adminDetails.firstName
-      const adminEmail = adminDetails.email
+      // const adminDetails = await users.findById(req.user.id).exec()
+      const adminName = admin.firstName
+      const adminEmail = admin.email
       // Determine the recipient email
       const recipientEmail = student.email || adminEmail;
 
@@ -228,14 +227,12 @@ module.exports = {
   async  editStudentDetails(req, res) {
     try {
       // Get student ID from params
-      const { studentId } = req.params;
-      const { adminId } = req.body; // Get adminId from the request body
-
-    // Verify if the user is an admin by checking the database
-    const adminUser = await users.findOne({_id:adminId}).lean().exec();
-
+      const  studentId  = req.params.id;
+      const { isAdmin } = req.user; // Get adminId from the request body
+      console.log(studentId);
+      
     // Check if the user exists and has the 'admin' role
-    if (!adminUser || adminUser.loginType !== 'admin') {
+    if (!isAdmin) {
       return res.status(403).json({ message: 'Only admins can edit student details' });
     }
   
@@ -248,12 +245,12 @@ module.exports = {
         guardian,
         phone,
         admissionYear,
-        _schoolId,
         dob,
         rollNo,
         _classId,
         signature,
-        profileImage
+        profileImage,
+        
       } = req.body;
   
       // Build the update object (only update fields that are provided)
@@ -265,7 +262,6 @@ module.exports = {
       if (guardian) updateData.guardian = guardian;
       if (phone) updateData.phone = phone;
       if (admissionYear) updateData.admissionYear = admissionYear;
-      if (_schoolId) updateData._schoolId = _schoolId;
       if (dob) updateData.dob = dob;
       if (rollNo) updateData.rollNo = rollNo;
       if (_classId) updateData._classId = _classId;
@@ -273,7 +269,7 @@ module.exports = {
       if (profileImage) updateData.profileImage = profileImage;
   
       // Update the student record in the database
-      const updatedStudent = await Student.findByIdAndUpdate(
+      const updatedStudent = await users.findByIdAndUpdate(
         studentId,
         { $set: updateData },
         { new: true } // Return the updated document
@@ -306,28 +302,52 @@ module.exports = {
    */
   async viewAllStudents(req,res){
     try {
-        const {schoolId} = req.params
-        const students = await Student.find({_school:schoolId}).exec()
-        return res.json({error: false, students})
+      const { isAdmin } = req.user; // Get adminId from the request body 
+    // Check if the user exists and has the 'admin' role
+    if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
+    console.log(isAdmin);
+    
+    const { schoolId } = req.params;
+
+    const students = await users.find({ _school: schoolId, loginType: "student" })
+    // .select(' firstName lastName rollNo')
+    // .populate('_class','-_id name section')
+    // .populate('_school','-_id name')
+    .exec()
+    
+    return res.json({error: false, students:students});
     } catch (error) {
-      log.error(error)
+      console.log(error)
       return res.status(500).json({error: true, message: error.message})
     }
   },
 
 
+
+  /**
+   * View a student's details
+   * 
+   * This endpoint is restricted to admins only.
+   * 
+   * @param {string} studentId - The ID of the student
+   * @returns {object} - The student's details
+   * 
+   * @throws {Error} - If the student is not found
+   * @throws {Error} - If the request is not authorized (not an admin)
+   */
   async viewStudentDetails(req, res) {
     try {
       // Get student ID from params
       const { studentId } = req.params;
-      const {adminId} = req.body
 
       //This may be changed as in this route only admin have access to enter this route
-      const admin = await users.findOne({ _id: adminId, loginType: "admin" }).lean().exec();
-      if(!adminId) return res.status(403).json({ error: true, message: "Unauthorized" });
+      const { isAdmin } = req.user; // Get adminId from the request body 
+      // Check if the user exists and has the 'admin' role
+      if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
+      console.log(isAdmin);
 
-      const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).populate('_schoolId', 'schoolName')
-      .populate('_classId', 'className').exec();
+      const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).select('-password').populate('_school', '-_id name')
+      .populate('_class', '-_id name').exec();
        
       if(!student) return res.status(404).json({ error: true, message: "Student not found" });
       
@@ -359,10 +379,10 @@ module.exports = {
   async deactivateStudent(req, res) {
     try {
         const {studentId} = req.params
-        const {adminId} = req.body
-
-        const admin = await users.findOne({ _id: adminId, loginType: "admin" }).lean().exec();
-        if(!adminId) return res.status(403).json({ error: true, message: "Unauthorized" }); 
+        const { isAdmin } = req.user; // Get adminId from the request body 
+        // Check if the user exists and has the 'admin' role
+        if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
+        console.log(isAdmin);
 
         const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).exec();
 
@@ -396,50 +416,62 @@ module.exports = {
    */
   async searchStudents(req, res) {
     try {
-      // Assuming adminId is part of the request, verify if the user is an admin
-      const adminId = req.body.adminId; // You might want to pass this in the headers or token
-  
-      // Check if the adminId corresponds to an admin in your database
-      const admin = await users.findOne({_id:adminId, loginType: "admin"}); 
-      if (!admin) return res.status(403).json({ message: 'Forbidden: You do not have permission to access this resource.' });
+      const { isAdmin } = req.user; // Get adminId from the request body
       
-  
+      // Check if the user exists and has the 'admin' role
+      if (!isAdmin) {
+        return res.status(403).json({ message: 'Only admins can search for student details' });
+      }
+    
       // Extracting search criteria from the query
       const { name, rollNo, classId } = req.query;
-  
-      // Validations
+    
+      // Validations and search criteria setup
       const searchCriteria = {};
+    
+      // Search by name (firstname or lastname)
       if (name) {
         if (typeof name !== 'string' || name.trim().length === 0) {
           return res.status(400).json({ message: 'Invalid name provided.' });
         }
-        searchCriteria.name = { $regex: name, $options: 'i' };
+        // Search for students where either firstname or lastname matches
+        searchCriteria.$or = [
+          { firstName: { $regex: name, $options: 'i' } }, // case-insensitive search for firstName
+          { lastName: { $regex: name, $options: 'i' } }  // case-insensitive search for lastName
+        ];
       }
+    
+      // Search by roll number
       if (rollNo) {
         if (typeof rollNo !== 'string' || rollNo.trim().length === 0) {
           return res.status(400).json({ message: 'Invalid roll number provided.' });
         }
         searchCriteria.rollNo = rollNo;
       }
+    
+      // Search by class ID
       if (classId) {
         // Assuming classId is a valid ObjectId
         if (!mongoose.Types.ObjectId.isValid(classId)) {
           return res.status(400).json({ message: 'Invalid class ID provided.' });
         }
-        searchCriteria._classId = classId;
+        searchCriteria._class = classId; // Assuming _class is the field holding the class reference
       }
-  
-      // Searching for students based on criteria
-      const students = await users.find(searchCriteria);
-      
+    
+      // Searching for students based on the criteria
+      const student = await users.find(searchCriteria)
+        .populate('_class', '-_id name section') // Populate class details
+        .populate('_school', '-_idname') // Populate school details
+        .select('firstName lastName rollNo'); // Only return the relevant fields
+    
       // Returning the search results
-      res.status(200).json(students);
+      res.status(200).json({ error: false, student });
     } catch (error) {
-      res.status(500).json({ message: 'Error searching students', error });
+      console.error(error);
+      res.status(500).json({ error: true, message: 'Error searching students', details: error.message });
     }
   },
 
-  
   
   
 }

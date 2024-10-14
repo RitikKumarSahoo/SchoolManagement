@@ -74,7 +74,7 @@ module.exports = {
   //admin signup
   async signupByAdmin(req, res) {
     try {
-      const { username, email, password, firstName, lastName, _school } =
+      const { username, email, password, firstName, lastName,phone, _school } =
         req.body;
 
       // Validate input
@@ -106,6 +106,7 @@ module.exports = {
         password,
         firstName,
         lastName,
+        phone,
         loginType: "admin",
         isAdmin: true,
         isActive: true,

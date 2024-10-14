@@ -26,13 +26,9 @@ const NoticeSchema = new mongoose.Schema({
   expireDate: {
     type: Date,
   },
-  attcahments: {
-    url:{
-      type:String
-    },
-    fileName:{
-      type:String
-    }
+  attachments: {
+    url: { type: String },
+    fileName: { type: String },
   },
   isActive:{
     type:Boolean,

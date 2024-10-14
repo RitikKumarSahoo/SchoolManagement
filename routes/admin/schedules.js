@@ -1,5 +1,6 @@
 
 const Schedule = require("../../models/schedule")
+const School = require("../../models/school")
 
 module.exports = {
 
@@ -20,6 +21,7 @@ module.exports = {
    */
   async find(req, res) {
     try {
+      if (!req.user || req.user.loginType !== 'admin') return res.status(403).json({ message: 'Access denied: Admins only' });
       const schedules = await Schedule.find({}).exec()
       return res.json({ error: false, schedules })
     } catch (err) {
@@ -46,6 +48,8 @@ module.exports = {
    */
   async get(req, res) {
     try {
+      if (!req.user || req.user.loginType !== 'admin') return res.status(403).json({ message: 'Access denied: Admins only' });
+    
       const schedule = await Schedule.findOne({ _id: req.params.id }).exec()
       return res.json({ error: false, schedule })
     } catch (err) {
@@ -217,24 +221,24 @@ module.exports = {
    * }
    */
 async post(req,res){
-    const { schoolId, classId, routine } = req.body;
+    const { _school, _class, routine } = req.body;
 
     try {
         // Check if the user is an admin
-        if (!req.user || req.user.role !== 'admin') {
+        if (!req.user || req.user.loginType !== 'admin') {
             return res.status(403).json({ message: 'Access denied: Admins only' });
         }
 
         // Validate schoolId
-        const schoolExists = await School.findById(schoolId);
+        const schoolExists = await School.findById(_school);
         if (!schoolExists) {
             return res.status(404).json({ message: 'School not found' });
         }
 
         // Create a new schedule instance
         const newSchedule = new Schedule({
-            _school: schoolId,
-            _class: classId,
+            _school,
+            _class,
             routine,
             postedBy: req.user._id, // Assuming you're using middleware to get the logged-in user
             date: new Date(), // Optional: Set the current date

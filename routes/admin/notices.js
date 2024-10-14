@@ -1,4 +1,6 @@
+const moment = require('moment');
 const Notice = require("../../models/notice.js");
+const agenda = require("../../agenda");
 
 module.exports = {
   /**
@@ -16,8 +18,13 @@ module.exports = {
    *     notices: [{}]
    * }
    */
-  async find(req, res) {
+  async findAllNotices(req, res) {
     try {
+      const  role  = req.user.loginType;
+      if (role !== "admin") {
+        return res.status(403).json({ error: true, reason: "Unauthorized" });
+      }
+      
       const notices = await Notice.find({}).exec();
       return res.json({ error: false, notices });
     } catch (err) {
@@ -44,7 +51,14 @@ module.exports = {
    */
   async get(req, res) {
     try {
+
+      const  role  = req.user.loginType;
+      if (role !== "admin") {
+        return res.status(403).json({ error: true, reason: "Unauthorized" });
+      }
+      
       const notice = await Notice.findOne({ _id: req.params.id }).exec();
+      if (!notice) return res.status(400).json({ error: true, reason: "No such Notice!" });
       return res.json({ error: false, notice });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
@@ -81,17 +95,16 @@ module.exports = {
    */
   async post(req, res) {
     try {
-      const { role } = req.user; // Assuming role is provided from JWT payload.
+      const  role  = req.user.loginType; // Assuming role is provided from JWT payload.
       const {
+        _school,
         title,
         description,
         noticeType,
         isUrgent,
-        postedBy,
         expireDate,
         attachments,
         isActive,
-        postedDate,
         signatureOfTeacherUrl,
       } = req.body;
 
@@ -112,8 +125,11 @@ module.exports = {
         return res.status(400).json({ error: true, reason: "Expire date is required" });
       }
 
+      // const postedDate = moment().format('DD/MM/YYYY HH:mm');
+      const postedBy = req.user._id; 
       // Create the notice
       const notice = await Notice.create({
+        _school,
         title,
         description,
         noticeType,
@@ -122,13 +138,13 @@ module.exports = {
         expireDate,
         attachments,
         isActive: isActive ?? true,
-        postedDate,
+        postedDate: new Date().toISOString(),
         signatureOfTeacherUrl,
       });
 
       // Schedule the deactivation of the notice using Agenda
       agenda.schedule(new Date(expireDate), "deactivate notice", { noticeId: notice._id });
-
+      
       return res.json({ error: false, notice });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
@@ -167,7 +183,7 @@ module.exports = {
    */
   async put(req, res) {
     try {
-      const { role, userId } = req.user; // Assuming role and userId are provided from JWT payload.
+      const { loginType, _id } = req.user; // Assuming role and userId are provided from JWT payload.
       const { id } = req.params;
       const {
         title,
@@ -188,7 +204,7 @@ module.exports = {
       }
 
       // Only admin or the teacher who posted can edit the notice
-      if (role !== "admin" && !(role === "teacher" && notice.postedBy.equals(userId))) {
+      if (loginType !== "admin" && !(loginType === "teacher" && notice.postedBy.equals(_id))) {
         return res.status(403).json({ error: true, reason: "Unauthorized" });
       }
 
@@ -230,7 +246,7 @@ module.exports = {
    */
   async delete(req, res) {
     try {
-      const { role, userId } = req.user; // Assuming role and userId are provided from JWT payload.
+      const { loginType, _id } = req.user; // Assuming role and userId are provided from JWT payload.
       const { id } = req.params;
 
       const notice = await Notice.findOne({ _id: id }).exec();
@@ -239,11 +255,13 @@ module.exports = {
       }
 
       // Only admin or the teacher who posted can delete the notice
-      if (role !== "admin" && !(role === "teacher" && notice.postedBy.equals(userId))) {
+      if (loginType !== "admin" && !(loginType === "teacher" && notice.postedBy.equals(_id))) {
         return res.status(403).json({ error: true, reason: "Unauthorized" });
       }
 
       await Notice.deleteOne({ _id: id }).exec();
+      console.log("Notice deleted successfully.");
+      
       return res.json({ error: false });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
