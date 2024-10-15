@@ -50,8 +50,62 @@ module.exports = {
     try {
       if (!req.user || req.user.loginType !== 'admin') return res.status(403).json({ message: 'Access denied: Admins only' });
     
-      const schedule = await Schedule.findOne({ _id: req.params.id }).exec()
-      return res.json({ error: false, schedule })
+      const { classId, className, section, dayOfWeek, scheduleId } = req.query;
+    const query = {};
+
+    // Add fields to the query if they are provided in the request
+    if (scheduleId) query._id = scheduleId;
+    if (classId) query._class = classId; // Use _class instead of classId
+
+    if (section) query.section = section;
+
+
+    const validDays = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
+    if (dayOfWeek && !validDays.includes(dayOfWeek.toLowerCase())) return res.status(400).json({ error: true, message: 'Invalid dayOfWeek. Must be one of d1, d2, d3, d4, d5, d6.' });
+
+
+
+    // If searching by dayOfWeek, ensure className and section are also provided
+    if (dayOfWeek) {
+      if (!className || !section) {
+        return res.status(400).json({ 
+          error: true, 
+          message: 'Both className and section are required when searching by dayOfWeek' 
+        });
+      }
+      query[`routine.${dayOfWeek.toLowerCase()}`] = { $exists: true }; // Assuming days are stored in a "routine" object
+    }
+
+    // Find the schedule(s) based on the query
+    let schedules;
+
+    if (className && section) {
+      // If className and section are provided, populate class details
+      schedules = await Schedule.find(query)
+        .populate({ path: '_class', match: { name: className, section: section } }) // Populate only if both className and section are provided
+        .exec();
+    } else {
+      // If className or section are not provided, find without population
+      schedules = await Schedule.find(query).exec();
+    }
+
+    // Check if any schedules were found
+    if (!schedules || schedules.length === 0) {
+      return res.status(404).json({ error: true, message: 'No schedules found' });
+    }
+
+
+    const responseData = schedules.map(schedule => {
+      if (dayOfWeek) {
+        // Return only the relevant day's data
+        return { [dayOfWeek]: schedule.routine[dayOfWeek.toLowerCase()] };
+      }
+      return schedule; // Return full schedule if no specific day is queried
+    });
+    return res.json({ error: false, schedules: responseData });
+
+
+    // return res.json({ error: false, schedules });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message })
     }
@@ -427,20 +481,62 @@ async post(req,res){
    */
   async put(req, res) {
     try {
-      const {
-        routine, postedBy, date
-      } = req.body
-      const schedule = await Schedule.findOne({ _id: req.params.id }).exec()
-      if (schedule === null) return res.status(400).json({ error: true, reason: "No such Schedule!" })
-
-      if (postedBy !== undefined) schedule.postedBy = postedBy
-      if (date !== undefined) schedule.date = date
-
-      await schedule.save()
-      return res.json({ error: false, schedule })
+      const { routine, postedBy, date } = req.body;
+      const { id } = req.params;  // Schedule ID from the route parameters
+      const { dayOfWeek } = req.query; // The day to be edited (e.g., d1, d2, etc.)
+    
+      if (!req.user || req.user.loginType !== 'admin') return res.status(403).json({ message: 'Access denied: Admins only' });
+      // Validate dayOfWeek
+      const validDays = ['d1', 'd2', 'd3', 'd4', 'd5', 'd6'];
+      if (dayOfWeek && !validDays.includes(dayOfWeek.toLowerCase())) {
+        return res.status(400).json({ error: true, message: 'Invalid dayOfWeek. Must be one of d1, d2, d3, d4, d5, d6.' });
+      }
+    
+      // Find the schedule by ID
+      const schedule = await Schedule.findOne({ _id: id }).exec();
+      if (!schedule) {
+        return res.status(400).json({ error: true, reason: "No such Schedule!" });
+      }
+    
+      
+      // Update the routine for the specific day
+      if (routine && dayOfWeek) {
+        const dayRoutine = schedule.routine[dayOfWeek.toLowerCase()];
+    
+        if (!dayRoutine) {
+          return res.status(400).json({ error: true, reason: `No routine exists for ${dayOfWeek}` });
+        }
+        
+        // Only update provided periods in the routine without overwriting undefined fields
+        Object.keys(routine).forEach(period => {
+          if (routine[period]) {
+            // Update only the fields provided for the period
+            dayRoutine[period] = {
+              ...dayRoutine[period],  // Preserve existing data
+              ...routine[period]      // Merge with new data
+            };
+            // If a teacher ID is provided, include it in the update
+            if (routine[period]._teacher) {
+              dayRoutine[period]._teacher = routine[period]._teacher;
+            }
+          }
+        });
+      }
+    
+      // Update postedBy if provided
+      if (postedBy !== undefined) schedule.postedBy = postedBy;
+    
+      // Update date if provided
+      if (date !== undefined) schedule.date = date;
+    
+      // Save the updated schedule
+      await schedule.save();
+      return res.json({ error: false, schedule });
+    
     } catch (err) {
-      return res.status(500).json({ error: true, reason: err.message })
-    }
+      return res.status(500).json({ error: true, reason: err.message });
+    }    
+    
   },
 
   /**

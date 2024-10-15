@@ -9,8 +9,10 @@ const noticeRoutes = require("./notices")
 const scheduleRoutes = require("./schedules")
 const progressReportRoutes = require("./progressReport")
 
-const multer = require('multer');
-const upload = multer({ dest: '../../public/docs/uploads' });
+// const multer = require('multer');
+// const upload = multer({ dest: '../../public/docs/uploads' });
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 
 const teacher = require("./teacher");
 const classRoute = require("./class");
@@ -43,14 +45,15 @@ router.delete("/notice/delete-notice/:id",  noticeRoutes.delete); // Delete a no
 
 //Schedule Route
 router.get("/schedules/find-all-schedules", scheduleRoutes.find); // Fetch all schedules
-router.get("/schedule/get-schedule/:id",  scheduleRoutes.ge); // Get a schedule by ID
+router.get("/schedule/get-schedule/",  scheduleRoutes.get); // Get a schedule by ID
 router.post("/schedule/create-schedule",  scheduleRoutes.post); // Create a new schedule
-router.put("/schedule/:id",  scheduleRoutes.put); // Edit a schedule by ID
+router.put("/schedule/edit-schedule/:id",  scheduleRoutes.put); // Edit a schedule by ID
 router.delete("/schedule/:id",  scheduleRoutes.delete); // Delete a schedule by ID
 
-//Progress Report Rooute
+//Progress Report Rooutec
 router.post("/progressReport/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
-router.get("/progressReport/:studentId", progressReportRoutes.get)
+
+router.get("/progressReport/get-progress-report/:studentId", progressReportRoutes.get)
 
 module.exports = router
 router.get("/user/:id", users.get);
