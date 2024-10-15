@@ -4,38 +4,58 @@ const User = require("../../../models/user");
 
 module.exports = {
   /**
-   *
-   * @api {post} /login User login
-   * @apiName userLogin
+   * @api {post} /login User Login
+   * @apiVersion 1.0.0
+   * @apiName Login
    * @apiGroup Auth
-   * @apiVersion  1.0.0
-   * @apiPermission Public
+   * @apiPermission None
    *
+   * @apiDescription This endpoint allows users (students, teachers, admins, and super admins) to log in to the system. The endpoint checks for required credentials based on the `loginType` and generates a token upon successful login.
    *
-   * @apiParam  {String} handle (mobile / email)
-   * @apiParam  {String} password user's password
+   * @apiParam {String} loginType Type of user logging in, one of "student", "teacher", "admin".
+   * @apiParam {String} [username] Username of the student (required if loginType is "student").
+   * @apiParam {String} [email] Email of the user (required if loginType is "admin" or "teacher").
+   * @apiParam {String} password Password of the user.
    *
-   * @apiSuccess (200) {json} name description
+   * @apiExample {json} Request-Example-1:
+   *     {
+   *       "loginType": "admin",
+   *       "email": "admin@example.com",
+   *       "password": "yourpassword"
+   *     }
+   * @apiExample {json} Request-Example-2:
+   *     {
+   *       "loginType": "student",
+   *       "username": "username",
+   *       "password": "yourpassword"
+   *     }
    *
-   * @apiParamExample  {json} Request-Example:
-   * {
-   *     "handle" : "myEmail@logic-square.com",
-   *     "password" : "myNewPassword"
-   * }
+   * @apiSuccess {Boolean} error False indicating no error.
+   * @apiSuccess {String} token JWT token generated after successful login.
    *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   *     }
    *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *     "error" : false,
-   *     "handle" : "myEmail@logic-square.com",
-   *     "token": "authToken.abc.xyz"
-   * }
+   * @apiError (400) MissingFields Fields `loginType` and `password` are mandatory.
+   * @apiError (400) MissingUsername Field `username` is required for `loginType` "student".
+   * @apiError (400) MissingEmail Field `email` is required for `loginType` "admin" or "teacher".
+   * @apiError (404) UserNotFound The user with the provided credentials was not found.
+   * @apiError (403) UserInactive The user is inactive and cannot log in.
+   * @apiError (500) InternalServerError Error occurred during login.
    *
-   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 404 Not Found
+   *     {
+   *       "error": true,
+   *       "reason": "User Not Found"
+   *     }
    */
   async post(req, res) {
     try {
-      // const { type } = req.params
       const { email, password, username, loginType } = req.body;
       if (loginType === undefined || password === undefined) {
         return res.status(400).json({
@@ -78,6 +98,7 @@ module.exports = {
         phone: user.phone,
         isAdmin: user.isAdmin,
         isActive: user.isActive,
+        isSuperAdmin: user.isSuperAdmin || false,
         _school: user._school,
         loginType: user.loginType,
       };
