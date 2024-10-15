@@ -10,6 +10,7 @@ const stripe = require("stripe")(
 module.exports = {
   async getAllTeachers(req, res) {
     try {
+      const { _school } = req.user;
       const teachers = await User.find({
         loginType: "teacher",
         _school: _school,
