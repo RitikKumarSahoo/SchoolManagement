@@ -169,14 +169,26 @@ module.exports = {
           .status(400)
           .json({ error: true, reason: "you are not admin" });
       }
-      const transaction = await Transaction.create({
-        _user: userId,
-        amount: Number(amount),
-        busFee: Number(busFee),
-        totalAmount: amount + busFee,
-        status,
-        date: new Date(),
-      });
+      let transaction;
+      if (userId.loginType === "student") {
+        transaction = await Transaction.create({
+          _user: userId,
+          amount: Number(amount),
+          busFee: Number(busFee),
+          totalAmount: amount + busFee,
+          status,
+          date: new Date(),
+        });
+      }
+      if (userId.loginType === "teacher") {
+        transaction = await Transaction.create({
+          _user: userId,
+          amount: Number(amount),
+          totalAmount: amount,
+          status,
+          date,
+        });
+      }
 
       return res.status(201).json({ error: false, transaction });
     } catch (error) {
