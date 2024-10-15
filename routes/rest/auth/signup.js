@@ -1,4 +1,7 @@
 const User = require("../../../models/user");
+const randomstring = require("randomstring");
+const mail = require("../../../lib/mail");
+const School = require("../../../models/school");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
@@ -74,70 +77,59 @@ module.exports = {
   },
 
   /**
-   * @api {post} /admin/signup Create Admin
-   * @apiName SignupByAdmin
+   * @api {post} /admin/signup Sign Up Admin by SuperAdmin
+   * @apiName SignupAdmin
    * @apiGroup Admin
-   * @apiPermission Admin
-   * @apiDescription This endpoint allows an admin to create a new admin user. It requires the admin to provide essential details such as username, email, password, first name, last name, and school information.
+   * @apiVersion 1.0.0
+   * @apiDescription Allows a SuperAdmin to create a new admin user.
    *
-   * @apiHeader {String} Authorization Bearer token for admin authentication.
+   * @apiHeader {String} Authorization SuperAdmin's unique access token (JWT).
    *
-   * @apiParam {String} username The unique username for the new admin.
-   * @apiParam {String} email The email address of the new admin.
-   * @apiParam {String} password The password for the new admin.
-   * @apiParam {String} firstName The first name of the new admin.
-   * @apiParam {String} lastName The last name of the new admin.
-   * @apiParam {String} phone The phone number of the new admin.
-   * @apiParam {String} _school The school ID associated with the new admin.
+   * @apiParam {String} username Username for the new admin.
+   * @apiParam {String} email Email address for the new admin.
+   * @apiParam {String} firstName First name of the new admin.
+   * @apiParam {String} lastName Last name of the new admin.
+   * @apiParam {String} phone Phone number of the new admin.
+   * @apiParam {String} dob Date of birth of the new admin (YYYY-MM-DD format).
+   * @apiParam {String} _school School ID for the new admin.
    *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 201 Created
-   *     {
-   *       "error": false,
-   *       "message": "Admin successfully created.",
-   *       "response": {
-   *         "_id": "5f7a5bc6f59c320017c4f1a4",
-   *         "username": "newAdmin",
-   *         "email": "admin@example.com",
-   *         "firstName": "John",
-   *         "lastName": "Doe",
-   *         "isAdmin": true,
-   *         "_school": "5f7a5bc6f59c320017c4f1a5"
-   *       }
-   *     }
+   * @apiSuccess {Boolean} error Whether there was an error (false if successful).
+   * @apiSuccess {String} message Success message.
+   * @apiSuccess {Object} response The newly created admin user object.
    *
-   * @apiError {Boolean} error Indicates if the operation was successful (true for failure).
-   * @apiError {String} message Description of the error that occurred.
+   * @apiError (400) {Boolean} error Whether there was an error.
+   * @apiError (400) {String} reason Reason for the error (if applicable).
    *
    * @apiErrorExample {json} Error-Response:
    *     HTTP/1.1 400 Bad Request
    *     {
    *       "error": true,
-   *       "message": "Admin with this email already exists."
+   *       "reason": "you are not superadmin"
    *     }
+   *
+   * @apiError (500) {Boolean} error Whether there was an internal server error.
+   * @apiError (500) {String} message Error message (if internal error occurs).
    *
    * @apiErrorExample {json} Error-Response:
    *     HTTP/1.1 500 Internal Server Error
    *     {
    *       "error": true,
-   *       "message": "Internal server error."
+   *       "message": "Internal Server Error"
    *     }
    */
 
   async signupByAdmin(req, res) {
     try {
-      const { username, email, password, firstName, lastName, phone, _school } =
+      const { username, email, firstName, lastName, phone, _school, dob } =
         req.body;
-
+      const { isSuperAdmin } = req.user;
+      if (isSuperAdmin !== true) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "you are not superadmin" });
+      }
       // Validate input
-      if (
-        !username ||
-        !email ||
-        !password ||
-        !firstName ||
-        !lastName ||
-        !_school
-      ) {
+      if (!username || !email || !firstName || !lastName || !_school || !dob) {
         return res
           .status(400)
           .json({ error: true, message: "All fields are required." });
@@ -151,10 +143,22 @@ module.exports = {
           message: "Admin with this email already exists.",
         });
       }
-
+      const existSchool = await School.findOne({ _id: _school }).select("name");
+      if (existSchool === null) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school not found" });
+      }
       const customer = await stripe.customers.create({
         email,
       });
+
+      const randomStr = randomstring.generate({
+        length: 8,
+        charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      });
+      const password = randomStr;
+
       const response = await User.create({
         username,
         email,
@@ -163,11 +167,23 @@ module.exports = {
         lastName,
         loginType: "admin",
         isAdmin: true,
+        dob,
         isActive: true,
         _school,
         phone,
         customerStripeId: customer.id,
         messagingEnabled: true,
+      });
+
+      await mail("admin-welcome", {
+        to: email,
+        subject: `Welcome to ${existSchool.name}`,
+        locals: {
+          email,
+          firstName,
+          password,
+          schoolName: existSchool.name,
+        },
       });
 
       return res.status(201).json({
