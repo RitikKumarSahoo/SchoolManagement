@@ -16,13 +16,12 @@ const classRoute = require("../rest/class");
 const message = require("../rest/message");
 
 router.post("/login", login.post); // UNAUTHENTICATED
-router.post("/signup", signup.post); // UNAUTHENTICATED
-router.post("/admin/signup", signup.signupByAdmin);
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
+router.post("/admin/signup", signup.signupByAdmin);
 //admin
 router.put("/admin/update", login.updateAdmin);
 
