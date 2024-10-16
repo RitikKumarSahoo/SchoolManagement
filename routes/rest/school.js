@@ -123,7 +123,7 @@ module.exports = {
   },
 
   /**
-   * @api {put} /schools/:id Update School
+   * @api {put} /school/update/:id Update School
    * @apiName UpdateSchool
    * @apiGroup School
    * @apiVersion 1.0.0
@@ -172,17 +172,19 @@ module.exports = {
     try {
       const { loginType, isSuperAdmin } = req.user;
       const { name, address, contact, principalName, isActive } = req.body;
+
       if (loginType !== "admin" && isSuperAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "you are not superadmin" });
       }
-      const school = await School.findOne({ _id: req.user.id });
+      const school = await School.findOne({ _id: req.params.id });
       if (school === null) {
         return res
           .status(400)
           .json({ error: true, reason: "school not found" });
       }
+
       if (name !== undefined) school.name = name;
       if (address !== undefined) school.address = address;
       if (contact !== undefined) school.contact = contact;
@@ -191,7 +193,7 @@ module.exports = {
 
       await school.save();
 
-      return response.status(400).json({ error: false, school });
+      return res.status(400).json({ error: false, school });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }

@@ -27,7 +27,7 @@ router.put("/admin/update", login.updateAdmin);
 
 //school
 router.post("/school/createschool", school.Post);
-router.put("/school/update", school.updateSchool);
+router.put("/school/update/:id", school.updateSchool);
 //transaction
 
 router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
