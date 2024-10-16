@@ -2806,7 +2806,7 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/schools/:id",
+    "url": "/school/update/:id",
     "title": "Update School",
     "name": "UpdateSchool",
     "group": "School",
