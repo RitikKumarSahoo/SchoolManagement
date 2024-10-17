@@ -125,4 +125,25 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  async getAllAdmin(req, res) {
+    try {
+      const { isSuperAdmin } = req.user;
+
+      if (isSuperAdmin !== true) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not superAdmin" });
+      }
+
+      const admins = await User.find({
+        loginType: "admin",
+        isSuperAdmin: false,
+      }).select("-password");
+
+      return res.status(200).json({ error: false, admins });
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error });
+    }
+  },
 };
