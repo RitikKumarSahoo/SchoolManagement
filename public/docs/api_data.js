@@ -1,5 +1,158 @@
 define({ "api": [
   {
+    "type": "get",
+    "url": "/admin/get/:id",
+    "title": "Get admin by ID",
+    "name": "GetAdmin",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>Fetch a specific admin's details by their ID</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Admin's unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admin\": {\n    \"_id\": \"61234abcd5678ef901234567\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"loginType\": \"admin\",\n    \"createdAt\": \"2024-09-30T12:30:45.123Z\",\n    \"updatedAt\": \"2024-10-01T14:22:05.456Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error if the user is not a super admin.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superAdmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Some error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "get",
+    "url": "/admin/getAll",
+    "title": "Get all admins",
+    "name": "GetAllAdmins",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>Fetch all admin users</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admins\": [\n    {\n      \"_id\": \"61234abcd5678ef901234567\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"loginType\": \"admin\",\n      \"createdAt\": \"2024-09-30T12:30:45.123Z\",\n      \"updatedAt\": \"2024-10-01T14:22:05.456Z\"\n    },\n    {\n      \"_id\": \"62345bcde6789fg012345678\",\n      \"name\": \"Jane Smith\",\n      \"email\": \"jane.smith@example.com\",\n      \"loginType\": \"admin\",\n      \"createdAt\": \"2024-08-20T09:45:15.123Z\",\n      \"updatedAt\": \"2024-10-01T11:10:05.789Z\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error if the user is not a super admin.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superAdmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Some error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "post",
     "url": "/admin/signup",
     "title": "Sign Up Admin by SuperAdmin",
@@ -71,6 +224,20 @@ define({ "api": [
             "optional": false,
             "field": "_school",
             "description": "<p>School ID for the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "gender",
+            "description": "<p>Gender of the admin</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address",
+            "description": "<p>address of the admin</p>"
           }
         ]
       }
@@ -209,6 +376,27 @@ define({ "api": [
             "optional": true,
             "field": "email",
             "description": "<p>The new email of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>The new address of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "gender",
+            "description": "<p>Gender of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "dob",
+            "description": "<p>The DOB of the admin.</p>"
           }
         ]
       }
@@ -2715,6 +2903,13 @@ define({ "api": [
             "optional": false,
             "field": "schoolType",
             "description": "<p>The type of the school (e.g., primary, secondary, highSchool).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "imageUrl",
+            "description": "<p>Image of school</p>"
           }
         ]
       }
@@ -2805,13 +3000,13 @@ define({ "api": [
     "groupTitle": "School"
   },
   {
-    "type": "put",
-    "url": "/school/update/:id",
-    "title": "Update School",
-    "name": "UpdateSchool",
+    "type": "delete",
+    "url": "/school/:id",
+    "title": "Delete School",
+    "name": "DeleteSchool",
     "group": "School",
     "version": "1.0.0",
-    "description": "<p>This endpoint allows a SuperAdmin to update the details of an existing school.</p>",
+    "description": "<p>Delete a school by its ID. Only superadmin can perform this operation.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -2820,7 +3015,259 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>SuperAdmin's unique access token (JWT).</p>"
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the school</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"school deleted\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}\n\nHTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/school.js",
+    "groupTitle": "School"
+  },
+  {
+    "type": "get",
+    "url": "/school",
+    "title": "Get All Schools",
+    "name": "GetAllSchools",
+    "group": "School",
+    "version": "1.0.0",
+    "description": "<p>Fetch a list of all schools.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of superAdmin for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (false if successful).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "school",
+            "description": "<p>List of schools.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school._id",
+            "description": "<p>Unique ID of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.name",
+            "description": "<p>Name of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.registrationNumber",
+            "description": "<p>Registration number of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.address",
+            "description": "<p>Address details of the school (city, state, country, pinCode).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.contact",
+            "description": "<p>Contact details of the school (phoneNo, email, website).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.principalName",
+            "description": "<p>Name of the school principal.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "school.establishYear",
+            "description": "<p>Year the school was established.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.schoolType",
+            "description": "<p>Type of the school (primary, secondary, highSchool).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "school.totalStudents",
+            "description": "<p>Total number of students.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "school.totalClasses",
+            "description": "<p>Total number of classes.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "school.isActive",
+            "description": "<p>Indicates if the school is currently active.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": [\n    {\n      \"_id\": \"603ddf15e245ae19f85ce109\",\n      \"name\": \"Green Valley High School\",\n      \"registrationNumber\": \"GVHS-1234\",\n      \"address\": {\n        \"city\": \"San Francisco\",\n        \"state\": \"California\",\n        \"country\": \"USA\",\n        \"pinCode\": \"94107\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 415-555-0198\",\n        \"email\": \"info@greenvalleyhigh.com\",\n        \"website\": \"www.greenvalleyhigh.com\"\n      },\n      \"principalName\": \"Dr. John Doe\",\n      \"establishYear\": 1995,\n      \"schoolType\": \"highSchool\",\n      \"totalStudents\": 1200,\n      \"totalClasses\": 40,\n      \"isActive\": true\n    },\n    {\n      \"_id\": \"603ddf15e245ae19f85ce110\",\n      \"name\": \"Blue Sky Elementary School\",\n      \"registrationNumber\": \"BSES-5678\",\n      \"address\": {\n        \"city\": \"New York\",\n        \"state\": \"New York\",\n        \"country\": \"USA\",\n        \"pinCode\": \"10001\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 212-555-0199\",\n        \"email\": \"info@blueskyelementary.com\",\n        \"website\": \"www.blueskyelementary.com\"\n      },\n      \"principalName\": \"Dr. Jane Smith\",\n      \"establishYear\": 2000,\n      \"schoolType\": \"primary\",\n      \"totalStudents\": 800,\n      \"totalClasses\": 20,\n      \"isActive\": true\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"Error\": \"You are not superadmin\"\n}\n\nHTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/school.js",
+    "groupTitle": "School"
+  },
+  {
+    "type": "get",
+    "url": "/school/:id",
+    "title": "Get School Details",
+    "name": "GetSchoolDetails",
+    "group": "School",
+    "version": "1.0.0",
+    "description": "<p>Fetch the details of a specific school using its ID.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique ID of the school.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (false if successful).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school",
+            "description": "<p>The school object containing detailed information.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": {\n    \"_id\": \"603ddf15e245ae19f85ce109\",\n    \"name\": \"Green Valley High School\",\n    \"registrationNumber\": \"GVHS-1234\",\n    \"address\": {\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"USA\",\n      \"pinCode\": \"94107\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1 415-555-0198\",\n      \"email\": \"info@greenvalleyhigh.com\",\n      \"website\": \"www.greenvalleyhigh.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-122.399972, 37.781372]\n    },\n    \"principalName\": \"Dr. John Doe\",\n    \"establishYear\": 1995,\n    \"schoolType\": \"highSchool\",\n    \"totalStudents\": 1200,\n    \"totalClasses\": 40,\n    \"isActive\": true\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/school.js",
+    "groupTitle": "School"
+  },
+  {
+    "type": "put",
+    "url": "/school/update/:id",
+    "title": "Update School",
+    "name": "UpdateSchool",
+    "group": "School",
+    "version": "1.0.0",
+    "description": "<p>This endpoint allows a admin to update the details of an existing school.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>admin's unique access token (JWT).</p>"
           }
         ]
       }
@@ -2911,6 +3358,13 @@ define({ "api": [
             "optional": true,
             "field": "isActive",
             "description": "<p>Update the activation status of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "imageUrl",
+            "description": "<p>image of school</p>"
           }
         ]
       }
@@ -3063,6 +3517,13 @@ define({ "api": [
             "optional": true,
             "field": "bankDetails",
             "description": "<p>Optional bank details of the teacher.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>address of the teacher</p>"
           }
         ]
       }
@@ -3513,78 +3974,18 @@ define({ "api": [
             "optional": true,
             "field": "bankDetails",
             "description": "<p>Teacher's bank details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>address of the teacher</p>"
           }
         ]
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user",
-            "description": "<p>Updated details of the teacher.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user._id",
-            "description": "<p>Teacher's unique ID.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.firstName",
-            "description": "<p>Teacher's first name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.lastName",
-            "description": "<p>Teacher's last name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.email",
-            "description": "<p>Teacher's email.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.phone",
-            "description": "<p>Teacher's phone number.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "user.isActive",
-            "description": "<p>Indicates if the teacher is active.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user.bankDetails",
-            "description": "<p>Teacher's bank details.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
