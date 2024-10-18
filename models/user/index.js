@@ -122,6 +122,9 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  address: {
+    type: String,
+  },
 });
 
 UserSchema.pre("validate", function (next) {
