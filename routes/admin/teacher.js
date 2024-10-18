@@ -226,6 +226,7 @@ module.exports = {
    * @apiParam {String} dob Date of birth of the teacher in DD/MM/YYYY format.
    * @apiParam {String} [signature] Optional signature of the teacher.
    * @apiParam {Object} [bankDetails] Optional bank details of the teacher.
+   * @apiParam {String} [address] address of the teacher
    *
    * @apiSuccess {Boolean} error Indicates whether there was an error (false).
    * @apiSuccess {Object} user The newly created teacher object.
@@ -300,6 +301,7 @@ module.exports = {
         dob,
         signature,
         bankDetails, // pending
+        address,
       } = req.body;
       const { isAdmin } = req.user;
       if (!isAdmin) {
@@ -394,6 +396,7 @@ module.exports = {
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
         customerStripeId: customer.id,
+        address,
       });
 
       const schoolName = await School.findOne({ _id: req.user._school })
@@ -439,16 +442,8 @@ module.exports = {
    * @apiParam {Boolean} [isActive] Indicates if the teacher is active.
    * @apiParam {String} [phone] Teacher's phone number.
    * @apiParam {Object} [bankDetails] Teacher's bank details.
+   * @apiParam {String} [address] address of the teacher
    *
-   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
-   * @apiSuccess {Object} user Updated details of the teacher.
-   * @apiSuccess {String} user._id Teacher's unique ID.
-   * @apiSuccess {String} user.firstName Teacher's first name.
-   * @apiSuccess {String} user.lastName Teacher's last name.
-   * @apiSuccess {String} user.email Teacher's email.
-   * @apiSuccess {String} user.phone Teacher's phone number.
-   * @apiSuccess {Boolean} user.isActive Indicates if the teacher is active.
-   * @apiSuccess {Object} user.bankDetails Teacher's bank details.
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -498,8 +493,15 @@ module.exports = {
           .json({ error: true, reason: "You are not Admin" });
       }
 
-      const { firstName, lastName, email, isActive, phone, bankDetails } =
-        req.body;
+      const {
+        firstName,
+        lastName,
+        email,
+        isActive,
+        phone,
+        bankDetails,
+        address,
+      } = req.body;
 
       const user = await User.findOne({
         _id: req.params.id,
@@ -524,6 +526,7 @@ module.exports = {
       if (email !== undefined) {
         user.email = email;
       }
+      if (address !== undefined) user.address = address;
 
       await user.save();
       return res.status(200).json({ error: false, user });
