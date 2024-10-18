@@ -169,8 +169,13 @@ module.exports = {
           .status(400)
           .json({ error: true, reason: "you are not admin" });
       }
+      const user = await User.findOne({ _id: userId });
+      if (user === null) {
+        return res.status(400).json({ error: true, reason: "user not found" });
+      }
+
       let transaction;
-      if (userId.loginType === "student") {
+      if (user.loginType === "student") {
         transaction = await Transaction.create({
           _user: userId,
           amount: Number(amount),
@@ -180,13 +185,13 @@ module.exports = {
           date: new Date(),
         });
       }
-      if (userId.loginType === "teacher") {
+      if (user.loginType === "teacher") {
         transaction = await Transaction.create({
           _user: userId,
           amount: Number(amount),
           totalAmount: amount,
           status,
-          date,
+          date: new Date(),
         });
       }
 
