@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to <%= schoolName %> Admin Portal</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+        line-height: 1.6;
+      }
+      .container {
+        width: 90%;
+        margin: 0 auto;
+        max-width: 600px;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        background-color: #ff5722;
+        color: white;
+        padding: 10px 0;
+        border-radius: 8px 8px 0 0;
+      }
+      .content {
+        padding: 20px;
+      }
+      .footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 0.9em;
+        color: #777;
+      }
+      .footer a {
+        color: #ff5722;
+        text-decoration: none;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #ff5722;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      .important {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Welcome to <%= schoolName %>, <%= firstName %>!</h1>
+      </div>
+
+      <div class="content">
+        <p>Dear <%= firstName %>,</p>
+
+        <p>
+          Welcome to <strong><%= schoolName %></strong>! We are thrilled to have
+          you as part of our administration team. Below are your login
+          credentials to access the admin portal:
+        </p>
+
+        <p><strong>Email:</strong> <%= email %></p>
+        <p><strong>Password:</strong> <%= password %></p>
+
+        <p>
+          Please log in and change your password as soon as possible for
+          security purposes.
+        </p>
+
+        <a href="#" class="btn">Log in to the Admin Portal</a>
+
+        <p>
+          If you encounter any issues or need assistance, feel free to reach out
+          to our support team. We are here to help you.
+        </p>
+
+        <p>
+          Welcome once again, and we look forward to your leadership at <%=
+          schoolName %>!
+        </p>
+
+        <p>Best regards,</p>
+        <p><strong>The <%= schoolName %> Team</strong></p>
+      </div>
+
+      <div class="footer">
+        <p>
+          For any questions, please reply to this email or visit our
+          <a href="#">Support Page</a>.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
