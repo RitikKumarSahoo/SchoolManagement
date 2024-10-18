@@ -132,6 +132,10 @@ module.exports = {
    * @apiParam {String} [lastName] The new last name of the admin.
    * @apiParam {String} [phone] The new phone number of the admin.
    * @apiParam {String} [email] The new email of the admin.
+   * @apiParam {String} [address] The new address of the admin.
+   * @apiParam {String} [gender] Gender of the admin.
+   * @apiParam {Date}   [dob] The DOB of the admin.
+   * @apiParam {String} [address] address of the admin
    *
    * @apiSuccess {Boolean} error Indicates whether the request encountered an error.
    * @apiSuccess {String} message Success message indicating the profile was updated.
@@ -171,15 +175,19 @@ module.exports = {
 
   async updateAdmin(req, res) {
     try {
-      const { firstName, lastName, phone, email } = req.body;
-      const { loginType, id } = req.user;
+      const { firstName, lastName, phone, email, address, gender, dob } =
+        req.body;
+      const { loginType } = req.user;
 
       if (loginType !== "admin") {
         return res
           .status(400)
           .json({ error: true, reason: "You are not admin" });
       }
-      const admin = await User.findOne({ _id: id });
+      const admin = await User.findOne({
+        _id: req.params.id,
+        loginType: "admin",
+      });
 
       if (admin === null) {
         return res.status(400).json({ error: true, reason: "Admin not found" });
@@ -188,6 +196,9 @@ module.exports = {
       if (lastName !== undefined) admin.lastName = lastName;
       if (phone !== undefined) admin.phone = phone;
       if (email !== undefined) admin.email = email;
+      if (address !== undefined) admin.address = address;
+      if (gender !== undefined) admin.gender = gender;
+      if (dob !== undefined) admin.dob = dob;
       await admin.save();
 
       return res.status(200).json({
