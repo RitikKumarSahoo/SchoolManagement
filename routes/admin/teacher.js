@@ -8,6 +8,61 @@ const stripe = require("stripe")(
 );
 
 module.exports = {
+  /**
+   * @api {get} /teachers Get All Teachers
+   * @apiName GetAllTeachers
+   * @apiGroup Teacher
+   * @apiVersion 1.0.0
+   * @apiDescription Retrieves all teachers belonging to the school
+   *
+   * @apiHeader {String} Authorization Bearer token for authentication.
+   * @apiSuccessExample Success Response:
+   *  HTTP/1.1 200 OK
+   *  {
+   *    "error": false,
+   *    "message": "Teachers retrieved successfully.",
+   *    "data": [
+   *      {
+   *        "_id": "614d1b6f8f8b9e001cb12345",
+   *        "firstName": "John",
+   *        "lastName": "Doe",
+   *        "email": "john.doe@example.com",
+   *        "phone": "1234567890",
+   *        "gender": "Male",
+   *        "_school": "614c1b6f8f8b9e001cb12345",
+   *        "isActive": true
+   *      },
+   *      {
+   *        "_id": "614d1b6f8f8b9e001cb12346",
+   *        "firstName": "Jane",
+   *        "lastName": "Smith",
+   *        "email": "jane.smith@example.com",
+   *        "phone": "0987654321",
+   *        "gender": "Female",
+   *        "_school": "614c1b6f8f8b9e001cb12345",
+   *        "isActive": true
+   *      }
+   *    ]
+   *  }
+   *
+   * @apiError {Boolean} error Indicates if there was an error (true if failed).
+   * @apiError {String} message Error message explaining the reason.
+   *
+   * @apiErrorExample Error Response (No Teachers Found):
+   *  HTTP/1.1 404 Not Found
+   *  {
+   *    "error": true,
+   *    "message": "No teachers found for this school."
+   *  }
+   *
+   * @apiErrorExample Error Response (Server Error):
+   *  HTTP/1.1 500 Internal Server Error
+   *  {
+   *    "error": true,
+   *    "reason": "Server error message."
+   *  }
+   */
+
   async getAllTeachers(req, res) {
     try {
       const { _school } = req.user;
