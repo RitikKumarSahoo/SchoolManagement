@@ -55,8 +55,14 @@ const SchoolSchema = new mongoose.Schema({
   totalStudents: {
     type: Number,
   },
+  totalTeachers: {
+    type: Number,
+  },
   totalClasses: {
     type: Number,
+  },
+  imageUrl: {
+    type: String,
   },
   isActive: {
     type: Boolean,
