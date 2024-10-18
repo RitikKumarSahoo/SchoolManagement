@@ -3746,6 +3746,71 @@
   },
   {
     "type": "get",
+    "url": "/teachers",
+    "title": "Get All Teachers",
+    "name": "GetAllTeachers",
+    "group": "Teacher",
+    "version": "1.0.0",
+    "description": "<p>Retrieves all teachers belonging to the school</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Teachers retrieved successfully.\",\n  \"data\": [\n    {\n      \"_id\": \"614d1b6f8f8b9e001cb12345\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"gender\": \"Male\",\n      \"_school\": \"614c1b6f8f8b9e001cb12345\",\n      \"isActive\": true\n    },\n    {\n      \"_id\": \"614d1b6f8f8b9e001cb12346\",\n      \"firstName\": \"Jane\",\n      \"lastName\": \"Smith\",\n      \"email\": \"jane.smith@example.com\",\n      \"phone\": \"0987654321\",\n      \"gender\": \"Female\",\n      \"_school\": \"614c1b6f8f8b9e001cb12345\",\n      \"isActive\": true\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if failed).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message explaining the reason.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response (No Teachers Found):",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"No teachers found for this school.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Server Error):",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Server error message.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/admin/teacher.js",
+    "groupTitle": "Teacher"
+  },
+  {
+    "type": "get",
     "url": "/teacher/get/:id",
     "title": "Get Teacher Details",
     "name": "GetTeacherDetails",
