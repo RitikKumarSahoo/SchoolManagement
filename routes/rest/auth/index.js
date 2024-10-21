@@ -5,90 +5,77 @@ const User = require("../../../models/user");
 module.exports = {
   /**
    * @api {post} /login User Login
-   * @apiVersion 1.0.0
-   * @apiName Login
+   * @apiName UserLogin
    * @apiGroup Auth
-   * @apiPermission None
    *
-   * @apiDescription This endpoint allows users (students, teachers, admins, and super admins) to log in to the system. The endpoint checks for required credentials based on the `loginType` and generates a token upon successful login.
+   * @apiParam {String} email User's email address (optional, required if username is not provided).
+   * @apiParam {String} password User's password (mandatory).
+   * @apiParam {String} username User's username (optional, required if email is not provided).
+   * @apiParam {String} loginType Type of login (e.g., "admin", "student","teacher").
    *
-   * @apiParam {String} loginType Type of user logging in, one of "student", "teacher", "admin".
-   * @apiParam {String} [username] Username of the student (required if loginType is "student").
-   * @apiParam {String} [email] Email of the user (required if loginType is "admin" or "teacher").
-   * @apiParam {String} password Password of the user.
+   * @apiSuccess {Boolean} error Indicates if there was an error.
+   * @apiSuccess {String} token JWT token for authenticated user.
    *
-   * @apiExample {json} Request-Example-1:
-   *     {
-   *       "loginType": "admin",
-   *       "email": "admin@example.com",
-   *       "password": "yourpassword"
-   *     }
-   * @apiExample {json} Request-Example-2:
-   *     {
-   *       "loginType": "student",
-   *       "username": "username",
-   *       "password": "yourpassword"
-   *     }
+   * @apiError (400) BadRequest Fields `loginType` and `password` are mandatory.
+   * @apiError (400) BadRequest Either `email` or `username` is required.
+   * @apiError (404) NotFound User Not Found.
+   * @apiError (403) Forbidden User Inactive.
+   * @apiError (500) InternalServerError Unexpected error occurred.
    *
-   * @apiSuccess {Boolean} error False indicating no error.
-   * @apiSuccess {String} token JWT token generated after successful login.
+   * @apiExample {json} Request-Example:
+   * {
+   *   "email": "user@example.com",
+   *   "password": "password123",
+   *   "loginType": "admin"
+   * }
    *
-   * @apiSuccessExample Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "error": false,
-   *       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-   *     }
+   * @apiExample {json} Request-Example:
+   * {
+   *   "username": "user123",
+   *   "password": "password123",
+   *   "loginType": "admin"
+   * }
    *
-   * @apiError (400) MissingFields Fields `loginType` and `password` are mandatory.
-   * @apiError (400) MissingUsername Field `username` is required for `loginType` "student".
-   * @apiError (400) MissingEmail Field `email` is required for `loginType` "admin" or "teacher".
-   * @apiError (404) UserNotFound The user with the provided credentials was not found.
-   * @apiError (403) UserInactive The user is inactive and cannot log in.
-   * @apiError (500) InternalServerError Error occurred during login.
-   *
-   * @apiErrorExample Error-Response:
-   *     HTTP/1.1 404 Not Found
-   *     {
-   *       "error": true,
-   *       "reason": "User Not Found"
-   *     }
+   * @apiExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "token": "eyJhbGciOiJIUzI1NiIsInR..."
+   * }
    */
+
   async post(req, res) {
     try {
       const { email, password, username, loginType } = req.body;
+
       if (loginType === undefined || password === undefined) {
         return res.status(400).json({
           error: true,
           reason: "Fields `loginType` and `password` are mandatory",
         });
       }
-      let query = {};
-      if (loginType === "student") {
-        if (username === undefined) {
-          return res
-            .status(400)
-            .json({ error: true, reason: "Field `username` is mandatory" });
-        }
-        query = { username: username, loginType: "student" };
+
+      if (email === undefined && username === undefined) {
+        return res.status(400).json({
+          error: true,
+          reason: "Either `email` or `username` is required",
+        });
       }
 
-      if (loginType === "admin" || loginType === "teacher") {
-        if (email === undefined) {
-          return res
-            .status(400)
-            .json({ error: true, reason: "Field `email` is mandatory" });
-        }
-        query = { email: email, loginType: loginType };
-      }
+      // query to match either email or username
+      const query = {
+        loginType: loginType,
+        $or: [{ email: email }, { username: username }],
+      };
 
+      // Find the user
       const user = await User.findOne(query).exec();
-
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
 
-      // check pass
+      // Check the password
       await user.comparePassword(password);
+
+      // Prepare JWT payload
       const payload = {
         id: user._id,
         _id: user._id,
@@ -102,9 +89,13 @@ module.exports = {
         _school: user._school,
         loginType: user.loginType,
       };
+
+      // Sign JWT token
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30, // 1 month
       });
+
+      // Respond with token
       return res.json({
         error: false,
         token,
