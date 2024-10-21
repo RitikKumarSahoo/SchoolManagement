@@ -23,7 +23,7 @@ router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
 router.get("/admin/getAll", signup.getAllAdmin);
 router.get("/admin/get/:id", signup.get);
-router.post("/admin/signup", signup.signupByAdmin);
+router.post("/admin/signup", signup.createAdmin);
 router.put("/admin/update/:id", login.updateAdmin);
 router.delete("/admin/delete/:id", signup.deleteAdmin);
 
