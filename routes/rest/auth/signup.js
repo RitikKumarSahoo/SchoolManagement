@@ -5,60 +5,133 @@ const School = require("../../../models/school");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
+
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  });
+  const lowerCaseLetters = randomstring.generate({
+    length: 3,
+    charset: "abcdefghijklmnopqrstuvwxyz",
+  });
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: "!@#$%^&*()_+[]{}|;:,.<>?/",
+  });
+  const numbers = randomstring.generate({
+    length: 3,
+    charset: "0123456789",
+  });
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password;
+}
 module.exports = {
   /**
-   * @api {post} /admin/signup Sign Up Admin by SuperAdmin
-   * @apiName SignupAdmin
+   * @api {post} /admin/create Create Admin
+   * @apiName CreateAdmin
    * @apiGroup Admin
-   * @apiVersion 1.0.0
-   * @apiDescription Allows a SuperAdmin to create a new admin user.
    *
-   * @apiHeader {String} Authorization SuperAdmin's unique access token (JWT).
+   * @apiHeader {String} Authorization Bearer token of the super admin.
    *
-   * @apiParam {String} username Username for the new admin.
-   * @apiParam {String} email Email address for the new admin.
-   * @apiParam {String} firstName First name of the new admin.
-   * @apiParam {String} lastName Last name of the new admin.
-   * @apiParam {String} phone Phone number of the new admin.
-   * @apiParam {String} dob Date of birth of the new admin (YYYY-MM-DD format).
-   * @apiParam {String} _school School ID for the new admin.
-   * @apiParam {String} gender Gender of the admin
-   * @apiParam {String} address address of the admin
+   * @apiParam {String} name Name of the school.
+   * @apiParam {Object} schoolAddress School address object.
+   * @apiParam {String} schoolAddress.city City of the school.
+   * @apiParam {String} schoolAddress.state State of the school.
+   * @apiParam {String} schoolAddress.country Country of the school.
+   * @apiParam {String} schoolAddress.pinCode Pin code of the school.
+   * @apiParam {Object} contact Contact information object.
+   * @apiParam {String} contact.phoneNo Phone number for the school.
+   * @apiParam {String} contact.email Email address for the school.
+   * @apiParam {String} contact.website Website of the school.
+   * @apiParam {Object} location Location object.
+   * @apiParam {String} location.type Type of location (e.g., Point).
+   * @apiParam {Number[]} location.coordinates Coordinates of the school (longitude, latitude).
+   * @apiParam {String} email Admin's email address.
+   * @apiParam {String} firstName Admin's first name.
+   * @apiParam {String} lastName Admin's last name.
+   * @apiParam {String} dob Admin's date of birth.
+   * @apiParam {String} gender Admin's gender.
+   * @apiParam {String} phone Admin's phone number.
    *
-   * @apiSuccess {Boolean} error Whether there was an error (false if successful).
+   * @apiSuccess {Boolean} error Indicates if there was an error.
    * @apiSuccess {String} message Success message.
-   * @apiSuccess {Object} response The newly created admin user object.
+   * @apiSuccess {Object} response The created admin object.
    *
-   * @apiError (400) {Boolean} error Whether there was an error.
-   * @apiError (400) {String} reason Reason for the error (if applicable).
+   * @apiError (400) BadRequest School name is required.
+   * @apiError (400) BadRequest School address is required.
+   * @apiError (400) BadRequest School contact is required.
+   * @apiError (400) BadRequest Email is required.
+   * @apiError (400) BadRequest First name is required.
+   * @apiError (400) BadRequest Last name is required.
+   * @apiError (400) BadRequest Admin email is required.
+   * @apiError (400) BadRequest Admin with this email already exists.
    *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "you are not superadmin"
-   *     }
+   * @apiError (500) InternalServerError Unexpected error occurred.
    *
-   * @apiError (500) {Boolean} error Whether there was an internal server error.
-   * @apiError (500) {String} message Error message (if internal error occurs).
+   * @apiExample {json} Request-Example:
+   * {
+   *   "name": "schoolXYZ",
+   *   "schoolAddress": {
+   *     "city": "Greenwood",
+   *     "state": "California",
+   *     "country": "USA",
+   *     "pinCode": "90210"
+   *   },
+   *   "contact": {
+   *     "phoneNo": "+1-f sjdfndsf",
+   *     "email": "info@greenwoodhigh.edu",
+   *     "website": "http://www.greenwoodhigh.edu"
+   *   },
+   *   "location": {
+   *     "type": "Point",
+   *     "coordinates": [21.418325060918168, 84.02980772446274]
+   *   },
+   *   "email": "sumanr@logic-square.com",
+   *   "firstName": "suman",
+   *   "lastName": "rana",
+   *   "dob": "12/08/2001",
+   *   "gender": "Male",
+   *   "phone": "9668123855"
+   * }
    *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 500 Internal Server Error
-   *     {
-   *       "error": true,
-   *       "message": "Internal Server Error"
-   *     }
+   * @apiExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "message": "Admin successfully created.",
+   *   "response": {
+   *     "_id": "someAdminId",
+   *     "username": "sumxyz555",
+   *     "email": "sumanr@logic-square.com",
+   *     "loginType": "admin",
+   *     "firstName": "suman",
+   *     "lastName": "rana",
+   *     "isAdmin": true,
+   *     "isSuperAdmin": false,
+   *     "dob": "12/08/2001",
+   *     "isActive": true,
+   *     "_school": "someSchoolId",
+   *     "phone": "9668123855",
+   *     "gender": "Male",
+   *     "address": null,
+   *     "createdAt": "2024-10-21T00:00:00.000Z",
+   *     "updatedAt": "2024-10-21T00:00:00.000Z"
+   *   }
+   * }
    */
 
-  async signupByAdmin(req, res) {
+  async createAdmin(req, res) {
     try {
       const {
-        username,
+        name,
+        schoolAddress,
+        contact,
+        location,
+        imageUrl,
         email,
         firstName,
         lastName,
         phone,
-        _school,
         dob,
         gender,
         address,
@@ -69,14 +142,42 @@ module.exports = {
           .status(400)
           .json({ error: true, reason: "you are not superadmin" });
       }
-      // Validate input
-      if (!username || !email || !firstName || !lastName || !_school || !dob) {
+      if (name === undefined) {
         return res
           .status(400)
-          .json({ error: true, message: "All fields are required." });
+          .json({ error: true, reason: "school name is required" });
+      }
+      if (schoolAddress === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school address is required" });
+      }
+      if (contact === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school contact is required" });
+      }
+      if (email === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "email is required" });
+      }
+      if (firstName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "firstName is required" });
+      }
+      if (lastName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "lastName is required" });
+      }
+      if (phone === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "admin email is required" });
       }
 
-      // Check if the admin already exists
       const existingAdmin = await User.findOne({ email });
       if (existingAdmin) {
         return res.status(400).json({
@@ -84,21 +185,26 @@ module.exports = {
           message: "Admin with this email already exists.",
         });
       }
-      const existSchool = await School.findOne({ _id: _school }).select("name");
-      if (existSchool === null) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "school not found" });
-      }
-      const customer = await stripe.customers.create({
-        email,
+
+      const randomNumber = Math.floor(1000 + Math.random() * 9000);
+      const registrationNumber = `REG${randomNumber}`;
+
+      //create a new school
+      const newSchool = await School.create({
+        name,
+        address: schoolAddress,
+        contact,
+        location,
+        imageUrl,
+        registrationNumber,
       });
 
-      const randomStr = randomstring.generate({
-        length: 8,
-        charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      });
-      const password = randomStr;
+      // Check if the admin already exists
+
+      const username =
+        firstName.slice(0, 3) + newSchool.name.slice(0, 3) + phone.slice(-3);
+
+      const password = generateCustomPassword();
 
       const response = await User.create({
         username,
@@ -111,22 +217,20 @@ module.exports = {
         isSuperAdmin: false,
         dob,
         isActive: true,
-        _school,
+        _school: newSchool._id,
         phone,
-        customerStripeId: customer.id,
-        messagingEnabled: true,
         gender,
         address,
       });
 
       await mail("admin-welcome", {
         to: email,
-        subject: `Welcome to ${existSchool.name}`,
+        subject: `Welcome to ${newSchool.name}`,
         locals: {
-          email,
+          username,
           firstName,
           password,
-          schoolName: existSchool.name,
+          schoolName: newSchool.name,
         },
       });
 
