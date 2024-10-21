@@ -180,7 +180,7 @@ module.exports = {
           .json({ error: true, message: "You are not an admin" });
       }
 
-      const query = { _school: req.user._school };
+      let query = { _school: req.user._school };
       if (academicYear) {
         query.academicYear = academicYear;
       }
@@ -205,6 +205,61 @@ module.exports = {
       });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error.message });
+    }
+  },
+
+  /**
+   * @api {get} /class/get/:id Get Class by ID
+   * @apiName GetClassById
+   * @apiGroup Class
+   * @apiPermission AuthenticatedUser
+   *
+   * @apiDescription This endpoint retrieves a class by its ID. Only authenticated users who belong to the same school can access this resource.
+   *
+   * @apiParam {String} id The unique identifier of the class to retrieve (passed as a URL parameter).
+   *
+   * @apiSuccess {String} data._id The ID of the class.
+   * @apiSuccess {String} data.name The name of the class.
+   * @apiSuccess {String} data.section The section of the class.
+   * @apiSuccess {Number} data.academicYear The academic year of the class.
+   * @apiSuccess {Number} data.totalStudents Total number of students in the class.
+   * @apiSuccess {ObjectId} data._schedule Reference to the schedule object.
+   * @apiSuccess {ObjectId} data._school Reference to the school object.
+   *
+   * @apiError (404) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (404) {String} message Error message stating that the class was not found.
+   *
+   * @apiError (500) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (500) {String} reason Detailed error message for server-side issues.
+   *
+   * @apiHeader {String} Authorization Bearer token for user authentication.
+   *
+   */
+
+  async get(req, res) {
+    try {
+      const classData = await Class.findOne({
+        _id: req.params.id,
+        _school: req.user._school,
+      });
+
+      if (classData === null) {
+        return res.status(404).json({
+          error: true,
+          message: "Class not found",
+        });
+      }
+
+      return res.status(200).json({
+        error: false,
+        message: "Class retrieved successfully",
+        data: classData,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        reason: error.message,
+      });
     }
   },
 

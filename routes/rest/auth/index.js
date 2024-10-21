@@ -5,39 +5,58 @@ const User = require("../../../models/user");
 module.exports = {
   
   /**
-   * @api {post} /login User login
-   * @apiName userLogin
+   * @api {post} /login User Login
+   * @apiVersion 1.0.0
+   * @apiName Login
    * @apiGroup Auth
-   * @apiVersion  1.0.0
-   * @apiPermission Public
+   * @apiPermission None
    *
-   * @apiParam  {String} email
-   * @apiParam  {String} password
-   * @apiParam  {String} username
-   * @apiParam  {String} loginType
+   * @apiDescription This endpoint allows users (students, teachers, admins, and super admins) to log in to the system. The endpoint checks for required credentials based on the `loginType` and generates a token upon successful login.
    *
-   * @apiSuccess (200) {json} token description
+   * @apiParam {String} loginType Type of user logging in, one of "student", "teacher", "admin".
+   * @apiParam {String} [username] Username of the student (required if loginType is "student").
+   * @apiParam {String} [email] Email of the user (required if loginType is "admin" or "teacher").
+   * @apiParam {String} password Password of the user.
    *
-   * @apiParamExample  {json} Request-Example:
-     {
-       "email": "myEmail@logic-square.com",
-       "password": "myNewPassword",
-       "username": "myUsername",
-       "loginType": "student"
-     }
+   * @apiExample {json} Request-Example-1:
+   *     {
+   *       "loginType": "admin",
+   *       "email": "admin@example.com",
+   *       "password": "yourpassword"
+   *     }
+   * @apiExample {json} Request-Example-2:
+   *     {
+   *       "loginType": "student",
+   *       "username": "username",
+   *       "password": "yourpassword"
+   *     }
    *
-   * @apiSuccessExample {json} Success-Response:
-     {
-       "error": false,
-       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlOTI0MzNmYmM4NWVmMjY4MjM3MmIzNCIsImVtYWlsIjoibXlFbWFpbEBsb2NpYy1zcXVhcmUuY29tIiwiZmlyc3ROYW1lIjoiSm9obiIsImxhc3ROYW1lIjoiRG9lIiwicGhvbmUiOiIwMDAwMDAwMDAwMCIsImlzQWRtaW4iOnRydWUsImlzQWN0aXZlIjp0cnVlLCJfc2Nob29sIjoiNWY4MjAxMmFmYmM4NWVmMjY4MjM3MmIzNCIsImxvZ2luVHlwZSI6InN0dWRlbnQiLCJpYXQiOjE1OTQ1ODM4ODksImV4cCI6MTU5NjE4Mzg4OX0.7zQF7j5j3i6j7j9i8i9j8j9j"
-     }
+   * @apiSuccess {Boolean} error False indicating no error.
+   * @apiSuccess {String} token JWT token generated after successful login.
    *
-   * @apiError (400) {json} 400 description
-   * @apiError (500) {json} 500 description
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   *     }
+   *
+   * @apiError (400) MissingFields Fields `loginType` and `password` are mandatory.
+   * @apiError (400) MissingUsername Field `username` is required for `loginType` "student".
+   * @apiError (400) MissingEmail Field `email` is required for `loginType` "admin" or "teacher".
+   * @apiError (404) UserNotFound The user with the provided credentials was not found.
+   * @apiError (403) UserInactive The user is inactive and cannot log in.
+   * @apiError (500) InternalServerError Error occurred during login.
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 404 Not Found
+   *     {
+   *       "error": true,
+   *       "reason": "User Not Found"
+   *     }
    */
   async post(req, res) {
     try {
-      // const { type } = req.params
       const { email, password, username, loginType } = req.body;
       if (loginType === undefined || password === undefined) {
         return res.status(400).json({
@@ -62,7 +81,9 @@ module.exports = {
         }
         query = { email: email, loginType: loginType };
       }
+
       const user = await User.findOne(query).exec();
+
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
       // check pass
@@ -76,6 +97,7 @@ module.exports = {
         phone: user.phone,
         isAdmin: user.isAdmin,
         isActive: user.isActive,
+        isSuperAdmin: user.isSuperAdmin || false,
         _school: user._school,
         loginType: user.loginType,
       };
@@ -91,6 +113,99 @@ module.exports = {
         error: true,
         reason: err.message,
       });
+    }
+  },
+
+  /**
+   * @api {put} /admin/update Update Admin Profile
+   * @apiName UpdateAdminProfile
+   * @apiGroup Admin
+   * @apiVersion 1.0.0
+   * @apiPermission admin
+   *
+   * @apiDescription This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.
+   *
+   * @apiHeader {String} Authorization Bearer token authorization.
+   *
+   * @apiParam {String} [firstName] The new first name of the admin.
+   * @apiParam {String} [lastName] The new last name of the admin.
+   * @apiParam {String} [phone] The new phone number of the admin.
+   * @apiParam {String} [email] The new email of the admin.
+   * @apiParam {String} [address] The new address of the admin.
+   * @apiParam {String} [gender] Gender of the admin.
+   * @apiParam {Date}   [dob] The DOB of the admin.
+   * @apiParam {String} [address] address of the admin
+   *
+   * @apiSuccess {Boolean} error Indicates whether the request encountered an error.
+   * @apiSuccess {String} message Success message indicating the profile was updated.
+   *
+   * @apiError (400) {Boolean} error True if the user is not an admin or the admin was not found.
+   * @apiError (500) {Boolean} error True if there was a server error.
+   * @apiError {String} message Error message explaining the failure reason.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "message": "Admin profile updated successfully."
+   * }
+   *
+   * @apiErrorExample {json} Error-Response (Admin not found):
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "reason": "Admin not found"
+   * }
+   *
+   * @apiErrorExample {json} Error-Response (Not admin):
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "reason": "You are not admin"
+   * }
+   *
+   * @apiErrorExample {json} Error-Response (Server error):
+   * HTTP/1.1 500 Internal Server Error
+   * {
+   *   "error": true,
+   *   "message": "An unexpected error occurred"
+   * }
+   */
+
+  async updateAdmin(req, res) {
+    try {
+      const { firstName, lastName, phone, email, address, gender, dob } =
+        req.body;
+      const { loginType } = req.user;
+
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not admin" });
+      }
+      const admin = await User.findOne({
+        _id: req.params.id,
+        loginType: "admin",
+      });
+
+      if (admin === null) {
+        return res.status(400).json({ error: true, reason: "Admin not found" });
+      }
+      if (firstName !== undefined) admin.firstName = firstName;
+      if (lastName !== undefined) admin.lastName = lastName;
+      if (phone !== undefined) admin.phone = phone;
+      if (email !== undefined) admin.email = email;
+      if (address !== undefined) admin.address = address;
+      if (gender !== undefined) admin.gender = gender;
+      if (dob !== undefined) admin.dob = dob;
+      await admin.save();
+
+      return res.status(200).json({
+        error: false,
+        message: "Admin profile updated successfully.",
+      });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 };

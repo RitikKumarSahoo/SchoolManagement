@@ -55,6 +55,7 @@ module.exports = {
     try {
       // const { _school } = req.body;
       const { loginType, _school } = req.user;
+
       if (loginType !== "admin") {
         return res.status(400).json({ error: true, reason: "admin not found" });
       }
@@ -63,11 +64,11 @@ module.exports = {
       const students = await User.find({
         loginType: "student",
         _school,
-      }).exec();
+      });
 
       if (students.length === 0) {
         return res
-          .status(404)
+          .status(400)
           .json({ error: true, message: "No students found" });
       }
 
@@ -82,7 +83,7 @@ module.exports = {
 
         if (pendingTransactions.length > 0) {
           const pendingMonths = pendingTransactions.map((transaction) => {
-            totalAmount += transaction.amount;
+            totalAmount += transaction.totalAmount;
             return moment.unix(transaction.date / 1000).format("MMMM");
           });
 
@@ -119,12 +120,13 @@ module.exports = {
    * @apiName CreateTransaction
    * @apiGroup Transaction
    *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   *
    * @apiParam {String} userId The ID of the user creating the transaction.
    * @apiParam {Number} amount The amount for the transaction.
    * @apiParam {Number} busFee The bus fee associated with the transaction.
+   * @apiParam {String="success","pending"} [status] The new status of the transaction.
    *
-   * @apiSuccess {Boolean} error Indicates if there was an error.
-   * @apiSuccess {Object} transaction The transaction object that was created.
    * @apiSuccess {String} transaction._id The unique ID of the transaction.
    * @apiSuccess {String} transaction._user The ID of the user associated with the transaction.
    * @apiSuccess {Number} transaction.amount The amount for the transaction.
@@ -158,19 +160,224 @@ module.exports = {
    *     }
    */
   async createTransaction(req, res) {
-    const { userId, amount, busFee } = req.body;
+    const { userId, amount, busFee, status } = req.body;
+    const { loginType } = req.user;
 
     try {
-      const transaction = await Transaction.create({
-        _user: userId,
-        amount: amount,
-        busFee: busFee,
-        totalAmount: amount + busFee,
-        status: "pending",
-        date: new Date(),
-      });
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "you are not admin" });
+      }
+      const user = await User.findOne({ _id: userId });
+      if (user === null) {
+        return res.status(400).json({ error: true, reason: "user not found" });
+      }
+
+      let transaction;
+      if (user.loginType === "student") {
+        transaction = await Transaction.create({
+          _user: userId,
+          amount: Number(amount),
+          busFee: Number(busFee),
+          totalAmount: amount + busFee,
+          status,
+          date: new Date(),
+        });
+      }
+      if (user.loginType === "teacher") {
+        transaction = await Transaction.create({
+          _user: userId,
+          amount: Number(amount),
+          totalAmount: amount,
+          status,
+          date: new Date(),
+        });
+      }
 
       return res.status(201).json({ error: false, transaction });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * @api {get} /transaction/get/:id Get Transaction by ID
+   * @apiName GetTransactionById
+   * @apiGroup Transaction
+   * @apiPermission Admin
+   *
+   * @apiParam {String} id Transaction's unique ID.
+   *
+   * @apiHeader {String} Authorization User's access token.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *    HTTP/1.1 200 OK
+   *    {
+   *      "error": false,
+   *      "message": "Transaction retrieved successfully",
+   *      "data": {
+   *        "_id": "652def8a7a39a61056fb8654",
+   *        "_user": {
+   *          "_id": "652dc8b95a36b92434b54e88",
+   *          "firstName": "John",
+   *          "lastName": "Doe",
+   *          "email": "john.doe@example.com"
+   *        },
+   *        "amount": 1000,
+   *        "busFee": 50,
+   *        "totalAmount": 1050,
+   *        "status": "pending",
+   *        "date": "2024-10-07T10:00:00Z"
+   *      }
+   *    }
+   *
+   * @apiError TransactionNotFound The transaction with the given ID was not found.
+   *
+   * @apiErrorExample {json} TransactionNotFound:
+   *    HTTP/1.1 404 Not Found
+   *    {
+   *      "error": true,
+   *      "message": "Transaction not found"
+   *    }
+   *
+   * @apiError InternalServerError Server-side issue occurred while retrieving transaction.
+   *
+   * @apiErrorExample {json} InternalServerError:
+   *    HTTP/1.1 500 Internal Server Error
+   *    {
+   *      "error": true,
+   *      "message": "An error occurred while processing the request"
+   *    }
+   */
+
+  async get(req, res) {
+    try {
+      const { id } = req.params;
+      const transaction = await Transaction.findOne({
+        _id: id,
+      }).populate("_user", "firstName lastName email");
+
+      if (!transaction) {
+        return res.status(404).json({
+          error: true,
+          message: "Transaction not found",
+        });
+      }
+
+      return res.status(200).json({
+        error: false,
+        message: "Transaction retrieved successfully",
+        data: transaction,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
+    }
+  },
+  /**
+   * @api {put} //transaction/update Update Transaction
+   * @apiName UpdateTransaction
+   * @apiGroup Transaction
+   * @apiPermission Admin
+   *
+   * @apiDescription This endpoint allows an admin to update an existing transaction's details such as the amount, bus fee, and status.
+   *
+   * @apiHeader {String} Authorization Bearer token (Admin's token)
+   *
+   * @apiParam {String} transactionId The ID of the transaction to be updated.
+   * @apiParam {String} [userId] The ID of the user associated with the transaction.
+   * @apiParam {Number} [amount] The new transaction amount.
+   * @apiParam {Number} [busFee] The new bus fee amount.
+   * @apiParam {String="success","pending"} [status] The new status of the transaction.
+   *
+   * @apiSuccess {Boolean} error Indicates whether the operation was successful or not.
+   * @apiSuccess {String} message Success message.
+   * @apiSuccess {Object} transaction The updated transaction object.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *  HTTP/1.1 200 OK
+   *  {
+   *    "error": false,
+   *    "message": "Transaction updated successfully",
+   *    "transaction": {
+   *      "_id": "652def8a7a39a61056fb8654",
+   *      "_user": "652dc8b95a36b92434b54e88",
+   *      "amount": 1000,
+   *      "busFee": 50,
+   *      "totalAmount": 1050,
+   *      "status": "pending",
+   *      "date": "2024-10-01T10:00:00.000Z"
+   *    }
+   *  }
+   *
+   * @apiError (400) {Boolean} error Indicates that there was an error.
+   * @apiError (400) {String} reason The reason for the error.
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 400 Bad Request
+   *  {
+   *    "error": true,
+   *    "reason": "Invalid transaction data provided."
+   *  }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 403 Forbidden
+   *  {
+   *    "error": true,
+   *    "reason": "You are not authorized to update this transaction."
+   *  }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *  HTTP/1.1 404 Not Found
+   *  {
+   *    "error": true,
+   *    "reason": "Transaction not found."
+   *  }
+   */
+
+  async updateTransaction(req, res) {
+    const { transactionId, userId, amount, busFee, status } = req.body;
+    const { loginType } = req.user;
+
+    try {
+      if (transactionId === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "transactionId is required" });
+      }
+      if (loginType !== "admin") {
+        return res.status(403).json({
+          error: true,
+          reason: "You are not authorized to update this transaction.",
+        });
+      }
+
+      const transaction = await Transaction.findOne({ _id: transactionId });
+
+      if (transaction === null) {
+        return res
+          .status(404)
+          .json({ error: true, reason: "Transaction not found." });
+      }
+
+      if (userId) transaction._user = userId;
+      if (amount) transaction.amount = Number(amount);
+      if (busFee) transaction.busFee = Number(busFee);
+      if (amount && busFee)
+        transaction.totalAmount = Number(amount) + Number(busFee);
+      if (status) transaction.status = status;
+
+      await transaction.save();
+
+      return res.status(200).json({
+        error: false,
+        message: "Transaction updated successfully",
+        transaction,
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: true, message: error.message });

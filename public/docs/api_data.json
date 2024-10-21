@@ -1,6 +1,486 @@
 [
   {
     "type": "get",
+    "url": "/admin/get/:id",
+    "title": "Get admin by ID",
+    "name": "GetAdmin",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>Fetch a specific admin's details by their ID</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Admin's unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admin\": {\n    \"_id\": \"61234abcd5678ef901234567\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"loginType\": \"admin\",\n    \"createdAt\": \"2024-09-30T12:30:45.123Z\",\n    \"updatedAt\": \"2024-10-01T14:22:05.456Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error if the user is not a super admin.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superAdmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Some error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "get",
+    "url": "/admin/getAll",
+    "title": "Get all admins",
+    "name": "GetAllAdmins",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>Fetch all admin users</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admins\": [\n    {\n      \"_id\": \"61234abcd5678ef901234567\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"loginType\": \"admin\",\n      \"createdAt\": \"2024-09-30T12:30:45.123Z\",\n      \"updatedAt\": \"2024-10-01T14:22:05.456Z\"\n    },\n    {\n      \"_id\": \"62345bcde6789fg012345678\",\n      \"name\": \"Jane Smith\",\n      \"email\": \"jane.smith@example.com\",\n      \"loginType\": \"admin\",\n      \"createdAt\": \"2024-08-20T09:45:15.123Z\",\n      \"updatedAt\": \"2024-10-01T11:10:05.789Z\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error if the user is not a super admin.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superAdmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Some error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "post",
+    "url": "/admin/signup",
+    "title": "Sign Up Admin by SuperAdmin",
+    "name": "SignupAdmin",
+    "group": "Admin",
+    "version": "1.0.0",
+    "description": "<p>Allows a SuperAdmin to create a new admin user.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>SuperAdmin's unique access token (JWT).</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "username",
+            "description": "<p>Username for the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>Email address for the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "firstName",
+            "description": "<p>First name of the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "lastName",
+            "description": "<p>Last name of the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>Phone number of the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dob",
+            "description": "<p>Date of birth of the new admin (YYYY-MM-DD format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "_school",
+            "description": "<p>School ID for the new admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "gender",
+            "description": "<p>Gender of the admin</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address",
+            "description": "<p>address of the admin</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Whether there was an error (false if successful).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "response",
+            "description": "<p>The newly created admin user object.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Whether there was an error.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error (if applicable).</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Whether there was an internal server error.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message (if internal error occurs).</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"you are not superadmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal Server Error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "put",
+    "url": "/admin/update",
+    "title": "Update Admin Profile",
+    "name": "UpdateAdminProfile",
+    "group": "Admin",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "admin"
+      }
+    ],
+    "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token authorization.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "firstName",
+            "description": "<p>The new first name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "lastName",
+            "description": "<p>The new last name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "phone",
+            "description": "<p>The new phone number of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "email",
+            "description": "<p>The new email of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>The new address of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "gender",
+            "description": "<p>Gender of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "dob",
+            "description": "<p>The DOB of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether the request encountered an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating the profile was updated.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Admin profile updated successfully.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if the user is not an admin or the admin was not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if there was a server error.</p>"
+          }
+        ],
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message explaining the failure reason.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response (Admin not found):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Admin not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Not admin):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Server error):",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An unexpected error occurred\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/auth/index.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "get",
     "url": "/user/:id",
     "title": "get user details",
     "name": "userDetails",
@@ -59,6 +539,119 @@
     },
     "filename": "routes/admin/users.js",
     "groupTitle": "Admin-User"
+  },
+  {
+    "type": "post",
+    "url": "attendance/checkin",
+    "title": "Check In",
+    "name": "CheckIn",
+    "group": "Attendance",
+    "version": "1.0.0",
+    "description": "<p>Allows a teacher to check in at the school if they are within a 5km radius. If they have already checked in today, they will not be allowed to check in again.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of the teacher.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number[]",
+            "optional": false,
+            "field": "coordinates",
+            "description": "<p>The current location of the teacher in the format [longitude, latitude].</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success or error message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "checkIn",
+            "description": "<p>The check-in object containing details of the check-in.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Checked in successfully\",\n  \"checkIn\": {\n    \"_school\": \"school_id\",\n    \"teachers\": [\n      {\n        \"_teacher\": \"teacher_id\",\n        \"time\": \"2024-10-08T10:00:00.000Z\",\n        \"remark\": \"Checked in successfully\"\n      }\n    ],\n    \"checkinDate\": \"2024-10-08T10:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "TeacherNotFound",
+            "description": "<p>The teacher was not found in the system.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "SchoolNotFound",
+            "description": "<p>The school associated with the teacher was not found.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "OutOfRadius",
+            "description": "<p>The teacher is outside the 5km radius from the school.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "AlreadyCheckedIn",
+            "description": "<p>The teacher has already checked in today.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"You are outside the 5km radius from the school.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal server error.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/attendance.js",
+    "groupTitle": "Attendance"
   },
   {
     "type": "get",
@@ -356,6 +949,110 @@
     "groupTitle": "Attendance"
   },
   {
+    "type": "get",
+    "url": "/attendance/checkins",
+    "title": "Get Teacher Check-in Records",
+    "name": "GetTeacherCheckIns",
+    "group": "Attendance",
+    "permission": [
+      {
+        "name": "Teacher"
+      }
+    ],
+    "description": "<p>This endpoint returns the check-in attendance records of a teacher, showing which days they were present or absent.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for teacher authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if the operation was successful (false for success).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "attendance",
+            "description": "<p>Array of attendance records for the teacher.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "attendance.date",
+            "description": "<p>The date of the check-in.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "attendance.present",
+            "description": "<p>Whether the teacher was present on that date.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "attendance.time",
+            "description": "<p>The exact check-in time if the teacher was present, null otherwise.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"attendance\": [\n    {\n      \"date\": \"2024-10-01T00:00:00.000Z\",\n      \"present\": true,\n      \"time\": \"2024-10-01T09:15:00.000Z\"\n    },\n    {\n      \"date\": \"2024-10-02T00:00:00.000Z\",\n      \"present\": false,\n      \"time\": null\n    },\n    {\n      \"date\": \"2024-10-03T00:00:00.000Z\",\n      \"present\": true,\n      \"time\": \"2024-10-03T08:45:00.000Z\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if the operation was successful (true for failure).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Description of the error that occurred.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal server error.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/attendance.js",
+    "groupTitle": "Attendance"
+  },
+  {
     "type": "post",
     "url": "/attendance/mark",
     "title": "Mark Student Attendance",
@@ -435,11 +1132,17 @@
     "groupTitle": "Attendance"
   },
   {
-    "type": "post",
-    "url": "/attendance/checkin",
-    "title": "Teacher Check-In",
-    "name": "TeacherCheckIn",
+    "type": "put",
+    "url": "/attendance/update",
+    "title": "Update Attendance",
+    "name": "UpdateAttendance",
     "group": "Attendance",
+    "permission": [
+      {
+        "name": "admin, teacher"
+      }
+    ],
+    "description": "<p>Allows both teachers and admins to update attendance for a class. The update can be for the current day or a previous day. The action can either add a student to the present list or remove them.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -448,7 +1151,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for teacher access.</p>"
+            "description": "<p>Bearer token.</p>"
           }
         ]
       }
@@ -458,99 +1161,109 @@
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "Object",
+            "type": "String",
             "optional": false,
-            "field": "location",
-            "description": "<p>Coordinates of the teacher's check-in location.</p>"
+            "field": "_class",
+            "description": "<p>The ID of the class.</p>"
           },
           {
             "group": "Parameter",
-            "type": "Date",
+            "type": "String",
             "optional": false,
+            "field": "studentId",
+            "description": "<p>The ID of the student whose attendance is being updated.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "action",
+            "description": "<p>The action to perform, either &quot;add&quot; (to mark as present) or &quot;remove&quot; (to mark as absent).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
             "field": "date",
-            "description": "<p>The date and time of the check-in.</p>"
+            "description": "<p>The date for which attendance is being updated (optional, defaults to today).</p>"
           }
         ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"location\": {\n    \"coordinates\": [88.4352966284463, 22.574465111576152]\n  },\n  \"date\": \"2024-10-01T10:00:00Z\"\n}",
-          "type": "json"
-        }
-      ]
+      }
     },
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "{\n  \"_class\": \"652def8a7a39a61056fb8654\",\n  \"studentId\": \"652dc8b95a36b92434b54e88\",\n  \"action\": \"add\",\n  \"date\": \"2024-10-01\"\n}",
+        "type": "json"
+      }
+    ],
     "success": {
       "fields": {
         "Success 200": [
           {
             "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether there was an error (false means success).</p>"
+          },
+          {
+            "group": "Success 200",
             "type": "String",
             "optional": false,
             "field": "message",
-            "description": "<p>Success message indicating check-in success.</p>"
+            "description": "<p>The success message describing the action performed.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "attendance",
+            "description": "<p>The updated attendance record.</p>"
           }
         ]
       },
       "examples": [
         {
-          "title": "Success-Response:",
-          "content": "{\n  \"message\": \"Check-in successful\"\n}",
+          "title": "Success Response:",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Attendance for October 1st 2024 successfully updated. Student added to attendance\",\n  \"attendance\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_class\": \"652def8a7a39a61056fb8654\",\n    \"presentIds\": [\"652dc8b95a36b92434b54e88\"],\n    \"date\": \"2024-10-01T00:00:00.000Z\",\n    \"_school\": \"652ce46b5b9634070e541dbc\"\n  }\n}",
           "type": "json"
         }
       ]
     },
     "error": {
       "fields": {
-        "400": [
+        "Error 4xx": [
           {
-            "group": "400",
+            "group": "Error 4xx",
             "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          }
-        ],
-        "404": [
-          {
-            "group": "404",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
+            "description": "<p>Indicates whether there was an error (true means failure).</p>"
           },
           {
-            "group": "404",
+            "group": "Error 4xx",
             "type": "String",
             "optional": false,
-            "field": "message",
-            "description": "<p>Error message for teacher not found.</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
+            "field": "reason",
+            "description": "<p>A description of the error that occurred.</p>"
           }
         ]
       },
       "examples": [
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Teacher not found\"\n}",
+          "title": "Error Response (Student Not Assigned):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Student is not assigned to this class\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": \"Teacher is not within the 50-meter radius\"\n}",
+          "title": "Error Response (Unauthorized User):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not authorized to update attendance\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": \"Internal server error\"\n}",
+          "title": "Error Response (Invalid Action):",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Invalid action provided. Use 'add' or 'remove'\"\n}",
           "type": "json"
         }
       ]
@@ -659,6 +1372,150 @@
     "version": "0.0.0",
     "filename": "routes/rest/attendance.js",
     "groupTitle": "Attendance"
+  },
+  {
+    "type": "post",
+    "url": "/login",
+    "title": "User Login",
+    "version": "1.0.0",
+    "name": "Login",
+    "group": "Auth",
+    "permission": [
+      {
+        "name": "None"
+      }
+    ],
+    "description": "<p>This endpoint allows users (students, teachers, admins, and super admins) to log in to the system. The endpoint checks for required credentials based on the <code>loginType</code> and generates a token upon successful login.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "loginType",
+            "description": "<p>Type of user logging in, one of &quot;student&quot;, &quot;teacher&quot;, &quot;admin&quot;.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "username",
+            "description": "<p>Username of the student (required if loginType is &quot;student&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "email",
+            "description": "<p>Email of the user (required if loginType is &quot;admin&quot; or &quot;teacher&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>Password of the user.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request-Example-1:",
+        "content": "{\n  \"loginType\": \"admin\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"yourpassword\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request-Example-2:",
+        "content": "{\n  \"loginType\": \"student\",\n  \"username\": \"username\",\n  \"password\": \"yourpassword\"\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>False indicating no error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": "<p>JWT token generated after successful login.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "MissingFields",
+            "description": "<p>Fields <code>loginType</code> and <code>password</code> are mandatory.</p>"
+          },
+          {
+            "group": "400",
+            "optional": false,
+            "field": "MissingUsername",
+            "description": "<p>Field <code>username</code> is required for <code>loginType</code> &quot;student&quot;.</p>"
+          },
+          {
+            "group": "400",
+            "optional": false,
+            "field": "MissingEmail",
+            "description": "<p>Field <code>email</code> is required for <code>loginType</code> &quot;admin&quot; or &quot;teacher&quot;.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "UserInactive",
+            "description": "<p>The user is inactive and cannot log in.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "UserNotFound",
+            "description": "<p>The user with the provided credentials was not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Error occurred during login.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"User Not Found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/auth/index.js",
+    "groupTitle": "Auth"
   },
   {
     "type": "post",
@@ -782,144 +1639,6 @@
       ]
     },
     "filename": "routes/rest/auth/password.js",
-    "groupTitle": "Auth"
-  },
-  {
-    "type": "post",
-    "url": "/login",
-    "title": "User login",
-    "name": "userLogin",
-    "group": "Auth",
-    "version": "1.0.0",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "handle",
-            "description": "<p>(mobile / email)</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "password",
-            "description": "<p>user's password</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n    \"handle\" : \"myEmail@logic-square.com\",\n    \"password\" : \"myNewPassword\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "200": [
-          {
-            "group": "200",
-            "type": "json",
-            "optional": false,
-            "field": "name",
-            "description": "<p>description</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n    \"error\" : false,\n    \"handle\" : \"myEmail@logic-square.com\",\n    \"token\": \"authToken.abc.xyz\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "filename": "routes/rest/auth/index.js",
-    "groupTitle": "Auth"
-  },
-  {
-    "type": "post",
-    "url": "/signup",
-    "title": "User registration",
-    "name": "userRegistration",
-    "group": "Auth",
-    "version": "1.0.0",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "email",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "phone",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "name",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "password",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"email\": \"myEmail@logic-square.com\",\n  \"phone\": \"00000000000\",\n  \"name\": {\n    \"first\":\"Jhon\",\n    \"last\" :\"Doe\"\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "200": [
-          {
-            "group": "200",
-            "type": "json",
-            "optional": false,
-            "field": "name",
-            "description": "<p>description</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"email\": \"myEmail@logic-square.com\",\n    \"phone\": \"00000000000\",\n    \"name\": {\n      \"first\":\"Jhon\",\n      \"last\" :\"Doe\"\n    }\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "filename": "routes/rest/auth/signup.js",
     "groupTitle": "Auth"
   },
   {
@@ -1394,6 +2113,139 @@
     "version": "0.0.0",
     "filename": "routes/admin/progressReport.js",
     "groupTitle": "Progress_Report"
+  },
+  {
+    "type": "get",
+    "url": "/class/get/:id",
+    "title": "Get Class by ID",
+    "name": "GetClassById",
+    "group": "Class",
+    "permission": [
+      {
+        "name": "AuthenticatedUser"
+      }
+    ],
+    "description": "<p>This endpoint retrieves a class by its ID. Only authenticated users who belong to the same school can access this resource.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique identifier of the class to retrieve (passed as a URL parameter).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "data._id",
+            "description": "<p>The ID of the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "data.name",
+            "description": "<p>The name of the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "data.section",
+            "description": "<p>The section of the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "data.academicYear",
+            "description": "<p>The academic year of the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "data.totalStudents",
+            "description": "<p>Total number of students in the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "ObjectId",
+            "optional": false,
+            "field": "data._schedule",
+            "description": "<p>Reference to the schedule object.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "ObjectId",
+            "optional": false,
+            "field": "data._school",
+            "description": "<p>Reference to the school object.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "404": [
+          {
+            "group": "404",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message stating that the class was not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Detailed error message for server-side issues.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for user authentication.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/admin/class.js",
+    "groupTitle": "Class"
   },
   {
     "type": "post",
@@ -3685,15 +4537,12 @@
   },
   {
     "type": "post",
-    "url": "/school",
-    "title": "3.0 Create a new School",
-    "name": "createSchool",
+    "url": "/api/v1/schools",
+    "title": "Create a new school with Stripe account",
+    "name": "CreateSchool",
     "group": "School",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
+    "version": "1.0.0",
+    "description": "<p>Creates a new school in the system and sets up a Stripe account for payment processing.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -3702,7 +4551,14 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+            "description": "<p>User's unique JWT token with &quot;Bearer &quot; prefix.</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Content-Type",
+            "description": "<p><code>application/json</code></p>"
           }
         ]
       }
@@ -3715,21 +4571,21 @@
             "type": "String",
             "optional": true,
             "field": "name",
-            "description": "<p>School name</p>"
+            "description": "<p>Name of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "registrationNumber",
-            "description": "<p>School registrationNumber</p>"
+            "description": "<p>Registration number of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": true,
             "field": "address",
-            "description": "<p>School address</p>"
+            "description": "<p>Address of the school.</p>"
           },
           {
             "group": "Parameter",
@@ -3757,14 +4613,14 @@
             "type": "String",
             "optional": true,
             "field": "address.pinCode",
-            "description": "<p>School address.pinCode</p>"
+            "description": "<p>Postal code of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": true,
             "field": "contact",
-            "description": "<p>School contact</p>"
+            "description": "<p>Contact information of the school.</p>"
           },
           {
             "group": "Parameter",
@@ -3785,73 +4641,49 @@
             "type": "String",
             "optional": true,
             "field": "contact.website",
-            "description": "<p>School contact.website</p>"
+            "description": "<p>Website of the school (optional).</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": true,
             "field": "location",
-            "defaultValue": "Point",
-            "description": "<p>School location <code>enum=[&quot;Point&quot;]</code></p>"
+            "description": "<p>Geographical location of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "location.type",
-            "defaultValue": "Point",
-            "description": "<p>School location.type <code>enum=[&quot;Point&quot;]</code></p>"
+            "description": "<p>Type of the location, always set to <code>&quot;Point&quot;</code>.</p>"
           },
           {
             "group": "Parameter",
             "type": "Number[]",
             "optional": true,
             "field": "location.coordinates",
-            "description": "<p>School location.coordinates</p>"
+            "description": "<p>Longitude and latitude of the school as an array.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "principalName",
-            "description": "<p>School principalName</p>"
+            "description": "<p>Name of the school's principal.</p>"
           },
           {
             "group": "Parameter",
             "type": "Number",
             "optional": true,
             "field": "establishYear",
-            "description": "<p>School establishYear</p>"
+            "description": "<p>Year the school was established.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "schoolType",
-            "description": "<p>School schoolType <code>enum=[&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</code></p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "totalStudents",
-            "description": "<p>School totalStudents</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "totalClasses",
-            "description": "<p>School totalClasses</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "isActive",
-            "defaultValue": "true",
-            "description": "<p>School isActive</p>"
+            "description": "<p>Type of the school, e.g., <code>&quot;primary&quot;</code>, <code>&quot;secondary&quot;</code>, <code>&quot;highSchool&quot;</code>.</p>"
           }
         ]
       }
@@ -3887,65 +4719,23 @@
             "group": "Header",
             "type": "String",
             "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "id",
-            "description": "<p><code>URL Param</code> The _id of the School to delete</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n    error : false,\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
-    "groupTitle": "School"
-  },
-  {
-    "type": "put",
-    "url": "/school/:id",
-    "title": "4.0 Edit a School by _id",
-    "name": "editSchool",
-    "group": "School",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
+            "field": "school",
+            "description": "<p>Details of the created school.</p>"
+          },
           {
-            "group": "Header",
+            "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
+            "field": "school._id",
+            "description": "<p>ID of the school.</p>"
+          },
           {
             "group": "Parameter",
             "type": "String",
@@ -3961,399 +4751,223 @@
             "description": "<p>School name</p>"
           },
           {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.address",
+            "description": "<p>Address details of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "school.contact",
+            "description": "<p>Contact details of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.location",
+            "description": "<p>Location coordinates of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "school.principalName",
+            "description": "<p>Name of the school's principal.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "school.establishYear",
+            "description": "<p>Establishment year of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "school.schoolType",
+            "description": "<p>Type of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "stripeAccountId",
+            "description": "<p>Stripe account ID created for the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "accountLink",
+            "description": "<p>Stripe account onboarding link.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "accountLink.url",
+            "description": "<p>URL for Stripe account onboarding.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "accountLink.expires_at",
+            "description": "<p>Expiration timestamp of the account link.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>The user is not an admin or the request is invalid.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Server error during school creation.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "400 Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "500 Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Error message explaining the issue\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/school.js",
+    "groupTitle": "School"
+  },
+  {
+    "type": "put",
+    "url": "/school",
+    "title": "Update School Information",
+    "name": "UpdateSchool",
+    "group": "School",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
             "group": "Parameter",
             "type": "String",
             "optional": true,
-            "field": "registrationNumber",
-            "description": "<p>School registrationNumber</p>"
+            "field": "name",
+            "description": "<p>The name of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": true,
             "field": "address",
-            "description": "<p>School address</p>"
+            "description": "<p>The address of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address.city",
-            "description": "<p>School address.city</p>"
+            "description": "<p>The city of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address.state",
-            "description": "<p>School address.state</p>"
+            "description": "<p>The state of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address.country",
-            "description": "<p>School address.country</p>"
+            "description": "<p>The country of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address.pinCode",
-            "description": "<p>School address.pinCode</p>"
+            "description": "<p>The pin code of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": true,
             "field": "contact",
-            "description": "<p>School contact</p>"
+            "description": "<p>The contact details of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "contact.phoneNo",
-            "description": "<p>School contact.phoneNo</p>"
+            "description": "<p>The phone number of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "contact.email",
-            "description": "<p>School contact.email</p>"
+            "description": "<p>The email address of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "contact.website",
-            "description": "<p>School contact.website</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": true,
-            "field": "location",
-            "defaultValue": "Point",
-            "description": "<p>School location <code>enum=[&quot;Point&quot;]</code></p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "location.type",
-            "defaultValue": "Point",
-            "description": "<p>School location.type <code>enum=[&quot;Point&quot;]</code></p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number[]",
-            "optional": true,
-            "field": "location.coordinates",
-            "description": "<p>School location.coordinates</p>"
+            "description": "<p>The website of the school.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "principalName",
-            "description": "<p>School principalName</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "establishYear",
-            "description": "<p>School establishYear</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "schoolType",
-            "description": "<p>School schoolType <code>enum=[&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</code></p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "totalStudents",
-            "description": "<p>School totalStudents</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "totalClasses",
-            "description": "<p>School totalClasses</p>"
+            "description": "<p>The name of the principal.</p>"
           },
           {
             "group": "Parameter",
             "type": "Boolean",
             "optional": true,
             "field": "isActive",
-            "defaultValue": "true",
-            "description": "<p>School isActive</p>"
+            "description": "<p>Whether the school is active or not.</p>"
           }
         ]
       }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    school: {}\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
-    "groupTitle": "School"
-  },
-  {
-    "type": "get",
-    "url": "/schools",
-    "title": "1.0 Fetch all the Schools",
-    "name": "fetchSchools",
-    "group": "School",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    schools: [{}]\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
-    "groupTitle": "School"
-  },
-  {
-    "type": "get",
-    "url": "/school/:id",
-    "title": "2.0 Find a School by _id",
-    "name": "getSchool",
-    "group": "School",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p><code>URL Param</code> The _id of the School to find</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    school: {}\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
-    "groupTitle": "School"
-  },
-  {
-    "type": "post",
-    "url": "/student",
-    "title": "3.0 Create a new student",
-    "name": "createStudent",
-    "group": "Student",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "firstName",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "lastName",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "email",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "gender",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "guardian",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "guardian.fathersName",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "guardian.mothersName",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "phone",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "admissionYear",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectID",
-            "optional": false,
-            "field": "_schoolId",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": false,
-            "field": "dob",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "rollNo",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectID",
-            "optional": false,
-            "field": "_classId",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectID",
-            "optional": false,
-            "field": "_adminId",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": false,
-            "field": "joinDate",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "signature",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "profileImage",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"gender\": \"Male\",\n  \"guardian\": {\n    \"fathersName\": \"John Doe Sr.\",\n    \"mothersName\": \"Jane Doe\"\n  },\n  \"phone\": \"0000000000\",\n  \"admissionYear\": 2019,\n  \"schoolId\": \"123456789012\",\n  \"dob\": \"2000-01-01\",\n  \"rollNo\": 1,\n  \"classId\": \"123456789012\",\n  \"addedBy\": \"123456789012\",\n  \"joinDate\": \"2019-01-01\",\n  \"signature\": \"John Doe\",\n  \"profileImage\": \"https://example.com/johndoe.jpg\"\n}",
-          "type": "json"
-        }
-      ]
     },
     "success": {
       "fields": {
@@ -4362,172 +4976,84 @@
             "group": "201",
             "type": "json",
             "optional": false,
-            "field": "Student",
-            "description": ""
+            "field": "error",
+            "description": "<p>Indicates whether there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school",
+            "description": "<p>The updated school object.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school._id",
+            "description": "<p>The unique ID of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.name",
+            "description": "<p>The name of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.address",
+            "description": "<p>The address of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.contact",
+            "description": "<p>The contact details of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.principalName",
+            "description": "<p>The name of the principal.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "school.isActive",
+            "description": "<p>Whether the school is active or not.</p>"
           }
         ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"Student\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"John Doe Sr.\",\n      \"mothersName\": \"Jane Doe\"\n    },\n    \"phone\": \"0000000000\",\n    \"admissionYear\": 2019,\n    \"schoolId\": \"123456789012\",\n    \"dob\": \"2000-01-01\",\n    \"rollNo\": 1,\n    \"classId\": \"123456789012\",\n    \"addedBy\": \"123456789012\",\n    \"joinDate\": \"2019-01-01\",\n    \"signature\": \"John Doe\",\n    \"profileImage\": \"https://example.com/johndoe.jpg\"\n  }\n}",
-          "type": "json"
-        }
-      ]
+      }
     },
     "error": {
       "fields": {
-        "400": [
+        "Error 4xx": [
           {
-            "group": "400",
-            "type": "json",
+            "group": "Error 4xx",
+            "type": "Boolean",
             "optional": false,
-            "field": "MissingFields",
-            "description": "<p>Student creation failed due to missing required fields</p>"
+            "field": "error",
+            "description": "<p>Indicates whether there was an error.</p>"
           },
           {
-            "group": "400",
-            "type": "json",
+            "group": "Error 4xx",
+            "type": "String",
             "optional": false,
-            "field": "StudentExists",
-            "description": "<p>Student already exists</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "json",
-            "optional": false,
-            "field": "ServerError",
-            "description": "<p>Server error occurred while creating student</p>"
+            "field": "reason",
+            "description": "<p>The reason for the error (e.g., &quot;you are not admin&quot;, &quot;school not found&quot;).</p>"
           }
         ]
       }
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
-    "groupTitle": "Student"
-  },
-  {
-    "type": "put",
-    "url": "/students/deactivate/:studentId",
-    "title": "5.0 Deactivate a student",
-    "name": "deactivateStudent",
-    "group": "Student",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "studentId",
-            "description": "<p><code>URL Param</code> The _id of the student to deactivate</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "adminId",
-            "description": "<p><code>Body Param</code> The _id of the admin who is deactivating the student</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    message: \"Student deactivated successfully\"\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/student.js",
-    "groupTitle": "Student"
-  },
-  {
-    "type": "get",
-    "url": "/students/search",
-    "title": "5.0 Search students",
-    "name": "searchStudents",
-    "group": "Student",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p><code>Query Param</code> The name of the student</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "rollNo",
-            "description": "<p><code>Query Param</code> The roll number of the student</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectId",
-            "optional": false,
-            "field": "classId",
-            "description": "<p><code>Query Param</code> The _id of the class</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{ students: [{}] }",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/admin/student.js",
-    "groupTitle": "Student"
+    "filename": "routes/rest/school.js",
+    "groupTitle": "School"
   },
   {
     "type": "post",
@@ -4606,6 +5132,13 @@
             "optional": true,
             "field": "bankDetails",
             "description": "<p>Optional bank details of the teacher.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>address of the teacher</p>"
           }
         ]
       }
@@ -5056,78 +5589,18 @@
             "optional": true,
             "field": "bankDetails",
             "description": "<p>Teacher's bank details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "address",
+            "description": "<p>address of the teacher</p>"
           }
         ]
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user",
-            "description": "<p>Updated details of the teacher.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user._id",
-            "description": "<p>Teacher's unique ID.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.firstName",
-            "description": "<p>Teacher's first name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.lastName",
-            "description": "<p>Teacher's last name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.email",
-            "description": "<p>Teacher's email.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.phone",
-            "description": "<p>Teacher's phone number.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "user.isActive",
-            "description": "<p>Indicates if the teacher is active.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user.bankDetails",
-            "description": "<p>Teacher's bank details.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
@@ -5187,6 +5660,19 @@
     "title": "Create Transaction",
     "name": "CreateTransaction",
     "group": "Transaction",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin access.</p>"
+          }
+        ]
+      }
+    },
     "parameter": {
       "fields": {
         "Parameter": [
@@ -5210,6 +5696,17 @@
             "optional": false,
             "field": "busFee",
             "description": "<p>The bus fee associated with the transaction.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"success\"",
+              "\"pending\""
+            ],
+            "optional": true,
+            "field": "status",
+            "description": "<p>The new status of the transaction.</p>"
           }
         ]
       }
@@ -5217,20 +5714,6 @@
     "success": {
       "fields": {
         "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "transaction",
-            "description": "<p>The transaction object that was created.</p>"
-          },
           {
             "group": "Success 200",
             "type": "String",
@@ -5417,6 +5900,231 @@
         {
           "title": "Error-Response:",
           "content": "{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/admin/transaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
+    "type": "get",
+    "url": "/transaction/get/:id",
+    "title": "Get Transaction by ID",
+    "name": "GetTransactionById",
+    "group": "Transaction",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Transaction's unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>User's access token.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Transaction retrieved successfully\",\n  \"data\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_user\": {\n      \"_id\": \"652dc8b95a36b92434b54e88\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\"\n    },\n    \"amount\": 1000,\n    \"busFee\": 50,\n    \"totalAmount\": 1050,\n    \"status\": \"pending\",\n    \"date\": \"2024-10-07T10:00:00Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "TransactionNotFound",
+            "description": "<p>The transaction with the given ID was not found.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Server-side issue occurred while retrieving transaction.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "TransactionNotFound:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Transaction not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "InternalServerError:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An error occurred while processing the request\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/admin/transaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
+    "type": "put",
+    "url": "//transaction/update",
+    "title": "Update Transaction",
+    "name": "UpdateTransaction",
+    "group": "Transaction",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>This endpoint allows an admin to update an existing transaction's details such as the amount, bus fee, and status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token (Admin's token)</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "transactionId",
+            "description": "<p>The ID of the transaction to be updated.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "userId",
+            "description": "<p>The ID of the user associated with the transaction.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "amount",
+            "description": "<p>The new transaction amount.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "busFee",
+            "description": "<p>The new bus fee amount.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "allowedValues": [
+              "\"success\"",
+              "\"pending\""
+            ],
+            "optional": true,
+            "field": "status",
+            "description": "<p>The new status of the transaction.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether the operation was successful or not.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "transaction",
+            "description": "<p>The updated transaction object.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Transaction updated successfully\",\n  \"transaction\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_user\": \"652dc8b95a36b92434b54e88\",\n    \"amount\": 1000,\n    \"busFee\": 50,\n    \"totalAmount\": 1050,\n    \"status\": \"pending\",\n    \"date\": \"2024-10-01T10:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that there was an error.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The reason for the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Invalid transaction data provided.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You are not authorized to update this transaction.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Transaction not found.\"\n}",
           "type": "json"
         }
       ]

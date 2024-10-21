@@ -27,5 +27,6 @@ const teacherCheckInSchema = new mongoose.Schema({
 });
 
 teacherCheckInSchema.index({ location: "2dsphere" });
+teacherCheckInSchema.path("teachers").schema.set("_id", false);
 
 module.exports = mongoose.model("TeacherCheckIn", teacherCheckInSchema);

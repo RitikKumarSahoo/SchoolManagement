@@ -4,7 +4,6 @@ const Class = require("../../models/class");
 const Attendance = require("../../models/attendance");
 const CheckIn = require("../../models/teachersCheckin");
 const moment = require("moment");
-const attendance = require("../../models/attendance");
 
 module.exports = {
   /**
@@ -165,7 +164,6 @@ module.exports = {
         });
       }
 
-      // Get today's date without the time
       const today = moment().startOf("day");
 
       // Find the attendance record for today for this class
@@ -205,7 +203,6 @@ module.exports = {
         });
         await attendanceRecord.save();
 
-        //  Increment totalClassTill for this class only once
         const classRecord = await Class.findOne({ _id: _class });
         if (classRecord) {
           classRecord.totalClassTill += 1;
@@ -481,11 +478,12 @@ module.exports = {
     try {
       const { id } = req.user;
 
-      const student = await User.findOne({ _id: id, loginType: "student" });
+      const student = await User.findOne({
+        _id: id,
+        loginType: { $in: ["student", "admin"] },
+      });
       if (!student) {
-        return res
-          .status(403)
-          .json({ error: true, reason: "You are not a student" });
+        return res.status(403).json({ error: true, reason: "no permission" });
       }
 
       let attendanceRecords = await Attendance.find({
@@ -518,104 +516,400 @@ module.exports = {
   },
 
   /**
-   * @api {post} /attendance/checkin Teacher Check-In
-   * @apiName TeacherCheckIn
+   * @api {put} /attendance/update Update Attendance
+   * @apiName UpdateAttendance
    * @apiGroup Attendance
+   * @apiPermission admin, teacher
    *
-   * @apiHeader {String} Authorization Bearer token for teacher access.
+   * @apiDescription Allows both teachers and admins to update attendance for a class.
+   * The update can be for the current day or a previous day. The action can either add a student to the present list or remove them.
    *
-   * @apiParam {Object} location Coordinates of the teacher's check-in location.
-   * @apiParam {Date} date The date and time of the check-in.
+   * @apiHeader {String} Authorization Bearer token.
    *
-   * @apiParamExample {json} Request-Example:
-   * {
-   *   "location": {
-   *     "coordinates": [88.4352966284463, 22.574465111576152]
-   *   },
-   *   "date": "2024-10-01T10:00:00Z"
-   * }
+   * @apiParam {String} _class The ID of the class.
+   * @apiParam {String} studentId The ID of the student whose attendance is being updated.
+   * @apiParam {String} action The action to perform, either "add" (to mark as present) or "remove" (to mark as absent).
+   * @apiParam {String} [date] The date for which attendance is being updated (optional, defaults to today).
    *
-   * @apiSuccess {String} message Success message indicating check-in success.
+   * @apiExample {json} Request Example:
+   *     {
+   *       "_class": "652def8a7a39a61056fb8654",
+   *       "studentId": "652dc8b95a36b92434b54e88",
+   *       "action": "add",
+   *       "date": "2024-10-01"
+   *     }
    *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *   "message": "Check-in successful"
-   * }
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false means success).
+   * @apiSuccess {String} message The success message describing the action performed.
+   * @apiSuccess {Object} attendance The updated attendance record.
    *
-   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (404) {String} message Error message for teacher not found.
+   * @apiSuccessExample {json} Success Response:
+   *     {
+   *       "error": false,
+   *       "message": "Attendance for October 1st 2024 successfully updated. Student added to attendance",
+   *       "attendance": {
+   *         "_id": "652def8a7a39a61056fb8654",
+   *         "_class": "652def8a7a39a61056fb8654",
+   *         "presentIds": ["652dc8b95a36b92434b54e88"],
+   *         "date": "2024-10-01T00:00:00.000Z",
+   *         "_school": "652ce46b5b9634070e541dbc"
+   *       }
+   *     }
    *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "message": "Teacher not found"
-   * }
+   * @apiError {Boolean} error Indicates whether there was an error (true means failure).
+   * @apiError {String} reason A description of the error that occurred.
    *
-   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (400) {String} error Message indicating the teacher is not within the radius.
+   * @apiErrorExample {json} Error Response (Student Not Assigned):
+   *     {
+   *       "error": true,
+   *       "reason": "Student is not assigned to this class"
+   *     }
    *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": "Teacher is not within the 50-meter radius"
-   * }
+   * @apiErrorExample {json} Error Response (Unauthorized User):
+   *     {
+   *       "error": true,
+   *       "reason": "You are not authorized to update attendance"
+   *     }
    *
-   * @apiError (500) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (500) {String} error Message indicating internal server error.
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": "Internal server error"
-   * }
-   *
+   * @apiErrorExample {json} Error Response (Invalid Action):
+   *     {
+   *       "error": true,
+   *       "reason": "Invalid action provided. Use 'add' or 'remove'"
+   *     }
    */
-  async teacherCheckIn(req, res) {
+
+  async updateAttendance(req, res) {
     try {
-      const { location, date } = req.body;
-      const { id, _school } = req.user;
-      // Find the school by id
-      const teacher = await User.findOne({ _id: id, loginType: "teacher" });
+      const { _class, studentId, action, date } = req.body;
+      const { id } = req.user;
+
+      // Check if the user is a teacher
+      const teacher = await User.findOne({
+        _id: id,
+        loginType: { $in: ["teacher", "admin"] },
+      }).exec();
+
+      if (!teacher) {
+        return res.status(400).json({
+          error: true,
+          reason: "You are not a teacher",
+        });
+      }
+
+      const targetDate = date
+        ? moment(date).startOf("day")
+        : moment().startOf("day");
+
+      if (!targetDate.isValid()) {
+        return res.status(400).json({
+          error: true,
+          reason: "Invalid date provided",
+        });
+      }
+
+      // Find the attendance record for the target date
+      let attendanceRecord = await Attendance.findOne({
+        _class,
+        date: {
+          $gte: targetDate.toDate(),
+          $lte: moment(targetDate).endOf("day").toDate(),
+        },
+        _school: teacher._school,
+      }).exec();
+
+      if (!attendanceRecord) {
+        return res.status(404).json({
+          error: true,
+          reason: `No attendance record found for ${targetDate.format(
+            "MMMM Do YYYY"
+          )}`,
+        });
+      }
+
+      // Check if the student is assigned to the class
+      const student = await User.findOne({
+        _id: studentId,
+        _class,
+        loginType: "student",
+        _school: teacher._school,
+      }).exec();
+
+      if (!student) {
+        return res.status(400).json({
+          error: true,
+          reason: "Student is not assigned to this class",
+        });
+      }
+
+      if (action === "add") {
+        if (attendanceRecord.presentIds.includes(studentId)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Student has already been marked present",
+          });
+        }
+
+        attendanceRecord.presentIds.push(studentId);
+      } else if (action === "remove") {
+        if (!attendanceRecord.presentIds.includes(studentId)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Student was not marked present",
+          });
+        }
+
+        attendanceRecord.presentIds = attendanceRecord.presentIds.filter(
+          (id) => id.toString() !== studentId
+        );
+      } else {
+        return res.status(400).json({
+          error: true,
+          reason: "Invalid action provided. Use 'add' or 'remove'",
+        });
+      }
+
+      await attendanceRecord.save();
+
+      return res.status(200).json({
+        error: false,
+        message: `Attendance for ${targetDate.format(
+          "MMMM Do YYYY"
+        )} successfully updated. Student ${
+          action === "add" ? "added to" : "removed from"
+        } attendance`,
+        attendance: attendanceRecord,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        reason: error.message,
+      });
+    }
+  },
+
+  /**
+   * @api {post} attendance/checkin Check In
+   * @apiName CheckIn
+   * @apiGroup Attendance
+   * @apiVersion 1.0.0
+   *
+   * @apiDescription Allows a teacher to check in at the school if they are within a 5km radius.
+   * If they have already checked in today, they will not be allowed to check in again.
+   *
+   * @apiHeader {String} Authorization Bearer token of the teacher.
+   *
+   * @apiParam {Number[]} coordinates The current location of the teacher in the format [longitude, latitude].
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error.
+   * @apiSuccess {String} message Success or error message.
+   * @apiSuccess {Object} checkIn The check-in object containing details of the check-in.
+   *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "message": "Checked in successfully",
+   *       "checkIn": {
+   *         "_school": "school_id",
+   *         "teachers": [
+   *           {
+   *             "_teacher": "teacher_id",
+   *             "time": "2024-10-08T10:00:00.000Z",
+   *             "remark": "Checked in successfully"
+   *           }
+   *         ],
+   *         "checkinDate": "2024-10-08T10:00:00.000Z"
+   *       }
+   *     }
+   *
+   * @apiError TeacherNotFound The teacher was not found in the system.
+   * @apiError SchoolNotFound The school associated with the teacher was not found.
+   * @apiError OutOfRadius The teacher is outside the 5km radius from the school.
+   * @apiError AlreadyCheckedIn The teacher has already checked in today.
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "You are outside the 5km radius from the school."
+   *     }
+   *
+   * @apiErrorExample Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Internal server error."
+   *     }
+   */
+
+  async checkIn(req, res) {
+    const { coordinates } = req.body;
+    const teacherId = req.user._id;
+
+    try {
+      const teacher = await User.findOne({
+        _id: teacherId,
+        loginType: "teacher",
+      }).populate("_school");
+
       if (teacher === null) {
         return res
-          .status(404)
+          .status(400)
           .json({ error: true, message: "Teacher not found" });
       }
-      const school = await School.findOne({ _id: _school });
 
-      const schoolLocation = school.location.coordinates;
-      console.log("schoolLocation", schoolLocation);
-
-      // Check if the teacher is within a 50-meter radius
-      const distanceCheck = await CheckIn.aggregate([
-        {
-          $geoNear: {
-            near: { type: "Point", coordinates: schoolLocation },
-            distanceField: "dist.calculated",
-            maxDistance: 50, // 50 meters
-            spherical: true,
-          },
+      const schoolId = teacher._school;
+      const checkInRecord = await CheckIn.findOne({
+        _school: schoolId,
+        checkinDate: {
+          $gte: moment().startOf("day").toDate(),
+          $lte: moment().endOf("day").toDate(),
         },
-        {
-          $match: { "location.coordinates": location.coordinates },
-        },
-      ]);
-      console.log(distanceCheck.length);
+      });
 
-      if (distanceCheck.length > 0) {
-        await CheckIn.create({
-          teachers: { _teacher: id, time: moment(date).format("HH:mm:ss") },
-          checkInDate: date,
-          _school,
+      const isWithinDistance = checkInRecord
+        ? true
+        : await School.findOne({
+            _id: schoolId,
+            location: {
+              $nearSphere: {
+                $geometry: { type: "Point", coordinates: coordinates },
+                $maxDistance: 5000,
+              },
+            },
+          });
+
+      if (isWithinDistance === null) {
+        return res.status(400).json({
+          error: true,
+          message: "You are outside the 5km radius from the school.",
+        });
+      }
+
+      if (checkInRecord) {
+        const existingTeacherCheckIn = checkInRecord.teachers.find(
+          (t) => t._teacher.toString() === teacherId
+        );
+
+        if (existingTeacherCheckIn) {
+          return res.status(400).json({
+            error: true,
+            message: "You have already checked in today.",
+          });
+        }
+
+        // Update the existing check-in record
+        checkInRecord.teachers.push({
+          _teacher: teacherId,
+          time: new Date(),
         });
 
-        return res.status(200).json({ message: "Check-in successful" });
-      } else {
-        return res
-          .status(400)
-          .json({ error: "Teacher is not within the 50-meter radius" });
+        await checkInRecord.save();
+        return res.status(200).json({
+          error: false,
+          checkIn: checkInRecord,
+        });
       }
+
+      const newCheckIn = await CheckIn.create({
+        _school: schoolId,
+        teachers: [
+          {
+            _teacher: teacherId,
+            time: new Date(),
+          },
+        ],
+        checkinDate: new Date(),
+      });
+
+      return res.status(200).json({
+        error: false,
+        message: "Checked in successfully.",
+        checkIn: newCheckIn,
+      });
     } catch (error) {
-      console.error("Error during check-in:", error);
-      res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * @api {get} /attendance/checkins Get Teacher Check-in Records
+   * @apiName GetTeacherCheckIns
+   * @apiGroup Attendance
+   * @apiPermission Teacher
+   * @apiDescription This endpoint returns the check-in attendance records of a teacher, showing which days they were present or absent.
+   *
+   * @apiHeader {String} Authorization Bearer token for teacher authentication.
+   *
+   * @apiSuccess {Boolean} error Indicates if the operation was successful (false for success).
+   * @apiSuccess {Object[]} attendance Array of attendance records for the teacher.
+   * @apiSuccess {String} attendance.date The date of the check-in.
+   * @apiSuccess {Boolean} attendance.present Whether the teacher was present on that date.
+   * @apiSuccess {String} attendance.time The exact check-in time if the teacher was present, null otherwise.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "attendance": [
+   *         {
+   *           "date": "2024-10-01T00:00:00.000Z",
+   *           "present": true,
+   *           "time": "2024-10-01T09:15:00.000Z"
+   *         },
+   *         {
+   *           "date": "2024-10-02T00:00:00.000Z",
+   *           "present": false,
+   *           "time": null
+   *         },
+   *         {
+   *           "date": "2024-10-03T00:00:00.000Z",
+   *           "present": true,
+   *           "time": "2024-10-03T08:45:00.000Z"
+   *         }
+   *       ]
+   *     }
+   *
+   * @apiError {Boolean} error Indicates if the operation was successful (true for failure).
+   * @apiError {String} message Description of the error that occurred.
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "Internal server error."
+   *     }
+   */
+
+  async getTeacherCheckIns(req, res) {
+    const teacherId = req.user._id;
+
+    try {
+      const checkIns = await CheckIn.find({
+        "teachers._teacher": teacherId,
+      }).select("checkinDate teachers");
+
+      const attendanceRecords = checkIns.map((record) => {
+        const teacherCheckIn = record.teachers.find(
+          (t) => t._teacher.toString() === teacherId
+        );
+
+        return {
+          date: record.checkinDate,
+          present: teacherCheckIn ? true : false,
+          time: teacherCheckIn ? teacherCheckIn.time : null,
+        };
+      });
+
+      return res.status(200).json({
+        error: false,
+        attendance: attendanceRecords,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        message: error.message,
+      });
     }
   },
 };

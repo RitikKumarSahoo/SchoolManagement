@@ -254,7 +254,7 @@ module.exports = {
       });
       await Promise.all(read);
 
-      return res.json({ error: false });
+      return res.json({ error: false, message });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
     }

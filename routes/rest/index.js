@@ -18,15 +18,23 @@ const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
 
 router.post("/login", login.post); // UNAUTHENTICATED
-router.post("/signup", signup.post); // UNAUTHENTICATED
-router.post("/signup/admin", signup.signupByAdmin);
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
+
+router.get("/admin/getAll", signup.getAllAdmin);
+router.get("/admin/get/:id", signup.get);
+router.post("/admin/signup", signup.signupByAdmin);
+router.put("/admin/update/:id", login.updateAdmin);
+router.delete("/admin/delete/:id", signup.deleteAdmin);
+
 //school
-router.post("school/createschool", school.Post);
-router.put("school/update", school.updateSchool);
+router.get("/school/getAll", school.getAllSchool);
+router.get("/school/:id", school.schoolDetails);
+router.post("/school/createschool", school.Post);
+router.put("/school/update/:id", school.updateSchool);
+router.delete("/school/delete/:id", school.deleteSchool);
 //transaction
 
 router.get("/user/:id", users.get)
@@ -40,8 +48,12 @@ router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance);
 router.post("/attendance/mark", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
 router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
-router.post("/attendance/checkin", attendance.teacherCheckIn);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
+router.put("/attendance/update", attendance.updateAttendance);
+
+//checkin
+router.post("/attendance/checkin", attendance.checkIn);
+router.get("/attendance/getcheckin", attendance.getTeacherCheckIns);
 
 //class
 router.get("/class/getallassignclass", classRoute.getAllAssignedClasses);

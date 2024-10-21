@@ -59,14 +59,16 @@ module.exports = router
 router.get("/user/:id", users.get);
 
 //transaction
-// router.post("/transaction/create", transaction.studentTransaction);
+router.get("/transaction/get/:id", transaction.get);
 router.get("/transaction/pendingfee", transaction.pendingPayment);
 router.post("/transaction/paymentfee", stripe.pay);
 router.post("/transaction/create", transaction.createTransaction);
+router.put("/transaction/update", transaction.updateTransaction);
 
 // teacher
+router.get("/teacher/all", teacher.getAllTeachers);
 router.get("/teacher/find", teacher.find);
-router.get("/teacher/get", teacher.get);
+router.get("/teacher/get/:id", teacher.get);
 router.post("/teacher/create", teacher.createTeacher);
 router.put("/teacher/update/:id", teacher.updateTeacher);
 router.delete("/teacher/delete/:id", teacher.deleteTeacher);
@@ -74,5 +76,6 @@ router.delete("/teacher/delete/:id", teacher.deleteTeacher);
 // class
 router.post("/class/create", classRoute.Post);
 router.get("/class/find", classRoute.find);
+router.get("/class/get/:id", classRoute.get);
 router.post("/class/assignclass", classRoute.assignClass);
 module.exports = router;
