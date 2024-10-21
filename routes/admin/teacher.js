@@ -3,9 +3,31 @@ const School = require("../../models/school");
 const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 const moment = require("moment");
+const { request } = require("express");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
+
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  });
+  const lowerCaseLetters = randomstring.generate({
+    length: 3,
+    charset: "abcdefghijklmnopqrstuvwxyz",
+  });
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: "!@#$%^&*()_+[]{}|;:,.<>?/",
+  });
+  const numbers = randomstring.generate({
+    length: 3,
+    charset: "0123456789",
+  });
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password;
+}
 
 module.exports = {
   /**
@@ -365,12 +387,13 @@ module.exports = {
         email,
         phone,
         dob,
+        joinDate,
         signature,
         bankDetails, // pending
         address,
       } = req.body;
       const { isAdmin } = req.user;
-      if (!isAdmin) {
+      if (isAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not Admin" });
@@ -412,7 +435,7 @@ module.exports = {
       }
 
       // check user already exists
-      const checkUserData = await User.findOne({ phone, email })
+      const checkUserData = await User.findOne({ email })
         .select("email phone")
         .exec();
 
@@ -433,17 +456,15 @@ module.exports = {
         }
       }
 
-      const randomStr = randomstring.generate({
-        length: 8,
-        charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      });
+      const randomStr = generateCustomPassword();
 
-      const username = firstName.slice(0, 3) + phone.slice(-3);
+      const existSchool = await School.findOne({ _id: req.user._school })
+        .select("_id name")
+        .exec();
+
+      const username =
+        firstName.slice(0, 3) + existSchool.name.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
-
-      const customer = await stripe.customers.create({
-        email,
-      });
 
       const user = await User.create({
         firstName,
@@ -453,7 +474,7 @@ module.exports = {
         dob: dateOfBirth,
         _school: req.user._school,
         _addedBy: req.user.id,
-        joinDate: new Date(),
+        joinDate,
         signature,
         username,
         password,
@@ -461,7 +482,6 @@ module.exports = {
         bankDetails,
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
-        customerStripeId: customer.id,
         address,
       });
 
@@ -476,7 +496,7 @@ module.exports = {
             to: user.email,
             subject: `Welcome to ${schoolName.name}`,
             locals: {
-              email: user.email,
+              username,
               firstName,
               password,
               schoolName: schoolName.name,
