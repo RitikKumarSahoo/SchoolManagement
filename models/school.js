@@ -68,9 +68,6 @@ const SchoolSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   }, // Comment
-  stripeAccountId: {
-    type: String,
-  },
 });
 
 SchoolSchema.index({ location: "2dsphere" });
