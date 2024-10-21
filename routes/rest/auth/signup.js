@@ -207,7 +207,12 @@ module.exports = {
         isSuperAdmin: false,
       }).select("-password -forgotpassword -isSuperAdmin");
 
-      return res.status(200).json({ error: false, admins });
+      const totalAdmins = await User.countDocuments({
+        loginType: "admin",
+        isSuperAdmin: false,
+      });
+
+      return res.status(200).json({ error: false, admins, totalAdmins });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error });
     }
