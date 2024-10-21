@@ -15,7 +15,7 @@ module.exports = {
    * @apiVersion 1.0.0
    * @apiDescription Retrieves all teachers belonging to the school
    *
-   * @apiHeader {String} Authorization Bearer token for authentication.
+   * @apiHeader {String} Authorization Bearer token for admin authentication.
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
    *  {
@@ -65,7 +65,13 @@ module.exports = {
 
   async getAllTeachers(req, res) {
     try {
-      const { _school } = req.user;
+      const { _school, loginType } = req.user;
+      if (loginType === "admin") {
+        return res
+          .status(200)
+          .json({ error: true, reason: "You are not admin" });
+      }
+
       const teachers = await User.find({
         loginType: "teacher",
         _school: _school,
@@ -77,11 +83,16 @@ module.exports = {
           message: "No teachers found for this school.",
         });
       }
+      const totalTeachers = await User.countDocuments({
+        loginType: "teacher",
+        _school: _school,
+      });
 
       return res.status(200).json({
         error: false,
         message: "Teachers retrieved successfully.",
         data: teachers,
+        totalTeachers,
       });
     } catch (error) {
       return res.status(500).json({
