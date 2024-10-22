@@ -40,7 +40,7 @@ router.delete("/school/delete/:id", school.deleteSchool);
 router.get("/user/:id", users.get)
 router.post("/user/edit-profile/:id", users.editData)
 
-const upload = multer({ dest: '../../public/uploads' });
+const upload = multer({ dest: '../public/uploads' });
 router.post("/progressReport/teachers/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
 router.get("/progressReport/:id", progressReportRoutes.get)
 
