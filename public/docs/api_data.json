@@ -1234,13 +1234,6 @@
             "optional": false,
             "field": "username",
             "description": "<p>User's username (optional, required if email is not provided).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "loginType",
-            "description": "<p>Type of login (e.g., &quot;admin&quot;, &quot;student&quot;,&quot;teacher&quot;).</p>"
           }
         ]
       }
@@ -1265,51 +1258,15 @@
         ]
       }
     },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "optional": false,
-            "field": "BadRequest",
-            "description": "<p>Fields <code>loginType</code> and <code>password</code> are mandatory.</p>"
-          }
-        ],
-        "403": [
-          {
-            "group": "403",
-            "optional": false,
-            "field": "Forbidden",
-            "description": "<p>User Inactive.</p>"
-          }
-        ],
-        "404": [
-          {
-            "group": "404",
-            "optional": false,
-            "field": "NotFound",
-            "description": "<p>User Not Found.</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "optional": false,
-            "field": "InternalServerError",
-            "description": "<p>Unexpected error occurred.</p>"
-          }
-        ]
-      }
-    },
     "examples": [
       {
         "title": "Request-Example:",
-        "content": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"loginType\": \"admin\"\n}",
+        "content": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n}",
         "type": "json"
       },
       {
         "title": "Request-Example:",
-        "content": "{\n  \"username\": \"user123\",\n  \"password\": \"password123\",\n  \"loginType\": \"admin\"\n}",
+        "content": "{\n  \"username\": \"user123\",\n  \"password\": \"password123\",\n}",
         "type": "json"
       },
       {
