@@ -1,127 +1,247 @@
 const { response } = require("express");
 const School = require("../../models/school");
+const User = require("../../models/user/index");
+const randomstring = require("randomstring");
+const mail = require("../../lib/mail");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
 
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  });
+  const lowerCaseLetters = randomstring.generate({
+    length: 3,
+    charset: "abcdefghijklmnopqrstuvwxyz",
+  });
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: "!@#$%^&*()_+[]{}|;:,.<>?/",
+  });
+  const numbers = randomstring.generate({
+    length: 3,
+    charset: "0123456789",
+  });
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password;
+}
+
 module.exports = {
   /**
-   * @api {post} /schools Create School by SuperAdmin
+   * @api {post} /school/createschool Create School
    * @apiName CreateSchool
    * @apiGroup School
-   * @apiVersion 1.0.0
-   * @apiDescription This endpoint allows a SuperAdmin to create a new school and a Stripe account for the school.
    *
-   * @apiHeader {String} Authorization SuperAdmin's unique access token (JWT).
+   * @apiHeader {String} Authorization Bearer token of the super admin.
    *
-   * @apiParam {String} name The name of the school.
-   * @apiParam {String} registrationNumber The registration number of the school.
-   * @apiParam {Object} address The address of the school.
-   * @apiParam {String} address.city City of the school.
-   * @apiParam {String} address.state State of the school.
-   * @apiParam {String} address.country Country of the school.
-   * @apiParam {String} address.pinCode Pin code of the school.
-   * @apiParam {Object} contact The contact details of the school.
-   * @apiParam {String} contact.phoneNo Phone number of the school.
-   * @apiParam {String} contact.email Email address of the school.
-   * @apiParam {String} contact.website Website of the school (if applicable).
-   * @apiParam {Object} location The geographical location of the school.
-   * @apiParam {String} location.type The location type (usually "Point").
-   * @apiParam {Number[]} location.coordinates The longitude and latitude of the school [longitude, latitude].
-   * @apiParam {String} principalName The name of the principal.
-   * @apiParam {Number} establishYear The year the school was established.
-   * @apiParam {String} schoolType The type of the school (e.g., primary, secondary, highSchool).
-   * @apiParam {String} imageUrl   Image of school
+   * @apiParam {String} name Name of the school.
+   * @apiParam {Object} schoolAddress School address object.
+   * @apiParam {String} schoolAddress.city City of the school.
+   * @apiParam {String} schoolAddress.state State of the school.
+   * @apiParam {String} schoolAddress.country Country of the school.
+   * @apiParam {String} schoolAddress.pinCode Pin code of the school.
+   * @apiParam {Object} contact Contact information object.
+   * @apiParam {String} contact.phoneNo Phone number for the school.
+   * @apiParam {String} contact.email Email address for the school.
+   * @apiParam {String} contact.website Website of the school.
+   * @apiParam {Object} location Location object.
+   * @apiParam {String} location.type Type of location (e.g., Point).
+   * @apiParam {Number[]} location.coordinates Coordinates of the school (longitude, latitude).
+   * @apiParam {String} email Admin's email address.
+   * @apiParam {String} firstName Admin's first name.
+   * @apiParam {String} lastName Admin's last name.
+   * @apiParam {String} dob Admin's date of birth.
+   * @apiParam {String} gender Admin's gender.
+   * @apiParam {String} phone Admin's phone number.
    *
-   * @apiSuccess {String} message A success message.
-   * @apiSuccess {Object} school The created school object.
-   * @apiSuccess {String} stripeAccountId The Stripe account ID associated with the school.
-   * @apiSuccess {Object} accountLink The Stripe account onboarding link.
+   * @apiSuccess {Boolean} error Indicates if there was an error.
+   * @apiSuccess {String} message Success message.
+   * @apiSuccess {Object} response The created admin object.
    *
-   * @apiError (400) {Boolean} error Whether there was an error.
-   * @apiError (400) {String} reason Reason for the error (if applicable).
+   * @apiError (400) BadRequest School name is required.
+   * @apiError (400) BadRequest School address is required.
+   * @apiError (400) BadRequest School contact is required.
+   * @apiError (400) BadRequest Email is required.
+   * @apiError (400) BadRequest First name is required.
+   * @apiError (400) BadRequest Last name is required.
+   * @apiError (400) BadRequest Admin email is required.
+   * @apiError (400) BadRequest Admin with this email already exists.
    *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "You are not superadmin"
-   *     }
+   * @apiError (500) InternalServerError Unexpected error occurred.
    *
-   * @apiError (500) {Boolean} error Whether there was an internal server error.
-   * @apiError (500) {String} message Error message (if internal error occurs).
+   * @apiExample {json} Request-Example:
+   * {
+   *   "name": "schoolXYZ",
+   *   "schoolAddress": {
+   *     "city": "Greenwood",
+   *     "state": "California",
+   *     "country": "USA",
+   *     "pinCode": "90210"
+   *   },
+   *   "contact": {
+   *     "phoneNo": "+1-f sjdfndsf",
+   *     "email": "info@greenwoodhigh.edu",
+   *     "website": "http://www.greenwoodhigh.edu"
+   *   },
+   *   "location": {
+   *     "type": "Point",
+   *     "coordinates": [21.418325060918168, 84.02980772446274]
+   *   },
+   *   "email": "sumanr@logic-square.com",
+   *   "firstName": "suman",
+   *   "lastName": "rana",
+   *   "dob": "12/08/2001",
+   *   "gender": "Male",
+   *   "phone": "9668123855"
+   * }
    *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 500 Internal Server Error
-   *     {
-   *       "error": true,
-   *       "message": "Internal Server Error"
-   *     }
+   * @apiExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "message": "Admin successfully created.",
+   *   "response": {
+   *     "_id": "someAdminId",
+   *     "username": "sumxyz555",
+   *     "email": "sumanr@logic-square.com",
+   *     "loginType": "admin",
+   *     "firstName": "suman",
+   *     "lastName": "rana",
+   *     "isAdmin": true,
+   *     "isSuperAdmin": false,
+   *     "dob": "12/08/2001",
+   *     "isActive": true,
+   *     "_school": "someSchoolId",
+   *     "phone": "9668123855",
+   *     "gender": "Male",
+   *     "address": null,
+   *     "createdAt": "2024-10-21T00:00:00.000Z",
+   *     "updatedAt": "2024-10-21T00:00:00.000Z"
+   *   }
+   * }
    */
-  async Post(req, res) {
-    const {
-      name,
-      registrationNumber,
-      address,
-      contact,
-      location,
-      principalName,
-      establishYear,
-      schoolType,
-      imageUrl,
-    } = req.body;
 
+  async Post(req, res) {
     try {
-      const { loginType, isSuperAdmin } = req.user;
+      const {
+        name,
+        schoolAddress,
+        contact,
+        location,
+        imageUrl,
+        email,
+        firstName,
+        lastName,
+        phone,
+        dob,
+        gender,
+        address,
+      } = req.body;
+      const { isSuperAdmin } = req.user;
       if (isSuperAdmin !== true) {
         return res
           .status(400)
-          .json({ error: true, reason: "You are not superadmin" });
+          .json({ error: true, reason: "you are not superadmin" });
       }
-      const account = await stripe.accounts.create({
-        type: "custom",
-        country: "US",
-        business_type: "company",
-        business_profile: {
-          name: name,
-          product_description: "Educational Institution",
-          support_email: contact.email,
-        },
-        email: contact.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-      });
-      const accountLink = await stripe.accountLinks.create({
-        account: account.id,
-        refresh_url: "http://localhost:3000/api/v1/reauth",
-        return_url: "http://localhost:3000/api/v1/return",
-        type: "account_onboarding",
-      });
+      if (name === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school name is required" });
+      }
+      if (schoolAddress === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school address is required" });
+      }
+      if (contact === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "school contact is required" });
+      }
+      if (email === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "email is required" });
+      }
+      if (firstName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "firstName is required" });
+      }
+      if (lastName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "lastName is required" });
+      }
+      if (phone === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "admin email is required" });
+      }
 
-      const school = await School.create({
+      const existingAdmin = await User.findOne({ email });
+      if (existingAdmin) {
+        return res.status(400).json({
+          error: true,
+          message: "Admin with this email already exists.",
+        });
+      }
+
+      const randomNumber = Math.floor(1000 + Math.random() * 9000);
+      const registrationNumber = `REG${randomNumber}`;
+
+      //create a new school
+      const newSchool = await School.create({
         name,
-        registrationNumber,
-        address,
+        address: schoolAddress,
         contact,
         location,
-        principalName,
-        establishYear,
-        schoolType,
-        stripeAccountId: account.id,
-        isActive: true,
         imageUrl,
+        registrationNumber,
       });
 
-      res.status(201).json({
-        message: "School created successfully!",
-        school,
-        stripeAccountId: account.id,
-        accountLink,
+      // Check if the admin already exists
+
+      const username =
+        firstName.slice(0, 3) + newSchool.name.slice(0, 3) + phone.slice(-3);
+
+      const password = generateCustomPassword();
+
+      const response = await User.create({
+        username,
+        email,
+        password,
+        firstName,
+        lastName,
+        loginType: "admin",
+        isAdmin: true,
+        isSuperAdmin: false,
+        dob,
+        isActive: true,
+        _school: newSchool._id,
+        phone,
+        gender,
+        address,
+      });
+
+      await mail("admin-welcome", {
+        to: email,
+        subject: `Welcome to ${newSchool.name}`,
+        locals: {
+          username,
+          firstName,
+          password,
+          schoolName: newSchool.name,
+        },
+      });
+      return res.status(201).json({
+        error: false,
+        message: "Admin successfully created.",
+        response,
       });
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 
