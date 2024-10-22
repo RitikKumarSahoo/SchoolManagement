@@ -11,29 +11,20 @@ module.exports = {
    * @apiParam {String} email User's email address (optional, required if username is not provided).
    * @apiParam {String} password User's password (mandatory).
    * @apiParam {String} username User's username (optional, required if email is not provided).
-   * @apiParam {String} loginType Type of login (e.g., "admin", "student","teacher").
    *
    * @apiSuccess {Boolean} error Indicates if there was an error.
    * @apiSuccess {String} token JWT token for authenticated user.
-   *
-   * @apiError (400) BadRequest Fields `loginType` and `password` are mandatory.
-   * @apiError (400) BadRequest Either `email` or `username` is required.
-   * @apiError (404) NotFound User Not Found.
-   * @apiError (403) Forbidden User Inactive.
-   * @apiError (500) InternalServerError Unexpected error occurred.
    *
    * @apiExample {json} Request-Example:
    * {
    *   "email": "user@example.com",
    *   "password": "password123",
-   *   "loginType": "admin"
    * }
    *
    * @apiExample {json} Request-Example:
    * {
    *   "username": "user123",
    *   "password": "password123",
-   *   "loginType": "admin"
    * }
    *
    * @apiExample {json} Success-Response:
@@ -45,12 +36,12 @@ module.exports = {
 
   async post(req, res) {
     try {
-      const { email, password, username, loginType } = req.body;
+      const { email, password, username } = req.body;
 
-      if (loginType === undefined || password === undefined) {
+      if (password === undefined) {
         return res.status(400).json({
           error: true,
-          reason: "Fields `loginType` and `password` are mandatory",
+          reason: "Field `password` is mandatory",
         });
       }
 
@@ -61,9 +52,7 @@ module.exports = {
         });
       }
 
-      // query to match either email or username
       const query = {
-        loginType: loginType,
         $or: [{ email: email }, { username: username }],
       };
 
