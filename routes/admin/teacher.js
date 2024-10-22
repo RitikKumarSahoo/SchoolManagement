@@ -88,7 +88,7 @@ module.exports = {
   async getAllTeachers(req, res) {
     try {
       const { _school, loginType } = req.user;
-      if (loginType === "admin") {
+      if (loginType !== "admin") {
         return res
           .status(200)
           .json({ error: true, reason: "You are not admin" });
@@ -97,7 +97,7 @@ module.exports = {
       const teachers = await User.find({
         loginType: "teacher",
         _school: _school,
-      }).select("-password -bankDetails");
+      }).select("-password -bankDetails -forgotpassword");
 
       if (teachers.length === 0) {
         return res.status(404).json({
@@ -399,31 +399,26 @@ module.exports = {
           .json({ error: true, reason: "You are not Admin" });
       }
 
-      if (!firstName) {
+      if (firstName === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "First name is required" });
       }
-      if (!lastName) {
+      if (lastName === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Last name is required" });
       }
-      if (!gender) {
+      if (gender === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Gender is required" });
       }
 
-      if (!phone) {
+      if (phone === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Phone number is required" });
-      }
-      if (!dob) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Date of birth is required" });
       }
 
       const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
@@ -571,12 +566,12 @@ module.exports = {
    */
   async updateTeacher(req, res) {
     try {
-      const { isAdmin } = req.user;
+      const { loginType } = req.user;
 
-      if (!isAdmin) {
+      if (loginType !== "teacher" || loginType !== "admin") {
         return res
           .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+          .json({ error: true, reason: "You can not update " });
       }
 
       const {
