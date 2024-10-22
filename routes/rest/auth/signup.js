@@ -89,7 +89,7 @@ module.exports = {
    * @api {get} /admin/get/:id Get admin by ID
    * @apiName GetAdmin
    * @apiGroup Admin
-   * @apiPermission SuperAdmin
+   * @apiPermission Admin
    *
    * @apiDescription Fetch a specific admin's details by their ID
    *
@@ -131,12 +131,12 @@ module.exports = {
 
   async get(req, res) {
     try {
-      const { isSuperAdmin } = req.user;
+      const { isAdmin } = req.user;
 
-      if (isSuperAdmin !== true) {
+      if (isAdmin !== true) {
         return res
           .status(400)
-          .json({ error: false, reason: "You are not superAdmin" });
+          .json({ error: false, reason: "You are not Admin" });
       }
 
       const admin = await User.findOne({ _id: req.params.id }).select(
@@ -178,6 +178,27 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  async Deactive(req, res) {
+    try {
+      const { loginType } = req.user;
+
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not admin" });
+      }
+
+      const user = await User.findOne({ _id: req.params.id });
+
+      user.isActive = false;
+      await user.save();
+
+      return res.status(200).json({ error: false, message: "User Deactivate" });
+    } catch (error) {
+      return res.status(500).json({ error: false, Error: error });
     }
   },
 };
