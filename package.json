@@ -37,6 +37,7 @@
     "mongodb-memory-server": "^8.4.1",
     "mongoose": "^6.2.6",
     "morgan": "~1.9.1",
+    "ngrok": "^5.0.0-beta.2",
     "nodemailer": "^6.9.15",
     "randomstring": "^1.2.2",
     "socket.io": "^4.8.0",
