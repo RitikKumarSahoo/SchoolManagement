@@ -7,6 +7,84 @@ const ChatThread = require("../../models/chatThread");
 const ChatMessage = require("../../models/chatMessage");
 
 module.exports = {
+  /**
+   *
+   * @api {post} /message/permission MessagingPermission
+   * @apiName MessagingPermission
+   * @apiGroup Message
+   *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   *
+   * @apiParam {String} userId The ID of the user for whom messaging permission is being updated.
+   * @apiParam {Boolean} enable Flag to enable or disable messaging for the user.
+   *
+   * @apiParamExample {json} Request-Example:
+   * {
+   *   "userId": "60c72b2f9b1e8a3b4c3e4f6e",
+   *   "enable": true
+   * }
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false for success).
+   * @apiSuccess {String} message Confirmation message about the update.
+   * @apiSuccess {Object} user The updated user object.
+   * @apiSuccess {String} user._id The unique ID of the user.
+   * @apiSuccess {Boolean} user.messagingEnabled The messaging permission status for the user.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "message": "Messaging has been enabled for user 60c72b2f9b1e8a3b4c3e4f6e.",
+   *   "user": {
+   *     "_id": "60c72b2f9b1e8a3b4c3e4f6e",
+   *     "messagingEnabled": true
+   *   }
+   * }
+   *
+   * @apiError (403) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (403) {String} message The reason for the error (e.g., "You are not an admin.").
+   * @apiError (404) {Boolean} error Indicates whether there was an error (true).
+   * @apiError (404) {String} message The reason for the error (e.g., "User not found.").
+   *
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "User not found."
+   * }
+   *
+   */
+  async messagePermission(req, res) {
+    const { userId, enable } = req.body;
+    const { id } = req.user; //admin
+
+    try {
+      const admin = await User.findOne({ _id: id, loginType: "admin" });
+      if (admin === null) {
+        return res
+          .status(403)
+          .json({ error: true, message: "You are not an admin." });
+      }
+
+      const user = await User.findOne({ _id: userId });
+      if (user === null) {
+        return res
+          .status(404)
+          .json({ error: true, message: "User not found." });
+      }
+
+      user.messagingEnabled = enable;
+      await user.save();
+
+      return res.status(200).json({
+        error: false,
+        message: `Messaging has been ${
+          enable ? "enabled" : "disabled"
+        } for user`,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
   // send message
   /**
    *
@@ -76,6 +154,14 @@ module.exports = {
           .json({ error: true, message: "Receiver not found." });
       }
 
+      if (sender.loginType === "student" || sender.loginType === "teacher") {
+        if (sender.messagingEnabled === false) {
+          return res.status(403).json({
+            error: true,
+            message: "Messaging is disabled",
+          });
+        }
+      }
       const thread = await ChatThread.findOne({
         _participants: { $all: [id, _to] },
       });
@@ -106,7 +192,6 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
-
   /**
    *
    * @api {get} /message/readmessage/:id  Read Messages
