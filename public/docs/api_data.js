@@ -1207,7 +1207,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/api/v1/login",
+    "url": "/login",
     "title": "User Login",
     "name": "UserLogin",
     "group": "Auth",
