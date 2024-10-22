@@ -1,7 +1,7 @@
 define({
-  "name": "express-skeleton-3",
+  "name": "School Management System",
   "version": "1.0.0",
-  "description": "A Skeleton Application",
+  "description": "School Management System",
   "sampleUrl": false,
   "defaultVersion": "0.0.0",
   "apidoc": "0.3.0",
