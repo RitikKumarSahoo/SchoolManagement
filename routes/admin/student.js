@@ -4,6 +4,36 @@ const School = require("../../models/school")
 const Class = require('../../models/class')
 const mail = require("../../lib/mail")
 
+
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  });
+
+  const lowerCaseLetters = randomstring.generate({
+    length: 5, // Adjust the number of lowercase letters as needed
+    charset: 'abcdefghijklmnopqrstuvwxyz'
+  });
+
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: '!@#$%^&*()_+[]{}|;:,.<>?/' // Define special characters
+  });
+
+  const numbers = randomstring.generate({
+    length: 3, // Adjust the number of digits as needed
+    charset: '0123456789'
+  });
+
+  // Combine all parts
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password; // Return the generated password
+}
+
+
+
+
 module.exports = {
   /**
    * Create a new student   * @api {post} /student 3.0 Create a new student
@@ -144,7 +174,7 @@ module.exports = {
       console.log("School Name:",schoolName);
   
       const username  = firstName.slice(0,3)+schoolName.name.slice(0,3)+phone.slice(-3)
-      const password = schoolName.name.slice(0,3)+admissionYear+phone.slice(-3)
+      const password = generateRandomPassword();
 
       const student =await users.create({
         firstName,
