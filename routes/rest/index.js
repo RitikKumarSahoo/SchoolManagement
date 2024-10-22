@@ -21,6 +21,7 @@ router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED;
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
+router.post("/deactivate/:id", signup.Deactive);
 router.get("/admin/getAll", signup.getAllAdmin);
 router.get("/admin/get/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
