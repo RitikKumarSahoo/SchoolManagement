@@ -50,7 +50,6 @@ router.get("/attendance/getcheckin", attendance.getTeacherCheckIns);
 router.get("/class/getallassignclass", classRoute.getAllAssignedClasses);
 
 // message
-router.post("/message/permission", message.messagePermission);
 router.post("/message/createthread/:userId", message.createChatThread);
 router.post("/message/sendmessage", message.sendMessage);
 router.get("/message/readmessage/:id", message.getMessages);
