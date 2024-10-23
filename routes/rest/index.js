@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const expressJwt = require("express-jwt");
-const multer = require('multer');
+const multer = require("multer");
 const checkJwt = expressJwt({
   secret: process.env.SECRET,
   algorithms: ["HS256"],
@@ -30,19 +30,23 @@ router.put("/admin/update/:id", login.updateAdmin);
 router.delete("/admin/delete/:id", signup.deleteAdmin);
 
 //school
-router.get("/school/getAll", school.getAllSchool);
+router.post("/schools", school.getAllSchool);
 router.get("/school/:id", school.schoolDetails);
 router.post("/school/createschool", school.Post);
 router.put("/school/update/:id", school.updateSchool);
 router.delete("/school/delete/:id", school.deleteSchool);
 //transaction
 
-router.get("/user/:id", users.get)
-router.post("/user/edit-profile/:id", users.editData)
+router.get("/user/:id", users.get);
+router.post("/user/edit-profile/:id", users.editData);
 
-const upload = multer({ dest: '../public/uploads' });
-router.post("/progressReport/teachers/create-progress-report", upload.single('csvFile'), progressReportRoutes.post);
-router.get("/progressReport/:id", progressReportRoutes.get)
+const upload = multer({ dest: "../public/uploads" });
+router.post(
+  "/progressReport/teachers/create-progress-report",
+  upload.single("csvFile"),
+  progressReportRoutes.post
+);
+router.get("/progressReport/:id", progressReportRoutes.get);
 
 router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
 router.post("/attendance/mark", attendance.markAttendance);
@@ -65,6 +69,6 @@ router.post("/message/sendmessage", message.sendMessage);
 router.get("/message/readmessage/:id", message.getMessages);
 router.get("/message/thread/:id", message.getChatThread);
 
-router.get("/user/:id", users.get);
+router.get("/profile", users.get);
 
 module.exports = router;
