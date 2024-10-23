@@ -5424,7 +5424,7 @@
   },
   {
     "type": "delete",
-    "url": "/school/:id",
+    "url": "/school/delete/:id",
     "title": "Delete School",
     "name": "DeleteSchool",
     "group": "School",
@@ -5479,7 +5479,7 @@
   },
   {
     "type": "get",
-    "url": "/school",
+    "url": "/school/getAll",
     "title": "Get All Schools",
     "name": "GetAllSchools",
     "group": "School",
@@ -7854,29 +7854,12 @@
   },
   {
     "type": "get",
-    "url": "/user/:id",
-    "title": "get user details",
-    "name": "userDetails",
+    "url": "/api/v1/user/:id",
+    "title": "Get User Details",
+    "name": "GetUser",
     "group": "User",
     "version": "1.0.0",
-    "permission": [
-      {
-        "name": "User"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>Fetch a user's details using their ID,The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -7885,28 +7868,33 @@
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>Users unique ID.</p>"
+            "description": "<p>The unique ID of the user.</p>"
           }
         ]
       }
     },
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "curl -X GET http://localhost:3000/api/v1/user/6711051061792663918458bf",
+        "type": "curl"
+      }
+    ],
     "success": {
-      "fields": {
-        "200": [
-          {
-            "group": "200",
-            "type": "json",
-            "optional": false,
-            "field": "name",
-            "description": "<p>description</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\" : false,\n  \"user\" : {\n    \"email\": \"myEmail@logic-square.com\",\n    \"phone\": \"00000000000\",\n    \"name\"  : {\n      \"first\":\"Jhon\",\n      \"last\" :\"Doe\"\n    }\n  }\n}",
-          "type": "type"
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"6711051061792663918458bf\",\n    \"username\": \"mahesh\",\n    \"firstName\": \"admin\",\n    \"lastName\": \"abcd\",\n    \"email\": \"mahesh123@gmail.com\",\n    \"accountType\": \"email\",\n    \"dob\": \"2001-12-07T18:30:00.000Z\",\n    \"loginType\": \"admin\",\n    \"isActive\": true,\n    \"isAdmin\": true,\n    \"isSuperAdmin\": false,\n    \"bankAdded\": false,\n    \"_school\": \"670cc3c55aa29e2e31348c7e\",\n    \"customerStripeId\": \"cus_R2yvkL6hLUVk7h\",\n    \"isPaid\": false,\n    \"messagingEnabled\": true,\n    \"createdAt\": \"2024-10-17T12:37:36.453Z\",\n    \"updatedAt\": \"2024-10-17T13:15:32.530Z\",\n    \"address\": \"Sambalpur,Odisha,768005\",\n    \"gender\": \"Female\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"No user found for the given id\"\n}",
+          "type": "json"
         }
       ]
     },
