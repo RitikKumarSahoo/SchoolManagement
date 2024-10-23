@@ -395,7 +395,7 @@ module.exports = {
   },
 
   /**
-   * @api {get} /school Get All Schools
+   * @api {get} /school/getAll Get All Schools
    * @apiName GetAllSchools
    * @apiGroup School
    * @apiVersion 1.0.0
@@ -500,7 +500,7 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /school/:id Delete School
+   * @api {delete} /school/delete/:id Delete School
    * @apiName DeleteSchool
    * @apiGroup School
    * @apiVersion 1.0.0
