@@ -78,8 +78,7 @@ module.exports = {
         error: false,
         message: `Messaging has been ${
           enable ? "enabled" : "disabled"
-        } for user ${userId}.`,
-        user,
+        } for user`,
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
@@ -141,7 +140,7 @@ module.exports = {
     try {
       // Check if the sender exists
       const sender = await User.findOne({ _id: id });
-      if (!sender) {
+      if (sender === null) {
         return res
           .status(404)
           .json({ error: true, message: "Sender not found." });
@@ -149,31 +148,24 @@ module.exports = {
 
       // Check if the receiver exists
       const receiver = await User.findOne({ _id: _to });
-      if (!receiver) {
+      if (receiver === null) {
         return res
           .status(404)
           .json({ error: true, message: "Receiver not found." });
       }
 
-      if (sender.loginType === "student") {
-        if (!sender.messagingEnabled) {
+      if (sender.loginType === "student" || sender.loginType === "teacher") {
+        if (sender.messagingEnabled === false) {
           return res.status(403).json({
             error: true,
-            message: "Messaging is disabled for the student",
+            message: "Messaging is disabled",
           });
         }
-
-        if (receiver.loginType !== "admin") {
-          return res
-            .status(403)
-            .json({ error: true, message: "Students can only message admin" });
-        }
       }
-
       const thread = await ChatThread.findOne({
         _participants: { $all: [id, _to] },
       });
-      if (!thread) {
+      if (thread === null) {
         return res
           .status(404)
           .json({ error: true, message: "Chat thread not found." });
@@ -188,7 +180,7 @@ module.exports = {
       });
 
       thread.lastMessage = text;
-      thread.lastMessageTime = new Date();
+      thread.lastMessageTime = message.createdAt;
       await thread.save();
 
       return res.status(200).json({
@@ -200,7 +192,6 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
-
   /**
    *
    * @api {get} /message/readmessage/:id  Read Messages
