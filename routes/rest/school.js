@@ -486,7 +486,7 @@ module.exports = {
   async getAllSchool(req, res) {
     try {
       const { isSuperAdmin } = req.user;
-      if (isSuperAdmin === true) {
+      if (isSuperAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not superadmin" });
