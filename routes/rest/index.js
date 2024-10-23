@@ -17,6 +17,17 @@ const classRoute = require("../rest/class");
 const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
 
+// admin file
+const adminUsers = require("./adminUsers");
+const adminStudentRoutes = require("./adminStudent");
+const adminNoticeRoutes = require("./adminNotices");
+const adminScheduleRoutes = require("./adminSchedules");
+const adminProgressReportRoutes = require("./adminProgressReport");
+const adminTeacher = require("./adminTeacher");
+const adminClassRoute = require("./adminClass");
+const adminTransaction = require("./adminTransaction");
+const adminStripe = require("../../lib/stripe");
+
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
@@ -70,5 +81,64 @@ router.get("/message/readmessage/:id", message.getMessages);
 router.get("/message/thread/:id", message.getChatThread);
 
 router.get("/profile", users.get);
+
+
+// admin api
+
+//stripe
+router.get("/admin/return", adminStripe.onboardingComplete);
+router.get("/admin/reauth", adminStripe.reauth);
+router.post("/admin/stripe/verifyconnectedaccount", adminStripe.verifyConnectedAccount);
+router.post("/admin/stripe/addcard", adminStripe.cardAdd);
+router.post("/admin/confirmpayment", adminStripe.confirmpayment);
+
+//list of all routers
+router.post("/admin/students/create-student", adminStudentRoutes.createStudent);
+router.put("/admin/student/edit/:id", adminStudentRoutes.editStudentDetails);
+router.get("/admin/students/view-students/:schoolId", adminStudentRoutes.viewAllStudents); //id: SchoolId
+router.get("/admin/students/view-student/:studentId", adminStudentRoutes.viewStudentDetails);
+router.put("/admin/students/deactivate/:studentId", adminStudentRoutes.deactivateStudent);
+router.get("/admin/students/search", adminStudentRoutes.searchStudents);
+
+// Noice board Rute
+router.get("/admin/notices/find-all-notices", adminNoticeRoutes.findAllNotices); // Fetch all notices
+router.get("/admin/notice/getNotice/:id", adminNoticeRoutes.get); // Get a notice by ID
+router.post("/admin/notice/createNotice", adminNoticeRoutes.post); // Create a new notice
+router.put("/admin/notice/edit-notice/:id", adminNoticeRoutes.put); // Edit a notice by ID
+router.delete("/admin/notice/delete-notice/:id", adminNoticeRoutes.delete); // Delete a notice by ID
+
+//Schedule Route
+router.get("/admin/schedules/find-all-schedules", adminScheduleRoutes.find); // Fetch all schedules
+router.get("/admin/schedule/get-schedule/", adminScheduleRoutes.get); // Get a schedule by ID
+router.post("/admin/schedule/create-schedule", adminScheduleRoutes.post); // Create a new schedule
+router.put("/admin/schedule/edit-schedule/:id", adminScheduleRoutes.put); // Edit a schedule by ID
+router.delete("/admin/schedule/:id", adminScheduleRoutes.delete); // Delete a schedule by ID
+
+//Progress Report Rooutec
+router.post("/admin/progressReport/create-progress-report", upload.single("csvFile"), adminProgressReportRoutes.post);
+
+router.get("/admin/progressReport/get-progress-report/:studentId", adminProgressReportRoutes.get);
+router.get("/admin/user/:id", users.get);
+
+//transaction
+router.get("/admin/transaction/get/:id", adminTransaction.get);
+router.get("/admin/transaction/pendingfee", adminTransaction.pendingPayment);
+router.post("/admin/transaction/paymentfee", adminStripe.pay);
+router.post("/admin/transaction/create", adminTransaction.createTransaction);
+router.put("/admin/transaction/update", adminTransaction.updateTransaction);
+
+// teacher
+router.post("/admin/teacher/all", adminTeacher.getAllTeachers);
+router.get("/admin/teacher/find", adminTeacher.find);
+router.get("/admin/teacher/get/:id", adminTeacher.get);
+router.post("/admin/teacher/create", adminTeacher.createTeacher);
+router.put("/admin/teacher/update/:id", adminTeacher.updateTeacher);
+router.delete("/admin/teacher/delete/:id", adminTeacher.deleteTeacher);
+
+// class
+router.post("/admin/class/create", adminClassRoute.Post);
+router.get("/admin/class/find", adminClassRoute.find);
+router.get("/admin/class/get/:id", adminClassRoute.get);
+router.post("/admin/class/assignclass", adminClassRoute.assignClass);
 
 module.exports = router;

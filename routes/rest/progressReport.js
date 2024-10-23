@@ -1,5 +1,5 @@
 const ProgressReport = require("../../models/progressReport")
-const { get } = require("../admin/schedules")
+const { get } = require("./adminSchedules")
 const User = require("../../models/user")
 const csv = require('csv-parser');
 const fs = require('fs');

@@ -13,7 +13,6 @@ require("./agenda/agenda_jobs")(agenda);
 
 const restRouter = require("./routes/rest");
 const webRouter = require("./routes/web");
-const adminRouter = require("./routes/admin");
 
 const app = express();
 
@@ -49,7 +48,6 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", webRouter);
 app.use(`/api/v${process.env.API_VERSION}`, restRouter);
-app.use(`/admin/v${process.env.API_VERSION}`, adminRouter);
 
 // Agenda
 agenda.on("ready", async () => {

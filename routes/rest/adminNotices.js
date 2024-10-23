@@ -1,6 +1,6 @@
 const moment = require('moment');
 const Notice = require("../../models/notice.js");
-const agenda = require("../../agenda");
+const agenda = require("../../agenda/index.js");
 
 module.exports = {
   /**
