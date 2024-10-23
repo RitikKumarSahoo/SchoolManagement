@@ -5215,36 +5215,6 @@ define({ "api": [
   },
   {
     "type": "post",
-<<<<<<< HEAD
-    "url": "/schools",
-    "title": "Create School by SuperAdmin",
-    "name": "CreateSchool",
-    "group": "School",
-    "version": "1.0.0",
-    "description": "<p>This endpoint allows a SuperAdmin to create a new school and a Stripe account for the school.</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>SuperAdmin's unique access token (JWT).</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p>The name of the school.</p>"
-=======
     "url": "/school/createschool",
     "title": "Create School",
     "name": "CreateSchool",
@@ -5278,138 +5248,25 @@ define({ "api": [
             "optional": false,
             "field": "schoolAddress",
             "description": "<p>School address object.</p>"
->>>>>>> mrinaldev
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-<<<<<<< HEAD
-            "field": "registrationNumber",
-            "description": "<p>The registration number of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "address",
-            "description": "<p>The address of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "address.city",
-            "description": "<p>City of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "address.state",
-            "description": "<p>State of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "address.country",
-            "description": "<p>Country of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "address.pinCode",
-            "description": "<p>Pin code of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "contact",
-            "description": "<p>The contact details of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "contact.phoneNo",
-            "description": "<p>Phone number of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "contact.email",
-            "description": "<p>Email address of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "contact.website",
-            "description": "<p>Website of the school (if applicable).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "location",
-            "description": "<p>The geographical location of the school.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "location.type",
-            "description": "<p>The location type (usually &quot;Point&quot;).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number[]",
-            "optional": false,
-            "field": "location.coordinates",
-            "description": "<p>The longitude and latitude of the school [longitude, latitude].</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "principalName",
-            "description": "<p>The name of the principal.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "establishYear",
-            "description": "<p>The year the school was established.</p>"
-=======
             "field": "schoolAddress.city",
             "description": "<p>City of the school.</p>"
->>>>>>> mrinaldev
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-<<<<<<< HEAD
-            "field": "schoolType",
-            "description": "<p>The type of the school (e.g., primary, secondary, highSchool).</p>"
-=======
             "field": "schoolAddress.state",
             "description": "<p>State of the school.</p>"
->>>>>>> mrinaldev
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
-<<<<<<< HEAD
-            "field": "imageUrl",
-            "description": "<p>Image of school</p>"
-=======
             "field": "schoolAddress.country",
             "description": "<p>Country of the school.</p>"
           },
@@ -5510,7 +5367,6 @@ define({ "api": [
             "optional": false,
             "field": "phone",
             "description": "<p>Admin's phone number.</p>"
->>>>>>> mrinaldev
           }
         ]
       }
@@ -5520,48 +5376,24 @@ define({ "api": [
         "Success 200": [
           {
             "group": "Success 200",
-<<<<<<< HEAD
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>A success message.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "school",
-            "description": "<p>The created school object.</p>"
-=======
             "type": "Boolean",
             "optional": false,
             "field": "error",
             "description": "<p>Indicates if there was an error.</p>"
->>>>>>> mrinaldev
           },
           {
             "group": "Success 200",
             "type": "String",
             "optional": false,
-<<<<<<< HEAD
-            "field": "stripeAccountId",
-            "description": "<p>The Stripe account ID associated with the school.</p>"
-=======
             "field": "message",
             "description": "<p>Success message.</p>"
->>>>>>> mrinaldev
           },
           {
             "group": "Success 200",
             "type": "Object",
             "optional": false,
-<<<<<<< HEAD
-            "field": "accountLink",
-            "description": "<p>The Stripe account onboarding link.</p>"
-=======
             "field": "response",
             "description": "<p>The created admin object.</p>"
->>>>>>> mrinaldev
           }
         ]
       }
@@ -5571,56 +5403,15 @@ define({ "api": [
         "400": [
           {
             "group": "400",
-            "type": "Boolean",
             "optional": false,
-<<<<<<< HEAD
-            "field": "error",
-            "description": "<p>Whether there was an error.</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>Reason for the error (if applicable).</p>"
-=======
             "field": "BadRequest",
             "description": "<p>School name is required.</p>"
->>>>>>> mrinaldev
           }
         ],
         "500": [
           {
             "group": "500",
-            "type": "Boolean",
             "optional": false,
-<<<<<<< HEAD
-            "field": "error",
-            "description": "<p>Whether there was an internal server error.</p>"
-          },
-          {
-            "group": "500",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message (if internal error occurs).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Internal Server Error\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-=======
             "field": "InternalServerError",
             "description": "<p>Unexpected error occurred.</p>"
           }
@@ -5640,7 +5431,6 @@ define({ "api": [
       }
     ],
     "version": "0.0.0",
->>>>>>> mrinaldev
     "filename": "routes/rest/school.js",
     "groupTitle": "School"
   },
