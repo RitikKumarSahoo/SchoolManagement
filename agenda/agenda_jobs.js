@@ -28,7 +28,7 @@ module.exports = (agenda) => {
       console.error(`Error deactivating notice with ID ${noticeId}:`, err.message);
     }
   })
-}
+
     agenda.define("pending-payment-reminder", async (job) => {
       try {
         const { _school } = job.attrs.data;
