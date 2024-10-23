@@ -3,18 +3,101 @@ const School = require("../../models/school");
 const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 const moment = require("moment");
+const { request } = require("express");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
 
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  });
+  const lowerCaseLetters = randomstring.generate({
+    length: 3,
+    charset: "abcdefghijklmnopqrstuvwxyz",
+  });
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: "!@#$%^&*()_+[]{}|;:,.<>?/",
+  });
+  const numbers = randomstring.generate({
+    length: 3,
+    charset: "0123456789",
+  });
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password;
+}
+
 module.exports = {
+  /**
+   * @api {get} /teachers Get All Teachers
+   * @apiName GetAllTeachers
+   * @apiGroup Teacher
+   * @apiVersion 1.0.0
+   * @apiDescription Retrieves all teachers belonging to the school
+   *
+   * @apiHeader {String} Authorization Bearer token for admin authentication.
+   * @apiSuccessExample Success Response:
+   *  HTTP/1.1 200 OK
+   *  {
+   *    "error": false,
+   *    "message": "Teachers retrieved successfully.",
+   *    "data": [
+   *      {
+   *        "_id": "614d1b6f8f8b9e001cb12345",
+   *        "firstName": "John",
+   *        "lastName": "Doe",
+   *        "email": "john.doe@example.com",
+   *        "phone": "1234567890",
+   *        "gender": "Male",
+   *        "_school": "614c1b6f8f8b9e001cb12345",
+   *        "isActive": true
+   *      },
+   *      {
+   *        "_id": "614d1b6f8f8b9e001cb12346",
+   *        "firstName": "Jane",
+   *        "lastName": "Smith",
+   *        "email": "jane.smith@example.com",
+   *        "phone": "0987654321",
+   *        "gender": "Female",
+   *        "_school": "614c1b6f8f8b9e001cb12345",
+   *        "isActive": true
+   *      }
+   *    ]
+   *  }
+   *
+   * @apiError {Boolean} error Indicates if there was an error (true if failed).
+   * @apiError {String} message Error message explaining the reason.
+   *
+   * @apiErrorExample Error Response (No Teachers Found):
+   *  HTTP/1.1 404 Not Found
+   *  {
+   *    "error": true,
+   *    "message": "No teachers found for this school."
+   *  }
+   *
+   * @apiErrorExample Error Response (Server Error):
+   *  HTTP/1.1 500 Internal Server Error
+   *  {
+   *    "error": true,
+   *    "reason": "Server error message."
+   *  }
+   */
+
   async getAllTeachers(req, res) {
     try {
-      const { _school } = req.user;
+      const { _school, loginType } = req.user;
+      if (loginType !== "admin") {
+        return res
+          .status(200)
+          .json({ error: true, reason: "You are not admin" });
+      }
+
       const teachers = await User.find({
         loginType: "teacher",
         _school: _school,
-      }).select("-password -bankDetails");
+      }).select("-password -bankDetails -forgotpassword");
 
       if (teachers.length === 0) {
         return res.status(404).json({
@@ -22,11 +105,16 @@ module.exports = {
           message: "No teachers found for this school.",
         });
       }
+      const totalTeachers = await User.countDocuments({
+        loginType: "teacher",
+        _school: _school,
+      });
 
       return res.status(200).json({
         error: false,
         message: "Teachers retrieved successfully.",
         data: teachers,
+        totalTeachers,
       });
     } catch (error) {
       return res.status(500).json({
@@ -299,42 +387,38 @@ module.exports = {
         email,
         phone,
         dob,
+        joinDate,
         signature,
         bankDetails, // pending
         address,
       } = req.body;
       const { isAdmin } = req.user;
-      if (!isAdmin) {
+      if (isAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not Admin" });
       }
 
-      if (!firstName) {
+      if (firstName === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "First name is required" });
       }
-      if (!lastName) {
+      if (lastName === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Last name is required" });
       }
-      if (!gender) {
+      if (gender === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Gender is required" });
       }
 
-      if (!phone) {
+      if (phone === undefined) {
         return res
           .status(400)
           .json({ error: true, message: "Phone number is required" });
-      }
-      if (!dob) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Date of birth is required" });
       }
 
       const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
@@ -346,7 +430,7 @@ module.exports = {
       }
 
       // check user already exists
-      const checkUserData = await User.findOne({ phone, email })
+      const checkUserData = await User.findOne({ email })
         .select("email phone")
         .exec();
 
@@ -367,17 +451,15 @@ module.exports = {
         }
       }
 
-      const randomStr = randomstring.generate({
-        length: 8,
-        charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      });
+      const randomStr = generateCustomPassword();
 
-      const username = firstName.slice(0, 3) + phone.slice(-3);
+      const existSchool = await School.findOne({ _id: req.user._school })
+        .select("_id name")
+        .exec();
+
+      const username =
+        firstName.slice(0, 3) + existSchool.name.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
-
-      const customer = await stripe.customers.create({
-        email,
-      });
 
       const user = await User.create({
         firstName,
@@ -387,7 +469,7 @@ module.exports = {
         dob: dateOfBirth,
         _school: req.user._school,
         _addedBy: req.user.id,
-        joinDate: new Date(),
+        joinDate,
         signature,
         username,
         password,
@@ -395,7 +477,6 @@ module.exports = {
         bankDetails,
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
-        customerStripeId: customer.id,
         address,
       });
 
@@ -410,7 +491,7 @@ module.exports = {
             to: user.email,
             subject: `Welcome to ${schoolName.name}`,
             locals: {
-              email: user.email,
+              username,
               firstName,
               password,
               schoolName: schoolName.name,
@@ -485,12 +566,12 @@ module.exports = {
    */
   async updateTeacher(req, res) {
     try {
-      const { isAdmin } = req.user;
+      const { loginType } = req.user;
 
-      if (!isAdmin) {
+      if (loginType !== "teacher" || loginType !== "admin") {
         return res
           .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+          .json({ error: true, reason: "You can not update " });
       }
 
       const {
