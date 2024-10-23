@@ -123,15 +123,20 @@ module.exports = {
    */
   async markAttendance(req, res) {
     try {
-      const { _class, studentId } = req.body;
+      const { _class, name, section, studentId } = req.body;
       const { id } = req.user;
+
+      const existClass = await Class.findOne({ name, section }).exec();
+      if (existClass === null) {
+        return res.status(400).json({ error: true, reason: "class not found" });
+      }
 
       // Check if the user is a teacher
       const teacher = await User.findOne({
         _id: id,
         loginType: "teacher",
       });
-      if (!teacher) {
+      if (teacher === null) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not a teacher" });
@@ -139,11 +144,11 @@ module.exports = {
 
       // Check if the teacher is assigned to the class
       const TeacherAssignClass = await Attendance.findOne({
-        _school: teacher._school,
-        _class,
+        _school: req.user._school,
+        _class: existClass._id,
         _teacher: id,
       });
-      if (!TeacherAssignClass) {
+      if (TeacherAssignClass === null) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not assigned to this class" });
@@ -152,12 +157,11 @@ module.exports = {
       // Check if the student is assigned to the class
       const student = await User.findOne({
         _id: studentId,
-        _class,
+        _class: existClass._id,
         loginType: "student",
-        _school: teacher._school,
       });
 
-      if (!student) {
+      if (student === null) {
         return res.status(400).json({
           error: true,
           reason: "Student is not assigned to this class",
@@ -168,7 +172,7 @@ module.exports = {
 
       // Find the attendance record for today for this class
       let attendanceRecord = await Attendance.findOne({
-        _class,
+        _class: existClass._id,
         date: {
           $gte: today.toDate(),
           $lte: moment(today).endOf("day").toDate(),
@@ -176,7 +180,7 @@ module.exports = {
         _school: teacher._school,
       });
 
-      if (attendanceRecord) {
+      if (attendanceRecord !== null) {
         if (attendanceRecord.presentIds.includes(studentId)) {
           return res.status(400).json({
             error: true,

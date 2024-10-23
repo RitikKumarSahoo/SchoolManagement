@@ -30,7 +30,7 @@ router.put("/admin/update/:id", login.updateAdmin);
 router.delete("/admin/delete/:id", signup.deleteAdmin);
 
 //school
-router.post("/school/getAll", school.getAllSchool);
+router.post("/schools", school.getAllSchool);
 router.get("/school/:id", school.schoolDetails);
 router.post("/school/createschool", school.Post);
 router.put("/school/update/:id", school.updateSchool);
@@ -69,6 +69,6 @@ router.post("/message/sendmessage", message.sendMessage);
 router.get("/message/readmessage/:id", message.getMessages);
 router.get("/message/thread/:id", message.getChatThread);
 
-router.get("/user/:id", users.get);
+router.get("/profile", users.get);
 
 module.exports = router;

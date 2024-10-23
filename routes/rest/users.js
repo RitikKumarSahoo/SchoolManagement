@@ -2,7 +2,7 @@ const User = require("../../models/user");
 
 module.exports = {
   /**
-   * @api {get} /api/v1/user/:id Get User Details
+   * @api {get} /api/v1/profile Get loggedIn User Details
    * @apiName GetUser
    * @apiGroup User
    * @apiVersion 1.0.0
@@ -49,7 +49,7 @@ module.exports = {
 
   async get(req, res) {
     try {
-      const { id } = req.params;
+      const { id } = req.user;
       const user = await User.findOne({
         _id: id,
       })
