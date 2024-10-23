@@ -1207,80 +1207,6 @@
   },
   {
     "type": "post",
-    "url": "/login",
-    "title": "User Login",
-    "name": "UserLogin",
-    "group": "Auth",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "email",
-            "description": "<p>User's email address (optional, required if username is not provided).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "password",
-            "description": "<p>User's password (mandatory).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "username",
-            "description": "<p>User's username (optional, required if email is not provided).</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "token",
-            "description": "<p>JWT token for authenticated user.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Request-Example:",
-        "content": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n}",
-        "type": "json"
-      },
-      {
-        "title": "Request-Example:",
-        "content": "{\n  \"username\": \"user123\",\n  \"password\": \"password123\",\n}",
-        "type": "json"
-      },
-      {
-        "title": "Success-Response:",
-        "content": "{\n  \"error\": false,\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR...\"\n}",
-        "type": "json"
-      }
-    ],
-    "version": "0.0.0",
-    "filename": "routes/rest/auth/index.js",
-    "groupTitle": "Auth"
-  },
-  {
-    "type": "post",
     "url": "/forgotpassword",
     "title": "Request to get password reset link in mail",
     "name": "forgotPassword",
@@ -1401,6 +1327,68 @@
       ]
     },
     "filename": "routes/rest/auth/password.js",
+    "groupTitle": "Auth"
+  },
+  {
+    "type": "post",
+    "url": "/login",
+    "title": "User login",
+    "name": "userLogin",
+    "group": "Auth",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Public"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "handle",
+            "description": "<p>(mobile / email / username)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": "<p>user's password</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n    \"handle\" : \"myEmail@logic-square.com\",\n    \"password\" : \"myNewPassword\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "json",
+            "optional": false,
+            "field": "name",
+            "description": "<p>description</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n    \"error\" : false,\n    \"handle\" : \"myEmail@logic-square.com\",\n    \"token\": \"authToken.abc.xyz\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/auth/index.js",
     "groupTitle": "Auth"
   },
   {

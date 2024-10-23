@@ -5,74 +5,64 @@ const User = require("../../../models/user");
 module.exports = {
   
   /**
-   * @api {post} /login User Login
-   * @apiName UserLogin
+   *
+   * @api {post} /login User login
+   * @apiName userLogin
    * @apiGroup Auth
+   * @apiVersion  1.0.0
+   * @apiPermission Public
    *
-   * @apiParam {String} email User's email address (optional, required if username is not provided).
-   * @apiParam {String} password User's password (mandatory).
-   * @apiParam {String} username User's username (optional, required if email is not provided).
    *
-   * @apiSuccess {Boolean} error Indicates if there was an error.
-   * @apiSuccess {String} token JWT token for authenticated user.
+   * @apiParam  {String} handle (mobile / email / username)
+   * @apiParam  {String} password user's password
    *
-   * @apiExample {json} Request-Example:
+   * @apiSuccess (200) {json} name description
+   *
+   * @apiParamExample  {json} Request-Example:
    * {
-   *   "email": "user@example.com",
-   *   "password": "password123",
+   *     "handle" : "myEmail@logic-square.com",
+   *     "password" : "myNewPassword"
    * }
    *
-   * @apiExample {json} Request-Example:
+   *
+   * @apiSuccessExample {json} Success-Response:
    * {
-   *   "username": "user123",
-   *   "password": "password123",
+   *     "error" : false,
+   *     "handle" : "myEmail@logic-square.com",
+   *     "token": "authToken.abc.xyz"
    * }
    *
-   * @apiExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "token": "eyJhbGciOiJIUzI1NiIsInR..."
-   * }
+   *
    */
-
   async post(req, res) {
     try {
-      const { email, password, username } = req.body;
-
-      if (password === undefined) {
+      const { handle, password } = req.body;
+      if (handle === undefined || password === undefined) {
         return res.status(400).json({
           error: true,
-          reason: "Field `password` is mandatory",
+          reason: "Fields `handle` and `password` are mandatory",
         });
       }
-
-      if (email === undefined && username === undefined) {
-        return res.status(400).json({
-          error: true,
-          reason: "Either `email` or `username` is required",
-        });
-      }
-      if (loginType === "admin" || loginType === "teacher") {
-        if (email === undefined) {
-          return res
-            .status(400)
-            .json({ error: true, reason: "Field `email` is mandatory" });
-        }
-      }
-
-      const query = {
-        $or: [{ email: email }, { username: username }],
-      };
 
       // Find the user
-      const user = await User.findOne(query).exec();
+      const user = await User.findOne({
+        $or: [
+          {
+            email: handle.toLowerCase(),
+          },
+          {
+            phone: handle,
+          },
+          {
+            username: handle,
+          },
+        ],
+      }).exec()
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
-
-      // Check the password
+      // check pass
       await user.comparePassword(password);
-
-      // Prepare JWT payload
+      // No error, send jwt
       const payload = {
         id: user._id,
         _id: user._id,
@@ -86,15 +76,12 @@ module.exports = {
         _school: user._school,
         loginType: user.loginType,
       };
-
-      // Sign JWT token
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30, // 1 month
       });
-
-      // Respond with token
       return res.json({
         error: false,
+        handle,
         token,
       });
     } catch (err) {
@@ -104,7 +91,6 @@ module.exports = {
       });
     }
   },
-
   /**
    * @api {put} /admin/update Update Admin Profile
    * @apiName UpdateAdminProfile
