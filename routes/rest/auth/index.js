@@ -97,20 +97,20 @@ module.exports = {
    * @apiName UpdateAdminProfile
    * @apiGroup Admin
    * @apiVersion 1.0.0
-   * @apiPermission superadmin
+   * @apiPermission superadmin,admin
    *
    * @apiDescription This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.
    *
-   * @apiHeader {String} Authorization Bearer token of superadmin for authorization.
+   * @apiHeader {String} Authorization Bearer token for authorization.
    *
-   * @apiParam {String} [firstName] The new first name of the admin.
-   * @apiParam {String} [lastName] The new last name of the admin.
-   * @apiParam {String} [phone] The new phone number of the admin.
-   * @apiParam {String} [email] The new email of the admin.
-   * @apiParam {String} [address] The new address of the admin.
-   * @apiParam {String} [gender] Gender of the admin.
-   * @apiParam {Date}   [dob] The DOB of the admin.
-   * @apiParam {String} [address] address of the admin
+   * @apiParam {String} [firstName] The new first name of user.
+   * @apiParam {String} [lastName] The new last name of the user.
+   * @apiParam {String} [phone] The new phone number of the user.
+   * @apiParam {String} [email] The new email of the user.
+   * @apiParam {String} [address] The new address of the user.
+   * @apiParam {String} [gender] Gender of the user.
+   * @apiParam {Date}   [dob] The DOB of the user.
+   * @apiParam {String} [address] address of the user
    * @apiParam {Date} [joinDate] Join date of the user (ISO format).
    * @apiParam {Date} [leaveDate] Leave date of the user (ISO format).
    * @apiParam {String} [_school] School reference of the user.
