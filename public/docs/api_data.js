@@ -5534,49 +5534,49 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "profileImage",
-            "description": "<p>Admin's profile image URL.</p>"
+            "description": "<p>user profile image URL.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "email",
-            "description": "<p>Admin's email address.</p>"
+            "description": "<p>users's email address.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "firstName",
-            "description": "<p>Admin's first name.</p>"
+            "description": "<p>user's first name.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "lastName",
-            "description": "<p>Admin's last name.</p>"
+            "description": "<p>user's last name.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "dob",
-            "description": "<p>Admin's date of birth.</p>"
+            "description": "<p>user's date of birth.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "gender",
-            "description": "<p>Admin's gender.</p>"
+            "description": "<p>user's gender.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "phone",
-            "description": "<p>Admin's phone number.</p>"
+            "description": "<p>user's phone number.</p>"
           },
           {
             "group": "Parameter",
