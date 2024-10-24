@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../../../models/user");
 
 module.exports = {
-  
   /**
    *
    * @api {post} /login User login
@@ -57,7 +56,7 @@ module.exports = {
             username: handle,
           },
         ],
-      }).exec()
+      }).exec();
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
       // check pass
@@ -74,8 +73,10 @@ module.exports = {
         isActive: user.isActive,
         isSuperAdmin: user.isSuperAdmin || false,
         _school: user._school,
-        loginType: user.loginType,
       };
+      if (!user.isSuperAdmin) {
+        payload.loginType = user.loginType;
+      }
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30, // 1 month
       });
