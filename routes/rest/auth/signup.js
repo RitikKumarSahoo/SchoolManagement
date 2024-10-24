@@ -8,14 +8,14 @@ const stripe = require("stripe")(
 
 module.exports = {
   /**
-   * @api {get} /admin/getAll Get all admins
+   * @api {get} /admins  Get all admins by schoolId
    * @apiName GetAllAdmins
    * @apiGroup Admin
    * @apiPermission SuperAdmin
    *
-   * @apiDescription Fetch all admin users
+   * @apiDescription Fetch all admin users by schoolId
    *
-   * @apiHeader {String} Authorization Bearer token for authentication.
+   * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
    *
    * @apiSuccessExample {json} Success Response:
    *     HTTP/1.1 200 OK
@@ -77,6 +77,7 @@ module.exports = {
       const totalAdmins = await User.countDocuments({
         loginType: "admin",
         isSuperAdmin: false,
+        _school: req.params.schoolId,
       });
 
       return res.status(200).json({ error: false, admins, totalAdmins });
@@ -86,14 +87,14 @@ module.exports = {
   },
 
   /**
-   * @api {get} /admin/get/:id Get admin by ID
-   * @apiName GetAdmin
+   * @api {get} /admindetails/:id Get admin by ID
+   * @apiName GetAdminDetails
    * @apiGroup Admin
-   * @apiPermission Admin
+   * @apiPermission SuperAdmin
    *
    * @apiDescription Fetch a specific admin's details by their ID
    *
-   * @apiHeader {String} Authorization Bearer token for authentication.
+   * @apiHeader {String} Authorization Bearer token of SuperAdmin for authentication.
    *
    * @apiParam {String} id Admin's unique ID.
    *
@@ -131,17 +132,24 @@ module.exports = {
 
   async get(req, res) {
     try {
-      const { isAdmin } = req.user;
+      const { isSuperAdmin } = req.user;
 
-      if (isAdmin !== true) {
+      if (isSuperAdmin !== true) {
         return res
           .status(400)
-          .json({ error: false, reason: "You are not Admin" });
+          .json({ error: false, reason: "You are not SuperAdmin" });
       }
 
-      const admin = await User.findOne({ _id: req.params.id }).select(
-        "-password -isSuperAdmin -forgotpassword"
-      );
+      const admin = await User.findOne({
+        _id: req.params.id,
+        loginType: "admin",
+      }).select("-password -isSuperAdmin -forgotpassword");
+
+      if (admin === null) {
+        return res
+          .status(400)
+          .json({ error: false, reason: "admin not found" });
+      }
 
       return res.status(200).json({ error: false, admin });
     } catch (error) {
