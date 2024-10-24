@@ -93,7 +93,7 @@ module.exports = {
     }
   },
   /**
-   * @api {put} /admin/update Update Admin Profile
+   * @api {put} /admin/update/:id Update Admin
    * @apiName UpdateAdminProfile
    * @apiGroup Admin
    * @apiVersion 1.0.0
@@ -152,12 +152,12 @@ module.exports = {
     try {
       const { firstName, lastName, phone, email, address, gender, dob } =
         req.body;
-      const { loginType } = req.user;
+      const { isAdmin } = req.user;
 
-      if (loginType !== "admin") {
+      if (isAdmin !== true) {
         return res
           .status(400)
-          .json({ error: true, reason: "You are not admin" });
+          .json({ error: true, reason: "You can not update admin details" });
       }
       const admin = await User.findOne({
         _id: req.params.id,
