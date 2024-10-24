@@ -304,7 +304,7 @@ define({ "api": [
   {
     "type": "put",
     "url": "/admin/update/:id",
-    "title": "Update Admin by superAdmin",
+    "title": "Update users by superAdmin and admin",
     "name": "UpdateAdminProfile",
     "group": "Admin",
     "version": "1.0.0",
@@ -378,6 +378,41 @@ define({ "api": [
             "optional": true,
             "field": "dob",
             "description": "<p>The DOB of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "joinDate",
+            "description": "<p>Join date of the user (ISO format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "leaveDate",
+            "description": "<p>Leave date of the user (ISO format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "_school",
+            "description": "<p>School reference of the user.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "admissionYear",
+            "description": "<p>Admission year of the user (for students).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "rollNo",
+            "description": "<p>Roll number of the user (for students).</p>"
           }
         ]
       }
@@ -5491,6 +5526,20 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
+            "field": "imageUrl",
+            "description": "<p>Image URL of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "profileImage",
+            "description": "<p>Admin's profile image URL.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
             "field": "email",
             "description": "<p>Admin's email address.</p>"
           },
@@ -5528,47 +5577,33 @@ define({ "api": [
             "optional": false,
             "field": "phone",
             "description": "<p>Admin's phone number.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
           },
           {
-            "group": "Success 200",
+            "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "message",
-            "description": "<p>Success message.</p>"
+            "field": "establishYear",
+            "description": "<p>The year the school was established.</p>"
           },
           {
-            "group": "Success 200",
-            "type": "Object",
+            "group": "Parameter",
+            "type": "String",
             "optional": false,
-            "field": "response",
-            "description": "<p>The created admin object.</p>"
+            "field": "pfname",
+            "description": "<p>Principal's first name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "plname",
+            "description": "<p>Principal's last name.</p>"
           }
         ]
       }
     },
     "error": {
       "fields": {
-        "400": [
-          {
-            "group": "400",
-            "optional": false,
-            "field": "BadRequest",
-            "description": "<p>School name is required.</p>"
-          }
-        ],
         "500": [
           {
             "group": "500",
@@ -5582,12 +5617,7 @@ define({ "api": [
     "examples": [
       {
         "title": "Request-Example:",
-        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n}",
-        "type": "json"
-      },
-      {
-        "title": "Success-Response:",
-        "content": "{\n  \"error\": false,\n  \"message\": \"Admin successfully created.\",\n  \"response\": {\n    \"_id\": \"someAdminId\",\n    \"username\": \"sumxyz555\",\n    \"email\": \"sumanr@logic-square.com\",\n    \"loginType\": \"admin\",\n    \"firstName\": \"suman\",\n    \"lastName\": \"rana\",\n    \"isAdmin\": true,\n    \"isSuperAdmin\": false,\n    \"dob\": \"12/08/2001\",\n    \"isActive\": true,\n    \"_school\": \"someSchoolId\",\n    \"phone\": \"9668123855\",\n    \"gender\": \"Male\",\n    \"address\": null,\n    \"createdAt\": \"2024-10-21T00:00:00.000Z\",\n    \"updatedAt\": \"2024-10-21T00:00:00.000Z\"\n  }\n}",
+        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  \"establishYear\":\"1995\",\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n\"imageUrl\":\"http://www.greenwoodhigh.edu\"\n\"pfname\": \"PrincipalFirstName\",\n\"plname\": \"PrincipalLastName\",\n\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n\"profileImage\":\"nvkdjnvdjfnkfd\",\n}",
         "type": "json"
       }
     ],

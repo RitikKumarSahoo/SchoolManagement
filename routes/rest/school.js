@@ -49,25 +49,17 @@ module.exports = {
    * @apiParam {Object} location Location object.
    * @apiParam {String} location.type Type of location (e.g., Point).
    * @apiParam {Number[]} location.coordinates Coordinates of the school (longitude, latitude).
+   * @apiParam {String} imageUrl Image URL of the school.
+   * @apiParam {String} profileImage Admin's profile image URL.
    * @apiParam {String} email Admin's email address.
    * @apiParam {String} firstName Admin's first name.
    * @apiParam {String} lastName Admin's last name.
    * @apiParam {String} dob Admin's date of birth.
    * @apiParam {String} gender Admin's gender.
    * @apiParam {String} phone Admin's phone number.
-   *
-   * @apiSuccess {Boolean} error Indicates if there was an error.
-   * @apiSuccess {String} message Success message.
-   * @apiSuccess {Object} response The created admin object.
-   *
-   * @apiError (400) BadRequest School name is required.
-   * @apiError (400) BadRequest School address is required.
-   * @apiError (400) BadRequest School contact is required.
-   * @apiError (400) BadRequest Email is required.
-   * @apiError (400) BadRequest First name is required.
-   * @apiError (400) BadRequest Last name is required.
-   * @apiError (400) BadRequest Admin email is required.
-   * @apiError (400) BadRequest Admin with this email already exists.
+   * @apiParam {String} establishYear The year the school was established.
+   * @apiParam {String} pfname Principal's first name.
+   * @apiParam {String} plname Principal's last name.
    *
    * @apiError (500) InternalServerError Unexpected error occurred.
    *
@@ -84,42 +76,25 @@ module.exports = {
    *     "phoneNo": "+1-f sjdfndsf",
    *     "email": "info@greenwoodhigh.edu",
    *     "website": "http://www.greenwoodhigh.edu"
+   *   "establishYear":"1995",
    *   },
    *   "location": {
    *     "type": "Point",
    *     "coordinates": [21.418325060918168, 84.02980772446274]
    *   },
+   * "imageUrl":"http://www.greenwoodhigh.edu"
+   * "pfname": "PrincipalFirstName",
+   * "plname": "PrincipalLastName",
+   *
    *   "email": "sumanr@logic-square.com",
    *   "firstName": "suman",
    *   "lastName": "rana",
    *   "dob": "12/08/2001",
    *   "gender": "Male",
    *   "phone": "9668123855"
+   * "profileImage":"nvkdjnvdjfnkfd",
    * }
    *
-   * @apiExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "message": "Admin successfully created.",
-   *   "response": {
-   *     "_id": "someAdminId",
-   *     "username": "sumxyz555",
-   *     "email": "sumanr@logic-square.com",
-   *     "loginType": "admin",
-   *     "firstName": "suman",
-   *     "lastName": "rana",
-   *     "isAdmin": true,
-   *     "isSuperAdmin": false,
-   *     "dob": "12/08/2001",
-   *     "isActive": true,
-   *     "_school": "someSchoolId",
-   *     "phone": "9668123855",
-   *     "gender": "Male",
-   *     "address": null,
-   *     "createdAt": "2024-10-21T00:00:00.000Z",
-   *     "updatedAt": "2024-10-21T00:00:00.000Z"
-   *   }
-   * }
    */
 
   async Post(req, res) {
@@ -130,6 +105,7 @@ module.exports = {
         contact,
         location,
         imageUrl,
+        profileImage,
         email,
         firstName,
         lastName,
@@ -137,6 +113,9 @@ module.exports = {
         dob,
         gender,
         address,
+        establishYear,
+        pfname,
+        plname,
       } = req.body;
       const { isSuperAdmin } = req.user;
       if (isSuperAdmin !== true) {
@@ -199,6 +178,8 @@ module.exports = {
         location,
         imageUrl,
         registrationNumber,
+        principalName: pfname + " " + plname,
+        establishYear,
       });
 
       // Check if the admin already exists
@@ -223,6 +204,8 @@ module.exports = {
         phone,
         gender,
         address,
+        profileImage,
+        joinDate: new Date(),
       });
 
       await mail("admin-welcome", {

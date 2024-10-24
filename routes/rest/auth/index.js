@@ -93,7 +93,7 @@ module.exports = {
     }
   },
   /**
-   * @api {put} /admin/update/:id Update Admin by superAdmin
+   * @api {put} /admin/update/:id Update users by superAdmin and admin
    * @apiName UpdateAdminProfile
    * @apiGroup Admin
    * @apiVersion 1.0.0
@@ -111,6 +111,11 @@ module.exports = {
    * @apiParam {String} [gender] Gender of the admin.
    * @apiParam {Date}   [dob] The DOB of the admin.
    * @apiParam {String} [address] address of the admin
+   * @apiParam {Date} [joinDate] Join date of the user (ISO format).
+   * @apiParam {Date} [leaveDate] Leave date of the user (ISO format).
+   * @apiParam {String} [_school] School reference of the user.
+   * @apiParam {String} [admissionYear] Admission year of the user (for students).
+   * @apiParam {String} [rollNo] Roll number of the user (for students).
    *
    * @apiSuccess {Boolean} error Indicates whether the request encountered an error.
    * @apiSuccess {String} message Success message indicating the profile was updated.
@@ -150,35 +155,97 @@ module.exports = {
 
   async updateAdmin(req, res) {
     try {
-      const { firstName, lastName, phone, email, address, gender, dob } =
-        req.body;
-      const { isSuperAdmin } = req.user;
+      const {
+        firstName,
+        lastName,
+        phone,
+        email,
+        address,
+        gender,
+        dob,
+        profileImage,
+        admissionYear,
+        rollNo,
+        _class,
+        guardian,
+        joinDate,
+        leaveDate,
+        _school,
+      } = req.body;
+      const { isSuperAdmin, loginType } = req.user;
 
-      if (isSuperAdmin !== true) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You can not update admin details" });
+      if (isSuperAdmin === true) {
+        const admin = await User.findOne({
+          _id: req.params.id,
+          loginType: "admin",
+        });
+
+        if (admin === null) {
+          return res.status(400).json({
+            error: true,
+            reason: "You are not authorized to update this user",
+          });
+        }
+
+        if (firstName !== undefined) admin.firstName = firstName;
+        if (lastName !== undefined) admin.lastName = lastName;
+        if (phone !== undefined) admin.phone = phone;
+        if (email !== undefined) admin.email = email;
+        if (address !== undefined) admin.address = address;
+        if (gender !== undefined) admin.gender = gender;
+        if (dob !== undefined) admin.dob = dob;
+        if (profileImage !== undefined) admin.profileImage = profileImage;
+        if (guardian !== undefined) admin.guardian = guardian;
+        if (_school !== undefined) admin._school = _school;
+        if (joinDate !== undefined) admin.joinDate = joinDate;
+        if (leaveDate !== undefined) admin.leaveDate = leaveDate;
+
+        await admin.save();
+
+        return res.status(200).json({
+          error: false,
+          message: "Admin profile updated successfully.",
+        });
       }
-      const admin = await User.findOne({
-        _id: req.params.id,
-        loginType: "admin",
-      });
 
-      if (admin === null) {
-        return res.status(400).json({ error: true, reason: "Admin not found" });
+      if (loginType === "admin") {
+        const user = await User.findOne({
+          _id: req.params.id,
+          loginType: { $in: ["student", "teacher"] },
+        });
+
+        if (user === null) {
+          return res
+            .status(400)
+            .json({ error: true, reason: "User not found" });
+        }
+
+        if (firstName !== undefined) user.firstName = firstName;
+        if (lastName !== undefined) user.lastName = lastName;
+        if (phone !== undefined) user.phone = phone;
+        if (email !== undefined) user.email = email;
+        if (address !== undefined) user.address = address;
+        if (gender !== undefined) user.gender = gender;
+        if (dob !== undefined) user.dob = dob;
+        if (profileImage !== undefined) user.profileImage = profileImage;
+        if (guardian !== undefined) user.guardian = guardian;
+        if (_school !== undefined) user._school = _school;
+        if (joinDate !== undefined) user.joinDate = joinDate;
+        if (leaveDate !== undefined) user.leaveDate = leaveDate;
+        if (_class !== undefined) user._class = _class;
+        if (admissionYear !== undefined) user.admissionYear = admissionYear;
+        if (rollNo !== undefined) user.rollNo = rollNo;
+
+        await user.save();
+        return res.status(200).json({
+          error: false,
+          message: "User profile updated successfully.",
+        });
       }
-      if (firstName !== undefined) admin.firstName = firstName;
-      if (lastName !== undefined) admin.lastName = lastName;
-      if (phone !== undefined) admin.phone = phone;
-      if (email !== undefined) admin.email = email;
-      if (address !== undefined) admin.address = address;
-      if (gender !== undefined) admin.gender = gender;
-      if (dob !== undefined) admin.dob = dob;
-      await admin.save();
 
-      return res.status(200).json({
-        error: false,
-        message: "Admin profile updated successfully.",
+      return res.status(400).json({
+        error: true,
+        reason: "You are not authorized to update this user",
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
