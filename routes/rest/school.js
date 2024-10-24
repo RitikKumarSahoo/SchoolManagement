@@ -30,7 +30,7 @@ function generateCustomPassword() {
 
 module.exports = {
   /**
-   * @api {post} /school/createschool Create School
+   * @api {post} /createschool Create School
    * @apiName CreateSchool
    * @apiGroup School
    *
@@ -246,7 +246,7 @@ module.exports = {
   },
 
   /**
-   * @api {put} /school/update/:id Update School
+   * @api {put} /school/:id Update School
    * @apiName UpdateSchool
    * @apiGroup School
    * @apiVersion 1.0.0
@@ -294,7 +294,6 @@ module.exports = {
 
   async updateSchool(req, res) {
     try {
-      const { loginType } = req.user;
       const {
         name,
         address,
@@ -305,7 +304,7 @@ module.exports = {
         imageUrl,
       } = req.body;
 
-      if (loginType !== "admin") {
+      if (req.user.isAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "you are not admin" });
@@ -327,7 +326,7 @@ module.exports = {
 
       await school.save();
 
-      return res.status(400).json({ error: false, school });
+      return res.status(200).json({ error: false, school });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
@@ -395,7 +394,7 @@ module.exports = {
   },
 
   /**
-   * @api {get} /school/getAll Get All Schools
+   * @api {get} /schools Get All Schools
    * @apiName GetAllSchools
    * @apiGroup School
    * @apiVersion 1.0.0
