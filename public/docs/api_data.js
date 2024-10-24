@@ -61,6 +61,94 @@ define({ "api": [
     "groupTitle": "Admin-User"
   },
   {
+    "type": "delete",
+    "url": "/admin/delete/:id",
+    "title": "Delete Admin User",
+    "name": "DeleteAdmin",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>This endpoint allows a SuperAdmin to delete an admin user.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the admin user to delete.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Explanation of the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You are not authorized to delete an admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Admin Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Admin not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error details here\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Admin deleted successfully.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "get",
     "url": "/admindetails/:id",
     "title": "Get admin by ID",
@@ -7851,6 +7939,67 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
+  },
+  {
+    "type": "put",
+    "url": "/deactivate/:id",
+    "title": "Deactivate User",
+    "name": "DeactivateUser",
+    "group": "User",
+    "permission": [
+      {
+        "name": "Admin,superAdmin"
+      }
+    ],
+    "description": "<p>Deactivates a user by setting their <code>isActive</code> status to false. Only admin and superadmin  can deactivate a user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the user to deactivate.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether an error occurred (true when an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the failure.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "User Not Found",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"user not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Unauthorized Access",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You can not deactivate users\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "User"
   },
   {
     "type": "get",
