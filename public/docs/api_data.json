@@ -146,7 +146,7 @@
   {
     "type": "get",
     "url": "/admins",
-    "title": "Get all admins by schoolId",
+    "title": "Get all admins",
     "name": "GetAllAdmins",
     "group": "Admin",
     "permission": [
@@ -154,7 +154,7 @@
         "name": "SuperAdmin"
       }
     ],
-    "description": "<p>Fetch all admin users by schoolId</p>",
+    "description": "<p>Fetch all admin users</p>",
     "header": {
       "fields": {
         "Header": [
