@@ -144,7 +144,7 @@
     "groupTitle": "Admin"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/admins",
     "title": "Get all admins",
     "name": "GetAllAdmins",
@@ -216,13 +216,13 @@
   {
     "type": "put",
     "url": "/admin/update/:id",
-    "title": "Update Admin",
+    "title": "Update Admin by superAdmin",
     "name": "UpdateAdminProfile",
     "group": "Admin",
     "version": "1.0.0",
     "permission": [
       {
-        "name": "admin"
+        "name": "superadmin"
       }
     ],
     "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
@@ -234,7 +234,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token authorization.</p>"
+            "description": "<p>Bearer token of superadmin for authorization.</p>"
           }
         ]
       }
