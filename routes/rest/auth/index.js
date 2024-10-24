@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../../../models/user");
 
 module.exports = {
-  
   /**
    *
    * @api {post} /login User login
@@ -57,7 +56,7 @@ module.exports = {
             username: handle,
           },
         ],
-      }).exec()
+      }).exec();
       if (user === null) throw new Error("User Not Found");
       if (user.isActive === false) throw new Error("User Inactive");
       // check pass
@@ -74,8 +73,10 @@ module.exports = {
         isActive: user.isActive,
         isSuperAdmin: user.isSuperAdmin || false,
         _school: user._school,
-        loginType: user.loginType,
       };
+      if (!user.isSuperAdmin) {
+        payload.loginType = user.loginType;
+      }
       const token = jwt.sign(payload, process.env.SECRET, {
         expiresIn: 3600 * 24 * 30, // 1 month
       });
@@ -92,15 +93,15 @@ module.exports = {
     }
   },
   /**
-   * @api {put} /admin/update Update Admin Profile
+   * @api {put} /admin/update/:id Update Admin by superAdmin
    * @apiName UpdateAdminProfile
    * @apiGroup Admin
    * @apiVersion 1.0.0
-   * @apiPermission admin
+   * @apiPermission superadmin
    *
    * @apiDescription This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.
    *
-   * @apiHeader {String} Authorization Bearer token authorization.
+   * @apiHeader {String} Authorization Bearer token of superadmin for authorization.
    *
    * @apiParam {String} [firstName] The new first name of the admin.
    * @apiParam {String} [lastName] The new last name of the admin.
@@ -151,12 +152,12 @@ module.exports = {
     try {
       const { firstName, lastName, phone, email, address, gender, dob } =
         req.body;
-      const { loginType } = req.user;
+      const { isSuperAdmin } = req.user;
 
-      if (loginType !== "admin") {
+      if (isSuperAdmin !== true) {
         return res
           .status(400)
-          .json({ error: true, reason: "You are not admin" });
+          .json({ error: true, reason: "You can not update admin details" });
       }
       const admin = await User.findOne({
         _id: req.params.id,

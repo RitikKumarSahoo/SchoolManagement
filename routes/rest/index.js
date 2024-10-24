@@ -35,16 +35,16 @@ router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED;
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
 router.post("/deactivate/:id", signup.Deactive);
-router.get("/admin/getAll", signup.getAllAdmin);
-router.get("/admin/get/:id", signup.get);
+router.post("/admins", signup.getAllAdmin);
+router.get("/admindetails/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
 router.delete("/admin/delete/:id", signup.deleteAdmin);
 
 //school
 router.post("/schools", school.getAllSchool);
 router.get("/school/:id", school.schoolDetails);
-router.post("/school/createschool", school.Post);
-router.put("/school/update/:id", school.updateSchool);
+router.post("/createschool", school.Post);
+router.put("/school/:id", school.updateSchool);
 router.delete("/school/delete/:id", school.deleteSchool);
 //transaction
 
@@ -82,13 +82,15 @@ router.get("/message/thread/:id", message.getChatThread);
 
 router.get("/profile", users.get);
 
-
 // admin api
 
 //stripe
 router.get("/admin/return", adminStripe.onboardingComplete);
 router.get("/admin/reauth", adminStripe.reauth);
-router.post("/admin/stripe/verifyconnectedaccount", adminStripe.verifyConnectedAccount);
+router.post(
+  "/admin/stripe/verifyconnectedaccount",
+  adminStripe.verifyConnectedAccount
+);
 router.post("/admin/stripe/addcard", adminStripe.cardAdd);
 router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 
@@ -115,9 +117,16 @@ router.put("/admin/schedule/edit-schedule/:id", adminScheduleRoutes.put); // Edi
 router.delete("/admin/schedule/:id", adminScheduleRoutes.delete); // Delete a schedule by ID
 
 //Progress Report Rooutec
-router.post("/admin/progressReport/create-progress-report", upload.single("csvFile"), adminProgressReportRoutes.post);
+router.post(
+  "/admin/progressReport/create-progress-report",
+  upload.single("csvFile"),
+  adminProgressReportRoutes.post
+);
 
-router.get("/admin/progressReport/get-progress-report/:studentId", adminProgressReportRoutes.get);
+router.get(
+  "/admin/progressReport/get-progress-report/:studentId",
+  adminProgressReportRoutes.get
+);
 router.get("/admin/user/:id", users.get);
 
 //transaction

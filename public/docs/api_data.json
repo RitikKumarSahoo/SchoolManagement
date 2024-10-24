@@ -62,13 +62,13 @@
   },
   {
     "type": "get",
-    "url": "/admin/get/:id",
+    "url": "/admindetails/:id",
     "title": "Get admin by ID",
-    "name": "GetAdmin",
+    "name": "GetAdminDetails",
     "group": "Admin",
     "permission": [
       {
-        "name": "Admin"
+        "name": "SuperAdmin"
       }
     ],
     "description": "<p>Fetch a specific admin's details by their ID</p>",
@@ -80,7 +80,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for authentication.</p>"
+            "description": "<p>Bearer token of SuperAdmin for authentication.</p>"
           }
         ]
       }
@@ -144,8 +144,8 @@
     "groupTitle": "Admin"
   },
   {
-    "type": "get",
-    "url": "/admin/getAll",
+    "type": "post",
+    "url": "/admins",
     "title": "Get all admins",
     "name": "GetAllAdmins",
     "group": "Admin",
@@ -163,7 +163,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for authentication.</p>"
+            "description": "<p>Bearer token of superAdmin for authentication.</p>"
           }
         ]
       }
@@ -215,14 +215,14 @@
   },
   {
     "type": "put",
-    "url": "/admin/update",
-    "title": "Update Admin Profile",
+    "url": "/admin/update/:id",
+    "title": "Update Admin by superAdmin",
     "name": "UpdateAdminProfile",
     "group": "Admin",
     "version": "1.0.0",
     "permission": [
       {
-        "name": "admin"
+        "name": "superadmin"
       }
     ],
     "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
@@ -234,7 +234,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token authorization.</p>"
+            "description": "<p>Bearer token of superadmin for authorization.</p>"
           }
         ]
       }
@@ -5288,7 +5288,7 @@
   },
   {
     "type": "post",
-    "url": "/school/createschool",
+    "url": "/createschool",
     "title": "Create School",
     "name": "CreateSchool",
     "group": "School",
@@ -5564,7 +5564,7 @@
   },
   {
     "type": "get",
-    "url": "/school/getAll",
+    "url": "/schools",
     "title": "Get All Schools",
     "name": "GetAllSchools",
     "group": "School",
@@ -5761,7 +5761,7 @@
   },
   {
     "type": "put",
-    "url": "/school/update/:id",
+    "url": "/school/:id",
     "title": "Update School",
     "name": "UpdateSchool",
     "group": "School",
