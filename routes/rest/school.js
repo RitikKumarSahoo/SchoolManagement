@@ -82,6 +82,7 @@ module.exports = {
    *     "type": "Point",
    *     "coordinates": [21.418325060918168, 84.02980772446274]
    *   },
+   * "imageUrl":"http://www.greenwoodhigh.edu"
    * "pfname": "PrincipalFirstName",
    * "plname": "PrincipalLastName",
    *
@@ -91,31 +92,9 @@ module.exports = {
    *   "dob": "12/08/2001",
    *   "gender": "Male",
    *   "phone": "9668123855"
+   * "profileImage":"nvkdjnvdjfnkfd",
    * }
    *
-   * @apiExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "message": "Admin successfully created.",
-   *   "response": {
-   *     "_id": "someAdminId",
-   *     "username": "sumxyz555",
-   *     "email": "sumanr@logic-square.com",
-   *     "loginType": "admin",
-   *     "firstName": "suman",
-   *     "lastName": "rana",
-   *     "isAdmin": true,
-   *     "isSuperAdmin": false,
-   *     "dob": "12/08/2001",
-   *     "isActive": true,
-   *     "_school": "someSchoolId",
-   *     "phone": "9668123855",
-   *     "gender": "Male",
-   *     "address": null,
-   *     "createdAt": "2024-10-21T00:00:00.000Z",
-   *     "updatedAt": "2024-10-21T00:00:00.000Z"
-   *   }
-   * }
    */
 
   async Post(req, res) {
