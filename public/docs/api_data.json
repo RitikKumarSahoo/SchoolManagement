@@ -57,18 +57,18 @@
         }
       ]
     },
-    "filename": "routes/admin/users.js",
+    "filename": "routes/rest/adminUsers.js",
     "groupTitle": "Admin-User"
   },
   {
     "type": "get",
-    "url": "/admin/get/:id",
+    "url": "/admindetails/:id",
     "title": "Get admin by ID",
-    "name": "GetAdmin",
+    "name": "GetAdminDetails",
     "group": "Admin",
     "permission": [
       {
-        "name": "Admin"
+        "name": "SuperAdmin"
       }
     ],
     "description": "<p>Fetch a specific admin's details by their ID</p>",
@@ -80,7 +80,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for authentication.</p>"
+            "description": "<p>Bearer token of SuperAdmin for authentication.</p>"
           }
         ]
       }
@@ -145,8 +145,8 @@
   },
   {
     "type": "get",
-    "url": "/admin/getAll",
-    "title": "Get all admins",
+    "url": "/admins",
+    "title": "Get all admins by schoolId",
     "name": "GetAllAdmins",
     "group": "Admin",
     "permission": [
@@ -154,7 +154,7 @@
         "name": "SuperAdmin"
       }
     ],
-    "description": "<p>Fetch all admin users</p>",
+    "description": "<p>Fetch all admin users by schoolId</p>",
     "header": {
       "fields": {
         "Header": [
@@ -163,7 +163,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for authentication.</p>"
+            "description": "<p>Bearer token of superAdmin for authentication.</p>"
           }
         ]
       }
@@ -215,8 +215,8 @@
   },
   {
     "type": "put",
-    "url": "/admin/update",
-    "title": "Update Admin Profile",
+    "url": "/admin/update/:id",
+    "title": "Update Admin",
     "name": "UpdateAdminProfile",
     "group": "Admin",
     "version": "1.0.0",
@@ -1492,7 +1492,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1592,7 +1592,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1717,7 +1717,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1947,7 +1947,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -2637,7 +2637,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2687,7 +2687,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2823,7 +2823,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2860,7 +2860,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2910,7 +2910,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -3982,7 +3982,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -4032,7 +4032,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5111,7 +5111,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5148,7 +5148,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5198,12 +5198,12 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
     "type": "post",
-    "url": "/school/createschool",
+    "url": "/createschool",
     "title": "Create School",
     "name": "CreateSchool",
     "group": "School",
@@ -5479,7 +5479,7 @@
   },
   {
     "type": "get",
-    "url": "/school/getAll",
+    "url": "/schools",
     "title": "Get All Schools",
     "name": "GetAllSchools",
     "group": "School",
@@ -5676,7 +5676,7 @@
   },
   {
     "type": "put",
-    "url": "/school/update/:id",
+    "url": "/school/:id",
     "title": "Update School",
     "name": "UpdateSchool",
     "group": "School",
@@ -6046,7 +6046,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6096,7 +6096,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6289,7 +6289,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6326,7 +6326,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6376,7 +6376,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6585,7 +6585,7 @@
       }
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6642,7 +6642,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6706,7 +6706,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6899,7 +6899,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7010,7 +7010,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7075,7 +7075,7 @@
         }
       ]
     },
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7235,7 +7235,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7370,7 +7370,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7512,7 +7512,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7624,7 +7624,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7704,7 +7704,7 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7849,13 +7849,13 @@
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
     "type": "get",
-    "url": "/api/v1/user/:id",
-    "title": "Get User Details",
+    "url": "/api/v1/profile",
+    "title": "Get loggedIn User Details",
     "name": "GetUser",
     "group": "User",
     "version": "1.0.0",
