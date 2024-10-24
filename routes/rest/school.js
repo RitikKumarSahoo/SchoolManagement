@@ -50,13 +50,13 @@ module.exports = {
    * @apiParam {String} location.type Type of location (e.g., Point).
    * @apiParam {Number[]} location.coordinates Coordinates of the school (longitude, latitude).
    * @apiParam {String} imageUrl Image URL of the school.
-   * @apiParam {String} profileImage Admin's profile image URL.
-   * @apiParam {String} email Admin's email address.
-   * @apiParam {String} firstName Admin's first name.
-   * @apiParam {String} lastName Admin's last name.
-   * @apiParam {String} dob Admin's date of birth.
-   * @apiParam {String} gender Admin's gender.
-   * @apiParam {String} phone Admin's phone number.
+   * @apiParam {String} profileImage user profile image URL.
+   * @apiParam {String} email users's email address.
+   * @apiParam {String} firstName user's first name.
+   * @apiParam {String} lastName user's last name.
+   * @apiParam {String} dob user's date of birth.
+   * @apiParam {String} gender user's gender.
+   * @apiParam {String} phone user's phone number.
    * @apiParam {String} establishYear The year the school was established.
    * @apiParam {String} pfname Principal's first name.
    * @apiParam {String} plname Principal's last name.
