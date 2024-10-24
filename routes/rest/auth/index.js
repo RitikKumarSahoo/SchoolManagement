@@ -93,15 +93,15 @@ module.exports = {
     }
   },
   /**
-   * @api {put} /admin/update/:id Update Admin
+   * @api {put} /admin/update/:id Update Admin by superAdmin
    * @apiName UpdateAdminProfile
    * @apiGroup Admin
    * @apiVersion 1.0.0
-   * @apiPermission admin
+   * @apiPermission superadmin
    *
    * @apiDescription This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.
    *
-   * @apiHeader {String} Authorization Bearer token authorization.
+   * @apiHeader {String} Authorization Bearer token of superadmin for authorization.
    *
    * @apiParam {String} [firstName] The new first name of the admin.
    * @apiParam {String} [lastName] The new last name of the admin.
@@ -152,9 +152,9 @@ module.exports = {
     try {
       const { firstName, lastName, phone, email, address, gender, dob } =
         req.body;
-      const { isAdmin } = req.user;
+      const { isSuperAdmin } = req.user;
 
-      if (isAdmin !== true) {
+      if (isSuperAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "You can not update admin details" });
