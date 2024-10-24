@@ -310,7 +310,7 @@ define({ "api": [
     "version": "1.0.0",
     "permission": [
       {
-        "name": "superadmin"
+        "name": "superadmin,admin"
       }
     ],
     "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
@@ -322,7 +322,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token of superadmin for authorization.</p>"
+            "description": "<p>Bearer token for authorization.</p>"
           }
         ]
       }
@@ -335,49 +335,49 @@ define({ "api": [
             "type": "String",
             "optional": true,
             "field": "firstName",
-            "description": "<p>The new first name of the admin.</p>"
+            "description": "<p>The new first name of user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "lastName",
-            "description": "<p>The new last name of the admin.</p>"
+            "description": "<p>The new last name of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "phone",
-            "description": "<p>The new phone number of the admin.</p>"
+            "description": "<p>The new phone number of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "email",
-            "description": "<p>The new email of the admin.</p>"
+            "description": "<p>The new email of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address",
-            "description": "<p>The new address of the admin.</p>"
+            "description": "<p>The new address of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "gender",
-            "description": "<p>Gender of the admin.</p>"
+            "description": "<p>Gender of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "Date",
             "optional": true,
             "field": "dob",
-            "description": "<p>The DOB of the admin.</p>"
+            "description": "<p>The DOB of the user.</p>"
           },
           {
             "group": "Parameter",
