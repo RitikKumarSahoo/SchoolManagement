@@ -485,15 +485,32 @@ module.exports = {
 
   async getAllSchool(req, res) {
     try {
+      let { pageNumber, pageSize } = req.body;
       const { isSuperAdmin } = req.user;
+
+      if (pageNumber === undefined) {
+        pageNumber = 1;
+      } else {
+        pageNumber = Number(pageNumber);
+      }
+      // here check pagesize else set default
+      if (pageSize === undefined) {
+        pageSize = 10;
+      } else {
+        pageSize = Number(pageSize);
+      }
+      const skipNumber = (pageNumber - 1) * pageSize;
+
       if (isSuperAdmin !== true) {
         return res
           .status(400)
           .json({ error: true, reason: "You are not superadmin" });
       }
 
-      const school = await School.find();
-      return res.status(200).json({ error: false, school });
+      const school = await School.find().skip(skipNumber).limit(pageSize);
+      const totalSchools = await School.countDocuments();
+
+      return res.status(200).json({ error: false, school, totalSchools });
     } catch (error) {
       return res.status(400).json({ error: true, Error: error.message });
     }
