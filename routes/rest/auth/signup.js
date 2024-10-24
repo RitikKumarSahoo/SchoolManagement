@@ -8,7 +8,7 @@ const stripe = require("stripe")(
 
 module.exports = {
   /**
-   * @api {get} /admins  Get all admins
+   * @api {post} /admins  Get all admins
    * @apiName GetAllAdmins
    * @apiGroup Admin
    * @apiPermission SuperAdmin
