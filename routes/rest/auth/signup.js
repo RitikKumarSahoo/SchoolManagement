@@ -8,12 +8,12 @@ const stripe = require("stripe")(
 
 module.exports = {
   /**
-   * @api {get} /admins  Get all admins by schoolId
+   * @api {get} /admins  Get all admins
    * @apiName GetAllAdmins
    * @apiGroup Admin
    * @apiPermission SuperAdmin
    *
-   * @apiDescription Fetch all admin users by schoolId
+   * @apiDescription Fetch all admin users
    *
    * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
    *
@@ -77,7 +77,6 @@ module.exports = {
       const totalAdmins = await User.countDocuments({
         loginType: "admin",
         isSuperAdmin: false,
-        _school: req.params.schoolId,
       });
 
       return res.status(200).json({ error: false, admins, totalAdmins });
