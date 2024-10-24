@@ -49,7 +49,7 @@ router.delete("/school/delete/:id", school.deleteSchool);
 //transaction
 
 router.get("/user/:id", users.get);
-router.post("/user/edit-profile/:id", users.editData);
+router.put("/updateprofile/", users.editData);
 
 const upload = multer({ dest: "../public/uploads" });
 router.post(
@@ -95,7 +95,7 @@ router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 //list of all routers
 router.post("/admin/students/create-student", adminStudentRoutes.createStudent);
 router.put("/admin/student/edit/:id", adminStudentRoutes.editStudentDetails);
-router.get("/admin/students/view-students/:schoolId", adminStudentRoutes.viewAllStudents); //id: SchoolId
+router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
 router.get("/admin/students/view-student/:studentId", adminStudentRoutes.viewStudentDetails);
 router.put("/admin/students/deactivate/:studentId", adminStudentRoutes.deactivateStudent);
 router.get("/admin/students/search", adminStudentRoutes.searchStudents);

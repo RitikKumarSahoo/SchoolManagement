@@ -70,94 +70,110 @@ module.exports = {
 
   /**
    * Edit user details
+   * @api {put} /updateprofile/ Edit Own Profile Data
+   * @apiVersion 1.0.0
+   * @apiName EditUser
+   * @apiGroup User
+   * @apiPermission teacher, admin, student
    *
-   * This endpoint is restricted to admins only.
+   * @apiDescription Allows a user (teacher, admin, or student) to update their profile information.
    *
-   * @param {string} userId - The ID of the user to be edited
-   * @param {string} userType - The type of user to be edited, either "teacher" or "student"
-   * @param {object} req.body - The request body containing the fields to be updated
-   * @param {string} [req.body.firstName] - The new first name of the user
-   * @param {string} [req.body.lastName] - The new last name of the user
-   * @param {string} [req.body.phone] - The new phone number of the user
-   * @param {string} [req.body.dob] - The new date of birth of the user
-   * @param {string} [req.body.signature] - The new signature of the user
-   * @param {string} [req.body.profileImage] - The new profile image of the user
-   * @param {string} [req.body.email] - The new email of the user (only for students)
-   * @param {string} [req.body.bankDetails] - The new bank details of the user (only for students)
-   * @param {string} [req.body.gender] - The new gender of the user (only for students)
+   * @apiHeader {String} Authorization User's unique access token (JWT).
+   * 
+   * @apiSuccess {String} message Success message indicating that the user details were updated.
    *
-   * @returns {object} - The updated user object
+   * @apiError (Error 404) UserNotFound The user was not found.
+   * @apiError (Error 400) InvalidUserType Only teacher, admin, or student roles are allowed to edit.
+   * @apiError (Error 500) ServerError Internal server error.
    *
-   * @throws {Error} - If the user is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
-   * @throws {Error} - If the request body is invalid
+   * @apiExample {json} Request-Example:
+   *     {
+   *       "firstName": "John",
+   *         "lastName": "Doe",
+   *         "phone": "1234567890",
+   *         "dob": "1990-05-15",
+   *         "signature": "John's Signature",
+   *         "profileImage": "path_to_image.jpg",
+   *         "email": "john.doe@example.com",
+   *         "guardian": {
+   *           "fatherName": "Michael Doe",
+   *           "motherName": "Jane Doe"
+   *         },
+   *         "address": "123 Main St, Springfield"
+   *     }
+   *
+   * @apiSuccessExample {json} Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "message": "User details updated successfully"
+   *     }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 404 Not Found
+   *     {
+   *       "message": "User not found"
+   *     }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "User must be Admin, Teacher or Student"
+   *     }
+   *
+   * @apiErrorExample {json} Error-Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "message": "Server error"
+   *     }
    */
   async editData(req, res) {
     try {
-      const { userId } = req.params;
-      const { userType } = req.body; // userType can be either "student" or "teacher"
-      const updatedData = {};
-
+      const { loginType, id } = req.user; // loginType can be either "student", "teacher", or "admin"
+  
       // Find the user by ID
-      const user = await User.findById(userId);
-      if (!user) {
+      const user = await User.findOne({ _id: id });
+      if (user === null) {
         return res.status(404).json({ message: "User not found" });
       }
-
-      // Check userType and validate fields
-      if (userType === "teacher") {
-        const { firstName, lastName, phone, dob, signature, profileImage } =
-          req.body;
-
-        // Update only if the fields are provided
-        if (firstName !== undefined) updatedData.firstName = firstName;
-        if (lastName !== undefined) updatedData.lastName = lastName;
-        if (phone !== undefined) updatedData.phone = phone;
-        if (dob !== undefined) updatedData.dob = dob;
-        if (signature !== undefined) updatedData.signature = signature;
-        if (profileImage !== undefined) updatedData.profileImage = profileImage;
-      } else if (userType === "student") {
+  
+      // Check loginType and validate fields
+      if (loginType === "teacher" || loginType === "admin" || loginType === "student") {
         const {
-          firstName,
-          lastName,
-          gender,
-          email,
-          phone,
-          signature,
-          bankDetails,
-          profileImage,
+          firstName, lastName, phone, dob, signature, profileImage, email, 
+          guardian: { fathersName, mothersName } = {}, address 
         } = req.body;
-
+  
         // Update only if the fields are provided
-        if (firstName !== undefined) updatedData.firstName = firstName;
-        if (lastName !== undefined) updatedData.lastName = lastName;
-        if (gender !== undefined) updatedData.gender = gender;
-        if (email !== undefined) updatedData.email = email;
-        if (phone !== undefined) updatedData.phone = phone;
-        if (signature !== undefined) updatedData.signature = signature;
-        if (bankDetails !== undefined) updatedData.bankDetails = bankDetails;
-        if (profileImage !== undefined) updatedData.profileImage = profileImage;
+        if (firstName !== undefined) user.firstName = firstName;
+        if (lastName !== undefined) user.lastName = lastName;
+        if (phone !== undefined) user.phone = phone;
+        if (dob !== undefined) user.dob = dob;
+        if (signature !== undefined) user.signature = signature;
+        if (profileImage !== undefined) user.profileImage = profileImage;
+        if (email !== undefined) user.email = email;
+  
+        // Update guardian details if provided
+        if (fathersName !== undefined) user.guardian.fathersName = fathersName;
+        if (mothersName !== undefined) user.guardian.mothersName = mothersName;
+  
+        // Update address if provided
+        if (address !== undefined) user.address = address;
       } else {
-        return res.status(400).json({
-          message: "Invalid userType. Must be either student or teacher.",
-        });
+        return res.status(400).json({ error: true, reason: "User must be Admin, Teacher or Student" });
       }
-
-      // Update the user in the database
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { $set: updatedData },
-        { new: true }
-      );
-
+  
+      // Save the updated user to the database
+      await user.save();
+  
       // Send the response with updated user data
       return res.status(200).json({
         message: "User details updated successfully",
-        user: updatedUser,
       });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Server error" });
     }
-  },
+  }
+  ,
 };

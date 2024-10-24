@@ -151,9 +151,6 @@ module.exports = {
       if (!dob) {
         return res.status(400).json({ error: true, message: "Date of birth is required" });
       }
-      if (!rollNo) {
-        return res.status(400).json({ error: true, message: "Roll number is required" });
-      }
       if (!_classId) {
         return res.status(400).json({ error: true, message: "Class ID is required" });
       }
@@ -320,37 +317,112 @@ module.exports = {
   },
 
   /**
-   * View all students in a school
-   * 
-   * This endpoint is restricted to admins only.
-   * 
-   * @param {string} schoolId - The ID of the school
-   * @returns {object} - The list of students in the school
-   * 
-   * @throws {Error} - If the school is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
-   */
-  async viewAllStudents(req,res){
-    try {
-      const { isAdmin } = req.user; // Get adminId from the request body 
-    // Check if the user exists and has the 'admin' role
-    if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
-    console.log(isAdmin);
-    
-    const { schoolId } = req.params;
+ *@api {post} admin/students/view-students Admin will View All Students
+ * @apiName ViewAllStudents
+ * @apiGroup Admin
+ *@apiVersion 1.0.0
+ * @apiDescription Retrieves all teachers belonging to the school
+ * @apiHeader {String} Authorization Bearer token for admin access.
+ *
+ * @apiParam {Number} [pageNo=1] The page number to retrieve (defaults to 1 if not provided).
+ * @apiParam {Number} [skipLimit=20] The number of students to return per page (defaults to 20 if not provided).
+ *
+ * @apiSuccessExample {json} Success-Response:
+ * {
+ *   "error": false,
+ *   "students": [
+ *     {
+ *       "_id": "670504c7cd2223b01699c6b1",
+ *       "username": "JunSpr385",
+ *       "firstName": "June",
+ *       "lastName": "David",
+ *       "profileImage": "public/docsimg/ProfilePic.jpeg",
+ *       "email": "june123@gmail.com",
+ *       "phone": "9080264385",
+ *       "gender": "Female",
+ *       "admissionYear": "2024",
+ *       "dob": "1996-07-12",
+ *       "rollNo": "R003",
+ *       "_class": {
+ *         "name": "10",
+ *         "section": "A"
+ *       }
+ *     },
+ *     {
+ *       "_id": "67052d954cbe69ed12657f76",
+ *       "username": "MriSpr246",
+ *       "firstName": "Mrinal",
+ *       "lastName": "Mohan",
+ *       "profileImage": "public/docsimg/ProfilePic.jpeg",
+ *       "email": "mbera829@gmail.com",
+ *       "phone": "9002550246",
+ *       "gender": "Male",
+ *       "admissionYear": "2024",
+ *       "dob": "2010-05-02",
+ *       "rollNo": "R001",
+ *       "_class": {
+ *         "name": "10",
+ *         "section": "A"
+ *       }
+ *     }
+ *   ],
+ *   "totalStudents": 2
+ * }
+ *
+ * @apiError NotAdmin You are not an admin.
+ * @apiErrorExample {json} Error-Response:
+ * {
+ *   "error": true,
+ *   "message": "Only admins can view student details"
+ * }
+ *
+ * @apiError InternalServerError Internal server error.
+ * @apiErrorExample {json} Error-Response:
+ * {
+ *   "error": true,
+ *   "message": "Internal server error"
+ * }
+ */
 
-    const students = await users.find({ _school: schoolId, loginType: "student" })
-    // .select(' firstName lastName rollNo')
-    // .populate('_class','-_id name section')
-    // .populate('_school','-_id name')
-    .exec()
-    
-    return res.json({error: false, students:students});
+  async viewAllStudents(req, res) {
+    try {
+      const {loginType } = req.user; // Check if the user is an admin
+      if (loginType!=="admin") {
+        return res.status(403).json({ message: 'Only admins can view student details' });
+      }
+  
+      // Get pagination values, with default values if not provided by frontend
+      const pageNo = parseInt(req.body.pageNo) || 1;
+      const skipLimit = parseInt(req.body.skipLimit) || 20;
+      const skip = (pageNo - 1) * skipLimit;
+  
+      // Fetch students with pagination, while excluding sensitive fields
+      const [students, totalStudents] = await Promise.all([
+        users.find({ _school: req.user._school, loginType: "student" })
+          .select('-password -forgotpassword -bankDetails')  // Exclude sensitive fields
+          .skip(skip)
+          .limit(skipLimit)
+          .populate('_class', 'name section -_id')  // Populate class details and exclude the _id field
+          .exec(),
+        users.countDocuments({ _school: req.user._school, loginType: "student" }).exec()
+      ]);
+  
+      // Calculate total pages
+      const totalPages = Math.ceil(totalStudents / skipLimit);
+  
+      // Send response with students and pagination data
+      return res.json({
+        error: false,
+        students: students,
+        totalStudents: totalStudents
+      });
     } catch (error) {
-      console.log(error)
-      return res.status(500).json({error: true, message: error.message})
+      console.log(error);
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
+  
+
 
 
 

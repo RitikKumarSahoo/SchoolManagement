@@ -57,7 +57,7 @@ define({ "api": [
         }
       ]
     },
-    "filename": "routes/admin/users.js",
+    "filename": "routes/rest/adminUsers.js",
     "groupTitle": "Admin-User"
   },
   {
@@ -370,6 +370,91 @@ define({ "api": [
       ]
     },
     "filename": "routes/rest/auth/index.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "post",
+    "url": "admin/students/view-students",
+    "title": "Admin will View All Students",
+    "name": "ViewAllStudents",
+    "group": "Admin",
+    "version": "1.0.0",
+    "description": "<p>Retrieves all teachers belonging to the school</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNo",
+            "defaultValue": "1",
+            "description": "<p>The page number to retrieve (defaults to 1 if not provided).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "skipLimit",
+            "defaultValue": "20",
+            "description": "<p>The number of students to return per page (defaults to 20 if not provided).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670504c7cd2223b01699c6b1\",\n      \"username\": \"JunSpr385\",\n      \"firstName\": \"June\",\n      \"lastName\": \"David\",\n      \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n      \"email\": \"june123@gmail.com\",\n      \"phone\": \"9080264385\",\n      \"gender\": \"Female\",\n      \"admissionYear\": \"2024\",\n      \"dob\": \"1996-07-12\",\n      \"rollNo\": \"R003\",\n      \"_class\": {\n        \"name\": \"10\",\n        \"section\": \"A\"\n      }\n    },\n    {\n      \"_id\": \"67052d954cbe69ed12657f76\",\n      \"username\": \"MriSpr246\",\n      \"firstName\": \"Mrinal\",\n      \"lastName\": \"Mohan\",\n      \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n      \"email\": \"mbera829@gmail.com\",\n      \"phone\": \"9002550246\",\n      \"gender\": \"Male\",\n      \"admissionYear\": \"2024\",\n      \"dob\": \"2010-05-02\",\n      \"rollNo\": \"R001\",\n      \"_class\": {\n        \"name\": \"10\",\n        \"section\": \"A\"\n      }\n    }\n  ],\n  \"totalStudents\": 2\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "NotAdmin",
+            "description": "<p>You are not an admin.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Only admins can view student details\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Admin"
   },
   {
@@ -1492,7 +1577,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1592,7 +1677,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1717,7 +1802,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -1947,7 +2032,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/admin/class.js",
+    "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
   },
   {
@@ -2637,7 +2722,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2687,7 +2772,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2823,7 +2908,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2860,7 +2945,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -2910,7 +2995,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/notices.js",
+    "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notice"
   },
   {
@@ -3982,7 +4067,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -4032,7 +4117,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5111,7 +5196,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5148,7 +5233,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -5198,7 +5283,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schedules.js",
+    "filename": "routes/rest/adminSchedules.js",
     "groupTitle": "Schedule"
   },
   {
@@ -6046,7 +6131,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6096,7 +6181,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6289,7 +6374,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6326,7 +6411,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6376,7 +6461,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/schools.js",
+    "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
   },
   {
@@ -6585,7 +6670,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6642,7 +6727,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6706,7 +6791,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/student.js",
+    "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
   {
@@ -6899,7 +6984,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7010,7 +7095,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7075,7 +7160,7 @@ define({ "api": [
         }
       ]
     },
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7235,7 +7320,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7370,7 +7455,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/teacher.js",
+    "filename": "routes/rest/adminTeacher.js",
     "groupTitle": "Teacher"
   },
   {
@@ -7512,7 +7597,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7624,7 +7709,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7704,7 +7789,7 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
@@ -7849,13 +7934,114 @@ define({ "api": [
       ]
     },
     "version": "0.0.0",
-    "filename": "routes/admin/transaction.js",
+    "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
   },
   {
+    "type": "put",
+    "url": "/updateprofile/",
+    "title": "Edit Own Profile Data",
+    "version": "1.0.0",
+    "name": "EditUser",
+    "group": "User",
+    "permission": [
+      {
+        "name": "teacher, admin, student"
+      }
+    ],
+    "description": "<p>Allows a user (teacher, admin, or student) to update their profile information.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>User's unique access token (JWT).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating that the user details were updated.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"message\": \"User details updated successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 404": [
+          {
+            "group": "Error 404",
+            "optional": false,
+            "field": "UserNotFound",
+            "description": "<p>The user was not found.</p>"
+          }
+        ],
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "optional": false,
+            "field": "InvalidUserType",
+            "description": "<p>Only teacher, admin, or student roles are allowed to edit.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "optional": false,
+            "field": "ServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"User not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"User must be Admin, Teacher or Student\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"message\": \"Server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Request-Example:",
+        "content": "{\n  \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-05-15\",\n    \"signature\": \"John's Signature\",\n    \"profileImage\": \"path_to_image.jpg\",\n    \"email\": \"john.doe@example.com\",\n    \"guardian\": {\n      \"fatherName\": \"Michael Doe\",\n      \"motherName\": \"Jane Doe\"\n    },\n    \"address\": \"123 Main St, Springfield\"\n}",
+        "type": "json"
+      }
+    ],
+    "filename": "routes/rest/users.js",
+    "groupTitle": "User"
+  },
+  {
     "type": "get",
-    "url": "/api/v1/user/:id",
-    "title": "Get User Details",
+    "url": "/api/v1/profile",
+    "title": "Get loggedIn User Details",
     "name": "GetUser",
     "group": "User",
     "version": "1.0.0",
