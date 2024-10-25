@@ -186,14 +186,14 @@ UserSchema.post("save", function (doc) {
   }
 });
 
-UserSchema.virtual("fullname").get(function () {
-  return `${this.firstName} ${this.lastName}`
-})
+// UserSchema.virtual("fullname").get(function () {
+//   return `${this.firstName} ${this.lastName}`
+// })
 
-UserSchema.virtual("name.full").set(function (v) {
-  this.name.first = v.substr(0, v.indexOf(" "));
-  this.name.last = v.substr(v.indexOf(" ") + 1);
-});
+// UserSchema.virtual("name.full").set(function (v) {
+//   this.name.first = v.substr(0, v.indexOf(" "));
+//   this.name.last = v.substr(v.indexOf(" ") + 1);
+// });
 
 UserSchema.set("timestamps", true);
 UserSchema.set("toJSON", { virtuals: true });

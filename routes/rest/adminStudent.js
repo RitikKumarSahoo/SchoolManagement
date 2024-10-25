@@ -3,6 +3,7 @@ const users = require("../../models/user")
 const School = require("../../models/school")
 const Class = require('../../models/class')
 const mail = require("../../lib/mail")
+const randomstring = require("randomstring");
 
 
 function generateCustomPassword() {
@@ -204,7 +205,7 @@ module.exports = {
       // console.log(admin._school);
       
       const username = firstName.slice(0, 3) + admin._school.name.slice(0, 3) + phone.slice(-3);
-      const password = generateRandomPassword();
+      const password = generateCustomPassword();
   
       // Create student record
       const student = await users.create({
@@ -248,7 +249,7 @@ module.exports = {
       return res.status(201).json({
         error: false,
         StudentUserName: student.username,
-        StudentPassword: student.password
+        StudentPassword: password
       });
   
     } catch (error) {
@@ -259,17 +260,57 @@ module.exports = {
   ,
 
   /**
-   * Admin edit student details using student id
-   * {put} /admin/student/edit/:id
-   * This endpoint is restricted to admins only.
-   * 
-   * @param {string} studentId - The ID of the student to be edited
-   * 
-   * @returns {object} - The updated student object
-   * 
-   * @throws {Error} - If the student is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
-   */
+ * @api {put} /admin/student/:id Edit Student Details
+ * @apiName EditStudentDetails
+ * @apiGroup Student
+ * 
+ * @apiHeader {String} Authorization Bearer token of the admin.
+ * 
+ * @apiParam {String} id Student's unique ID.
+ * 
+ * @apiDescription This route allows only admin users to edit details of a specific student. The admin must be logged in and authorized to access this endpoint. Only the provided fields in the request body will be updated.
+ * 
+ * @apiParam (Request Body) {String} [firstName] Student's first name.
+ * @apiParam (Request Body) {String} [lastName] Student's last name.
+ * @apiParam (Request Body) {String} [email] Student's email.
+ * @apiParam (Request Body) {String} [gender] Student's gender.
+ * @apiParam (Request Body) {String} [guardian] Guardian's name.
+ * @apiParam (Request Body) {String} [phone] Student's phone number.
+ * @apiParam (Request Body) {String} [admissionYear] Admission year of the student.
+ * @apiParam (Request Body) {String} [dob] Date of birth of the student.
+ * @apiParam (Request Body) {String} [rollNo] Roll number of the student.
+ * @apiParam (Request Body) {String} [signature] Signature of the student.
+ * @apiParam (Request Body) {String} [profileImage] Profile image URL of the student.
+ * 
+ * @apiError (403) Forbidden Only admins can edit student details.
+ * @apiError (404) NotFound Student not found.
+ * @apiError (500) InternalServerError An error occurred while updating student details.
+ * 
+ * @apiExample {json} Request-Example:
+ *     {
+ *       "firstName": "Jane",
+ *       "lastName": "Doe",
+ *       "email": "janedoe@example.com",
+ *       "gender": "Female",
+ *       "phone": "0987654321"
+ *     }
+ * 
+ * @apiExample {json} Error-Response:
+ *     {
+ *       "message": "Only admins can edit student details"
+ *     }
+ * 
+ * @apiExample {json} Error-Response:
+ *     {
+ *       "message": "Student not found"
+ *     }
+ * 
+ * @apiExample {json} Error-Response:
+ *     {
+ *       "message": "An error occurred while updating student details",
+ *       "error": "Error details here"
+ *     }
+ */
   async  editStudentDetails(req, res) {
     try {
       // Get student ID from params
@@ -407,7 +448,7 @@ module.exports = {
     try {
       const {loginType } = req.user; // Check if the user is an admin
       if (loginType!=="admin") {
-        return res.status(403).jpageNoson({ message: 'Only admins can view student details' });
+        return res.status(403).json({ message: 'Only admins can view student details' });
       }
 
       const {
@@ -436,7 +477,7 @@ module.exports = {
        }
 
        if (name) {
-        query.$and = [
+        query.$or = [
           { firstName: { $regex: name, $options: 'i' } }, // case-insensitive search for firstName
           { lastName: { $regex: name, $options: 'i' } } , // case-insensitive search for lastName
           { fullName: { $regex: name, $options: 'i' } }  // case-insensitive search for lastName
@@ -475,29 +516,85 @@ module.exports = {
   
 
   /**
-   * View a student's details
-   * 
-   * This endpoint is restricted to admins only.
-   * 
-   * @param {string} studentId - The ID of the student
-   * @returns {object} - The student's details
-   * 
-   * @throws {Error} - If the student is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
-   */
+ * @api {get} /admin/student/:id View Student Details
+ * @apiName ViewStudentDetails
+ * @apiGroup Student
+ *
+ * @apiHeader {String} Authorization Bearer token of the admin.
+ *
+ * @apiParam {String} id Unique ID of the student to view details.
+ *
+ * @apiPermission Admin
+ *
+ * @apiDescription This endpoint allows an admin to view detailed information of a specific student by their ID. Only users with admin privileges can access this route.
+ *
+ * @apiError (403) Forbidden Only admins can view student details.
+ * @apiError (404) NotFound Student not found.
+ * @apiError (500) InternalServerError Unexpected error occurred.
+ *
+ * @apiExample {json} Response-Example:
+ * {
+ *   "error": false,
+ *   "student": {
+ *     "_id": "67052d954cbe69ed12657f76",
+ *     "username": "student123",
+ *     "email": "student@example.com",
+ *     "loginType": "student",
+ *     "firstName": "John",
+ *     "lastName": "Doe",
+ *     "isActive": true,
+ *     "_school": {
+ *          "address": {
+ *              "city": "Panskura",
+ *              "state": "West Bengal",
+ *              "country": "India",
+ *              "pinCode": "721641"
+ *          },
+ *          "contact": {
+ *              "phoneNo": "+91 8172059732",
+ *              "email": "kicmmhs@gmail.com",
+ *              "website": "kicmmhs.edu"
+ *          },
+ *          "location": {
+ *              "type": "Point",
+ *              "coordinates": [
+ *                  21.418325060918168,
+ *                  84.02980772446274
+ *              ]
+ *          },
+ *          "name": "Khukurdaha I C M M High School",
+ *          "registrationNumber": "REG3167",
+ *          "principalName": "Mrinal undefined",
+ *          "establishYear": 1995,
+ *          "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR991hgwd5EAqJRywib6kdEyDFFIxmmA20x_evuRgHj5zlRqYq8Wq16u_rYSEkXieoQFQg&usqp=CAU",
+ *          "isActive": true,
+ *          "schoolType": "highSchool"
+ *      }
+ *     "_class": {
+ *       "name": "10th Grade"
+ *     },
+ *     "gender": "Male",
+ *     "address": "123 Main St",
+ *     "phone": "123-456-7890",
+ *     "dob": "01/01/2005",
+ *     "createdAt": "2024-10-21T00:00:00.000Z",
+ *     "updatedAt": "2024-10-21T00:00:00.000Z"
+ *   }
+ * }
+ */
   async viewStudentDetails(req, res) {
     try {
       // Get student ID from params
-      const { studentId } = req.params;
+      const { id } = req.params;
 
       //This may be changed as in this route only admin have access to enter this route
       const { isAdmin } = req.user; // Get adminId from the request body 
       // Check if the user exists and has the 'admin' role
-      if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
-      console.log(isAdmin);
+      if (!isAdmin) return res.status(403).json({ message: 'Only admins can view student details' });
 
-      const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).select('-password').populate('_school', '-_id name')
-      .populate('_class', '-_id name').exec();
+
+      const student = await users.findOne({ _id: id, isActive: true, loginType: "student" }).select('-password').populate('_school', '-_id')
+      .populate('_class', '-_id name section').populate('_addedBy','fullName').exec();
        
       if(!student) return res.status(404).json({ error: true, message: "Student not found" });
       
@@ -510,7 +607,7 @@ module.exports = {
 
   /**
    * Deactivate a student
-   * @api {put} /students/deactivate/:studentId 5.0 Deactivate a student
+   * @api {put} /admin/student/change-status/:id 5.0 Deactivate a student
    * @apiName deactivateStudent
    * @apiGroup Student
    * @apiPermission Admin
@@ -543,22 +640,7 @@ module.exports = {
   },
 
   
-  /**
-   * Search students based on name, roll number, or class
-   * @api {get} /students/search 5.0 Search students
-   * @apiName searchStudents
-   * @apiGroup Student
-   * @apiPermission Admin
-   *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiParam {String} name `Query Param` The name of the student
-   * @apiParam {String} rollNo `Query Param` The roll number of the student
-   * @apiParam {ObjectId} classId `Query Param` The _id of the class
-   *
-   * @apiSuccessExample {type} Success-Response: 200 OK
-   * { students: [{}] }
-   */
+  
   async searchStudents(req, res) {
     try {
       const { isAdmin } = req.user; // Get adminId from the request body
@@ -617,13 +699,51 @@ module.exports = {
     }
   },
 
+  /**
+   * @api {get} /admin/classsection  classes Fetch all classes and section for a school
+   * @apiName Fetch All Classes Section For School
+   * @apiGroup Class
+   *
+   * @apiHeader {String} Authorization Bearer token of the admin.
+   *
+   * @apiParam {ObjectId} id `URL Param` The _id of the school for which classes are to be fetched.
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
+   * @apiSuccess {Array} classList Array of classes in the format: [{ _id, id, nameWiseSection }]
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "classList": [
+   *     {
+   *       "_id": "60d5f60c9b4d7635e8aebaf7",
+   *       "id": "60d5f60c9b4d7635e8aebaf7",
+   *       "nameWiseSection": "10 - A"
+   *     }
+   *   ]
+   * }
+   *
+   * @apiError NotAdmin You are not an admin.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "You are not an admin"
+   * }
+   *
+   * @apiError InternalServerError Internal server error.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "Internal server error"
+   * }
+   */
   async fetchAllClassList(req, res) {
     try {
         // This route is for creating the class and section in this format and sent to FE during searching a student 10 - A
         const classes = await Class.find({ _school: req.params.id })
             .select('name section _id')
             .lean()
-
+      
         const classList = classes.map((cls) => ({
           _id: cls._id,
           id: cls._id,

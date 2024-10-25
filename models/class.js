@@ -9,7 +9,8 @@ const ClassSchema = new mongoose.Schema({
     type: String,
   },
   section: {
-    type: String
+    type: String,
+    enum: ["A", "B", "C", "D", "E", "F"],
   },
   academicYear: {
     type: String,
