@@ -1805,6 +1805,99 @@ define({ "api": [
   },
   {
     "type": "get",
+    "url": "/admin/classsection",
+    "title": "classes Fetch all classes and section for a school",
+    "name": "Fetch_All_Classes_Section_For_School",
+    "group": "Class",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "ObjectId",
+            "optional": false,
+            "field": "id",
+            "description": "<p><code>URL Param</code> The _id of the school for which classes are to be fetched.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether there was an error (false).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "classList",
+            "description": "<p>Array of classes in the format: [{ _id, id, nameWiseSection }]</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\": false,\n  \"classList\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"nameWiseSection\": \"10 - A\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "NotAdmin",
+            "description": "<p>You are not an admin.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"You are not an admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Class"
+  },
+  {
+    "type": "get",
     "url": "/class/find",
     "title": "Search Classes",
     "name": "FindClasses",
@@ -6746,7 +6839,250 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/students/deactivate/:studentId",
+    "url": "/admin/student/:id",
+    "title": "Edit Student Details",
+    "name": "EditStudentDetails",
+    "group": "Student",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Student's unique ID.</p>"
+          }
+        ],
+        "Request Body": [
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "firstName",
+            "description": "<p>Student's first name.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "lastName",
+            "description": "<p>Student's last name.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "email",
+            "description": "<p>Student's email.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "gender",
+            "description": "<p>Student's gender.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "guardian",
+            "description": "<p>Guardian's name.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "phone",
+            "description": "<p>Student's phone number.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "admissionYear",
+            "description": "<p>Admission year of the student.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "dob",
+            "description": "<p>Date of birth of the student.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "rollNo",
+            "description": "<p>Roll number of the student.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "signature",
+            "description": "<p>Signature of the student.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>Profile image URL of the student.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This route allows only admin users to edit details of a specific student. The admin must be logged in and authorized to access this endpoint. Only the provided fields in the request body will be updated.</p>",
+    "error": {
+      "fields": {
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "Forbidden",
+            "description": "<p>Only admins can edit student details.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>Student not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>An error occurred while updating student details.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request-Example:",
+        "content": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"janedoe@example.com\",\n  \"gender\": \"Female\",\n  \"phone\": \"0987654321\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Error-Response:",
+        "content": "{\n  \"message\": \"Only admins can edit student details\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Error-Response:",
+        "content": "{\n  \"message\": \"Student not found\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Error-Response:",
+        "content": "{\n  \"message\": \"An error occurred while updating student details\",\n  \"error\": \"Error details here\"\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Student"
+  },
+  {
+    "type": "get",
+    "url": "/admin/student/:id",
+    "title": "View Student Details",
+    "name": "ViewStudentDetails",
+    "group": "Student",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Unique ID of the student to view details.</p>"
+          }
+        ]
+      }
+    },
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>This endpoint allows an admin to view detailed information of a specific student by their ID. Only users with admin privileges can access this route.</p>",
+    "error": {
+      "fields": {
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "Forbidden",
+            "description": "<p>Only admins can view student details.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>Student not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Unexpected error occurred.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Response-Example:",
+        "content": "{\n  \"error\": false,\n  \"student\": {\n    \"_id\": \"67052d954cbe69ed12657f76\",\n    \"username\": \"student123\",\n    \"email\": \"student@example.com\",\n    \"loginType\": \"student\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"isActive\": true,\n    \"_school\": {\n         \"address\": {\n             \"city\": \"Panskura\",\n             \"state\": \"West Bengal\",\n             \"country\": \"India\",\n             \"pinCode\": \"721641\"\n         },\n         \"contact\": {\n             \"phoneNo\": \"+91 8172059732\",\n             \"email\": \"kicmmhs@gmail.com\",\n             \"website\": \"kicmmhs.edu\"\n         },\n         \"location\": {\n             \"type\": \"Point\",\n             \"coordinates\": [\n                 21.418325060918168,\n                 84.02980772446274\n             ]\n         },\n         \"name\": \"Khukurdaha I C M M High School\",\n         \"registrationNumber\": \"REG3167\",\n         \"principalName\": \"Mrinal undefined\",\n         \"establishYear\": 1995,\n         \"imageUrl\": \"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR991hgwd5EAqJRywib6kdEyDFFIxmmA20x_evuRgHj5zlRqYq8Wq16u_rYSEkXieoQFQg&usqp=CAU\",\n         \"isActive\": true,\n         \"schoolType\": \"highSchool\"\n     }\n    \"_class\": {\n      \"name\": \"10th Grade\"\n    },\n    \"gender\": \"Male\",\n    \"address\": \"123 Main St\",\n    \"phone\": \"123-456-7890\",\n    \"dob\": \"01/01/2005\",\n    \"createdAt\": \"2024-10-21T00:00:00.000Z\",\n    \"updatedAt\": \"2024-10-21T00:00:00.000Z\"\n  }\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Student"
+  },
+  {
+    "type": "put",
+    "url": "/admin/student/change-status/:id",
     "title": "5.0 Deactivate a student",
     "name": "deactivateStudent",
     "group": "Student",
@@ -6793,70 +7129,6 @@ define({ "api": [
         {
           "title": "Success-Response: 200 OK",
           "content": "{\n    error : false,\n    message: \"Student deactivated successfully\"\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/adminStudent.js",
-    "groupTitle": "Student"
-  },
-  {
-    "type": "get",
-    "url": "/students/search",
-    "title": "5.0 Search students",
-    "name": "searchStudents",
-    "group": "Student",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "name",
-            "description": "<p><code>Query Param</code> The name of the student</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "rollNo",
-            "description": "<p><code>Query Param</code> The roll number of the student</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectId",
-            "optional": false,
-            "field": "classId",
-            "description": "<p><code>Query Param</code> The _id of the class</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{ students: [{}] }",
           "type": "type"
         }
       ]
