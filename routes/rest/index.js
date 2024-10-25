@@ -34,7 +34,7 @@ router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED;
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
-router.post("/deactivate/:id", signup.Deactive);
+router.post("/activatedeactivate/:id", signup.Deactive);
 router.post("/admins", signup.getAllAdmin);
 router.get("/admindetails/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
@@ -97,9 +97,18 @@ router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 //list of all routers
 router.post("/admin/students/create-student", adminStudentRoutes.createStudent);
 router.put("/admin/student/edit/:id", adminStudentRoutes.editStudentDetails);
-router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
-router.get("/admin/students/view-student/:studentId", adminStudentRoutes.viewStudentDetails);
-router.put("/admin/students/deactivate/:studentId", adminStudentRoutes.deactivateStudent);
+router.post(
+  "/admin/students/view-students",
+  adminStudentRoutes.viewAllStudents
+);
+router.get(
+  "/admin/students/view-student/:studentId",
+  adminStudentRoutes.viewStudentDetails
+);
+router.put(
+  "/admin/students/deactivate/:studentId",
+  adminStudentRoutes.deactivateStudent
+);
 router.get("/admin/students/search", adminStudentRoutes.searchStudents);
 
 // Noice board Rute
