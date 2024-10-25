@@ -5691,6 +5691,13 @@
             "optional": false,
             "field": "plname",
             "description": "<p>Principal's last name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "schoolType",
+            "description": "<p>[&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</p>"
           }
         ]
       }
@@ -5976,8 +5983,13 @@
     "title": "Update School",
     "name": "UpdateSchool",
     "group": "School",
+    "permission": [
+      {
+        "name": "admin,superAdmin"
+      }
+    ],
     "version": "1.0.0",
-    "description": "<p>This endpoint allows a admin to update the details of an existing school.</p>",
+    "description": "<p>This endpoint allows  to update the details of an existing school.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -5986,7 +5998,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>admin's unique access token (JWT).</p>"
+            "description": "<p>unique access token (JWT).</p>"
           }
         ]
       }
@@ -6066,13 +6078,6 @@
           },
           {
             "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "principalName",
-            "description": "<p>The updated principal's name.</p>"
-          },
-          {
-            "group": "Parameter",
             "type": "Boolean",
             "optional": true,
             "field": "isActive",
@@ -6084,26 +6089,34 @@
             "optional": true,
             "field": "imageUrl",
             "description": "<p>image of school</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Whether there was an error (false if successful).</p>"
           },
           {
-            "group": "Success 200",
-            "type": "Object",
+            "group": "Parameter",
+            "type": "String",
             "optional": false,
-            "field": "school",
-            "description": "<p>The updated school object.</p>"
+            "field": "establishYear",
+            "description": "<p>The year the school was established.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "pfname",
+            "description": "<p>Principal's first name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "plname",
+            "description": "<p>Principal's last name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "schoolType",
+            "description": "<p>The type of the school  [&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</p>"
           }
         ]
       }
@@ -6125,28 +6138,12 @@
             "field": "reason",
             "description": "<p>Reason for the error (if applicable).</p>"
           }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Whether there was an internal server error.</p>"
-          },
-          {
-            "group": "500",
-            "type": "String",
-            "optional": false,
-            "field": "Error",
-            "description": "<p>Error message (if internal error occurs).</p>"
-          }
         ]
       },
       "examples": [
         {
           "title": "Error-Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"you are not authorized to update school details\"\n}",
           "type": "json"
         },
         {
@@ -8282,8 +8279,8 @@
   },
   {
     "type": "put",
-    "url": "/deactivate/:id",
-    "title": "Deactivate User",
+    "url": "/activatedeactivate/:id",
+    "title": "Activate/Deactivate user",
     "name": "DeactivateUser",
     "group": "User",
     "permission": [
@@ -8291,7 +8288,6 @@
         "name": "Admin,superAdmin"
       }
     ],
-    "description": "<p>Deactivates a user by setting their <code>isActive</code> status to false. Only admin and superadmin  can deactivate a user.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -8301,6 +8297,13 @@
             "optional": false,
             "field": "id",
             "description": "<p>The ID of the user to deactivate.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "flag",
+            "description": "<p>true or false</p>"
           }
         ]
       }
@@ -8328,11 +8331,6 @@
         {
           "title": "User Not Found",
           "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"user not found\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Unauthorized Access",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You can not deactivate users\"\n}",
           "type": "json"
         }
       ]

@@ -233,14 +233,13 @@ module.exports = {
   },
 
   /**
-   * @api {put} /deactivate/:id Deactivate User
+   * @api {put} /activatedeactivate/:id Activate/Deactivate user
    * @apiName DeactivateUser
    * @apiGroup User
    * @apiPermission Admin,superAdmin
    *
-   * @apiDescription Deactivates a user by setting their `isActive` status to false. Only admin and superadmin  can deactivate a user.
-   *
    * @apiParam {String} id The ID of the user to deactivate.
+   * @apiParam {Boolean} flag true or false
    *
    * @apiError {Boolean} error Indicates whether an error occurred (true when an error occurred).
    * @apiError {String} reason Reason for the failure.
@@ -251,56 +250,38 @@ module.exports = {
    *      "reason": "user not found"
    *    }
    *
-   * @apiErrorExample {json} Unauthorized Access
-   *    HTTP/1.1 400 Bad Request
-   *    {
-   *      "error": true,
-   *      "reason": "You can not deactivate users"
-   *    }
    */
 
   async Deactive(req, res) {
     try {
       const { loginType, isSuperAdmin } = req.user;
       const user = await User.findOne({ _id: req.params.id });
+      const { flag } = req.body;
 
       if (user === null) {
         return res.status(400).json({ error: true, reason: "User not found" });
       }
 
       if (isSuperAdmin === true) {
-        if (user.loginType !== "admin") {
-          return res.status(400).json({
-            error: true,
-            reason: "Super admin can only deactivate admin users",
-          });
-        }
-        user.isActive = false;
+        user.isActive = flag;
         await user.save();
         return res.status(200).json({
           error: false,
-          message: "Admin User Deactivated by Super Admin",
         });
       }
 
       // Admins can deactivate only student and teacher
       if (loginType === "admin") {
-        if (user.loginType !== "student" && user.loginType !== "teacher") {
-          return res.status(400).json({
-            error: true,
-            reason: "admin can only deactivate student and teacher",
-          });
+        if (user.loginType === "student" || user.loginType === "teacher") {
+          user.isActive = flag;
+          await user.save();
+          return res.status(200).json({ error: false });
         }
-        user.isActive = false;
-        await user.save();
-        return res
-          .status(200)
-          .json({ error: false, message: "User Deactivated by admin" });
       }
 
       return res.status(400).json({
         error: true,
-        reason: "You are not authorized to deactivate this user",
+        reason: "You are not authorized to activate deactivate this user",
       });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
