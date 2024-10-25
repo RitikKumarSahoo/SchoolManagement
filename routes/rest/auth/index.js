@@ -175,36 +175,35 @@ module.exports = {
       const { isSuperAdmin, loginType } = req.user;
 
       if (isSuperAdmin === true) {
-        const admin = await User.findOne({
+        const user = await User.findOne({
           _id: req.params.id,
-          loginType: "admin",
         });
 
-        if (admin === null) {
+        if (user === null) {
           return res.status(400).json({
             error: true,
             reason: "You are not authorized to update this user",
           });
         }
 
-        if (firstName !== undefined) admin.firstName = firstName;
-        if (lastName !== undefined) admin.lastName = lastName;
-        if (phone !== undefined) admin.phone = phone;
-        if (email !== undefined) admin.email = email;
-        if (address !== undefined) admin.address = address;
-        if (gender !== undefined) admin.gender = gender;
-        if (dob !== undefined) admin.dob = dob;
-        if (profileImage !== undefined) admin.profileImage = profileImage;
-        if (guardian !== undefined) admin.guardian = guardian;
-        if (_school !== undefined) admin._school = _school;
-        if (joinDate !== undefined) admin.joinDate = joinDate;
-        if (leaveDate !== undefined) admin.leaveDate = leaveDate;
+        if (firstName !== undefined) user.firstName = firstName;
+        if (lastName !== undefined) user.lastName = lastName;
+        if (phone !== undefined) user.phone = phone;
+        if (email !== undefined) user.email = email;
+        if (address !== undefined) user.address = address;
+        if (gender !== undefined) user.gender = gender;
+        if (dob !== undefined) user.dob = dob;
+        if (profileImage !== undefined) user.profileImage = profileImage;
+        if (guardian !== undefined) user.guardian = guardian;
+        if (_school !== undefined) user._school = _school;
+        if (joinDate !== undefined) user.joinDate = joinDate;
+        if (leaveDate !== undefined) user.leaveDate = leaveDate;
 
-        await admin.save();
+        await user.save();
 
         return res.status(200).json({
           error: false,
-          message: "Admin profile updated successfully.",
+          message: "user profile updated successfully.",
         });
       }
 
@@ -212,6 +211,7 @@ module.exports = {
         const user = await User.findOne({
           _id: req.params.id,
           loginType: { $in: ["student", "teacher"] },
+          _school: req.user._school,
         });
 
         if (user === null) {
