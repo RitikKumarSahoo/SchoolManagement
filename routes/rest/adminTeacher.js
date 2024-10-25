@@ -31,7 +31,7 @@ function generateCustomPassword() {
 
 module.exports = {
   /**
-   * @api {get} /teachers Get All Teachers
+   * @api {post} /admin/teachers Get All Teachers
    * @apiName GetAllTeachers
    * @apiGroup Teacher
    * @apiVersion 1.0.0
@@ -88,34 +88,54 @@ module.exports = {
   async getAllTeachers(req, res) {
     try {
       const { _school, loginType } = req.user;
-      if (loginType !== "admin") {
-        return res
-          .status(200)
-          .json({ error: true, reason: "You are not admin" });
-      }
+      if (loginType === "admin") {
+        const teachers = await User.find({
+          loginType: "teacher",
+          _school: _school,
+        }).select("-password -bankDetails -forgotpassword");
 
-      const teachers = await User.find({
-        loginType: "teacher",
-        _school: _school,
-      }).select("-password -bankDetails -forgotpassword");
+        if (teachers.length === 0) {
+          return res.status(404).json({
+            error: true,
+            message: "No teachers found for this school.",
+          });
+        }
+        const totalTeachers = await User.countDocuments({
+          loginType: "teacher",
+          _school,
+        });
 
-      if (teachers.length === 0) {
-        return res.status(404).json({
-          error: true,
-          message: "No teachers found for this school.",
+        return res.status(200).json({
+          error: false,
+          message: "Teachers retrieved successfully.",
+          data: teachers,
+          totalTeachers,
         });
       }
-      const totalTeachers = await User.countDocuments({
-        loginType: "teacher",
-        _school: _school,
-      });
 
-      return res.status(200).json({
-        error: false,
-        message: "Teachers retrieved successfully.",
-        data: teachers,
-        totalTeachers,
-      });
+      if (req.user.isSuperAdmin === true) {
+        const teachers = await User.find({
+          loginType: "teacher",
+        }).select("-password -bankDetails -forgotpassword");
+
+        if (teachers.length === 0) {
+          return res.status(404).json({
+            error: true,
+            message: "No teachers found",
+          });
+        }
+        const totalTeachers = await User.countDocuments({
+          loginType: "teacher",
+        });
+
+        return res.status(200).json({
+          error: false,
+          message: "Teachers retrieved successfully.",
+          data: teachers,
+          totalTeachers,
+        });
+      }
+      return res.status(200).json({ error: true, reason: "You are not admin" });
     } catch (error) {
       return res.status(500).json({
         error: true,
@@ -125,19 +145,17 @@ module.exports = {
   },
 
   /**
-   * @api {get} /teacher/find Find Teachers
+   * @api {post} /admin/teacher/find Find Teachers
    * @apiName FindTeachers
    * @apiGroup Teacher
+   * @apiDescription Allows super admins and admins to search for teachers. Super admins can search all teachers, while admins can only search teachers in their assigned school.
    *
-   * @apiHeader {String} Authorization Bearer token for admin access.
+   * @apiHeader {String} Authorization Bearer token for admin or super admin access.
    *
-   * @apiParam {String} searchText Optional search text to filter teachers by first name, last name, email, or phone.
-   *
-   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
-   * @apiSuccess {Object[]} users List of teachers matching the search criteria.
-   * @apiSuccess {Number} usersCount Total number of teachers matching the search criteria.
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, or `phone`.
    *
    * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
    * {
    *   "error": false,
    *   "users": [
@@ -154,35 +172,41 @@ module.exports = {
    *   "usersCount": 1
    * }
    *
-   * @apiError NotAdmin You are not an admin.
-   * @apiErrorExample {json} Error-Response:
+   * @apiError UnauthorizedAccess Unauthorized access (not an admin or super admin).
+   * @apiErrorExample {json} Unauthorized-Response:
+   * HTTP/1.1 403 Forbidden
    * {
    *   "error": true,
-   *   "reason": "You are not Admin"
+   *   "reason": "Unauthorized access"
    * }
    *
    * @apiError NoTeachersFound No teachers found matching the search criteria.
-   * @apiErrorExample {json} Error-Response:
+   * @apiErrorExample {json} NoTeachers-Response:
+   * HTTP/1.1 404 Not Found
    * {
    *   "error": true,
    *   "reason": "No teacher found"
    * }
    *
    * @apiError InternalServerError Internal server error.
-   * @apiErrorExample {json} Error-Response:
+   * @apiErrorExample {json} InternalServerError-Response:
+   * HTTP/1.1 500 Internal Server Error
    * {
    *   "error": true,
    *   "reason": "Internal server error"
    * }
    */
+
   async find(req, res) {
     try {
-      const { isAdmin } = req.user;
+      const { isSuperAdmin, loginType, _school } = req.user;
       const { searchText } = req.body;
-      if (!isAdmin) {
+
+      //error user is either a superadmin or an admin
+      if (!(loginType === "admin" || isSuperAdmin === true)) {
         return res
-          .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+          .status(403)
+          .json({ error: true, reason: "Unauthorized access" });
       }
 
       const query = {
@@ -190,11 +214,12 @@ module.exports = {
         isActive: true,
       };
 
-      // text search
-      if (searchText !== undefined) {
-        const newSearch = searchText.trim();
+      if (isSuperAdmin === false) {
+        query._school = _school;
+      }
 
-        const searchRegex = new RegExp(newSearch, "i");
+      if (searchText) {
+        const searchRegex = new RegExp(searchText.trim(), "i");
         query.$or = [
           { firstName: { $regex: searchRegex } },
           { lastName: { $regex: searchRegex } },
@@ -203,26 +228,29 @@ module.exports = {
         ];
       }
 
-      const users = await User.find(query);
+      const users = await User.find(query).select(
+        "-password -bankDetails -forgotpassword"
+      );
+      const usersCount = await User.countDocuments(query);
+
       if (users.length === 0) {
         return res
-          .status(400)
+          .status(404)
           .json({ error: true, reason: "No teacher found" });
       }
-      const usersCount = await User.countDocuments(query).exec();
 
       return res.status(200).json({ error: false, users, usersCount });
     } catch (error) {
-      return res.status(400).json({ error: true, reason: error });
+      return res.status(500).json({ error: true, reason: error.message });
     }
   },
 
   /**
-   * @api {get} /teacher/get/:id Get Teacher Details
+   * @api {get} /admin/teacher/get/:id Get Teacher Details
    * @apiName GetTeacherDetails
    * @apiGroup Teacher
    *
-   * @apiHeader {String} Authorization Bearer token for admin access.
+   * @apiHeader {String} Authorization Bearer token for admin or superadmin access.
    *
    * @apiParam {String} id Teacher's unique ID.
    *
@@ -273,38 +301,49 @@ module.exports = {
    *   "reason": "Internal server error"
    * }
    */
+
   async get(req, res) {
     try {
-      const { isAdmin } = req.user;
-      if (!isAdmin) {
+      const { isSuperAdmin, loginType, _school } = req.user;
+
+      if (!(isSuperAdmin === true || loginType === "admin")) {
         return res
-          .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+          .status(403)
+          .json({ error: true, reason: "Unauthorized access" });
       }
 
-      const user = await User.findOne({
+      const query = {
         loginType: "teacher",
         isActive: true,
         _id: req.params.id,
-      });
-      if (user === null) {
+      };
+
+      if (!isSuperAdmin) {
+        query._school = _school;
+      }
+
+      const user = await User.findOne(query).select(
+        "-password -forgotpassword"
+      );
+      if (!user) {
         return res
-          .status(400)
+          .status(404)
           .json({ error: true, reason: "No teacher found" });
       }
 
       return res.status(200).json({ error: false, user });
     } catch (error) {
-      return res.status(400).json({ error: true, reason: error });
+      return res.status(500).json({ error: true, reason: error.message });
     }
   },
 
   /**
-   * @api {post} /teacher/create Create Teacher
+   * @api {post} admin/teacher/create Create Teacher
    * @apiName CreateTeacher
    * @apiGroup Teacher
+   * @apiPermission admin,superAdmin
    *
-   * @apiHeader {String} Authorization Bearer token for admin access.
+   * @apiHeader {String} Authorization Bearer token access.
    *
    * @apiParam {String} firstName First name of the teacher.
    * @apiParam {String} lastName Last name of the teacher.
@@ -315,6 +354,8 @@ module.exports = {
    * @apiParam {String} [signature] Optional signature of the teacher.
    * @apiParam {Object} [bankDetails] Optional bank details of the teacher.
    * @apiParam {String} [address] address of the teacher
+   * @apiParam {String} [profileImage] image url of the teacher
+   * @apiParam {String} [schoolId] school id(only use when superadmin will create )
    *
    * @apiSuccess {Boolean} error Indicates whether there was an error (false).
    * @apiSuccess {Object} user The newly created teacher object.
@@ -388,15 +429,19 @@ module.exports = {
         phone,
         dob,
         joinDate,
+        profileImage,
         signature,
         bankDetails, // pending
         address,
+        schoolId,
       } = req.body;
-      const { isAdmin } = req.user;
-      if (isAdmin !== true) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+      const { isSuperAdmin, loginType } = req.user;
+
+      if (!(isSuperAdmin === true || loginType === "admin")) {
+        return res.status(400).json({
+          error: true,
+          reason: "You do not have permission to  update teacher",
+        });
       }
 
       if (firstName === undefined) {
@@ -467,17 +512,19 @@ module.exports = {
         gender,
         email,
         dob: dateOfBirth,
-        _school: req.user._school,
+        _school: isSuperAdmin === true ? schoolId : req.user._school,
         _addedBy: req.user.id,
         joinDate,
         signature,
         username,
+        phone,
         password,
         loginType: "teacher",
         bankDetails,
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
         address,
+        profileImage,
       });
 
       const schoolName = await School.findOne({ _id: req.user._school })
@@ -509,11 +556,12 @@ module.exports = {
   },
 
   /**
-   * @api {put} /teacher/update/:id Update Teacher Details
+   * @api {put} admin/teacher/update/:id Update Teacher Details
    * @apiName UpdateTeacher
    * @apiGroup Teacher
+   * @apiPermission admin,superadmin
    *
-   * @apiHeader {String} Authorization Bearer token for admin access.
+   * @apiHeader {String} Authorization Bearer token for admin,superadmin access.
    *
    * @apiParam {String} id Teacher's unique ID.
    *
@@ -524,7 +572,8 @@ module.exports = {
    * @apiParam {String} [phone] Teacher's phone number.
    * @apiParam {Object} [bankDetails] Teacher's bank details.
    * @apiParam {String} [address] address of the teacher
-   *
+   * @apiParam {String} [profileImage] image url of the teacher
+   * @apiParam {String} [_school]  school id
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -540,6 +589,9 @@ module.exports = {
    *       "accountNumber": "123456789",
    *       "ifscCode": "IFSC0001"
    *     }
+   *    "address":"address",
+   *    "_school":"schoolid",
+   *    "profileImage":""
    *   }
    * }
    *
@@ -564,16 +616,10 @@ module.exports = {
    *   "reason": "Internal server error"
    * }
    */
+
   async updateTeacher(req, res) {
     try {
-      const { loginType } = req.user;
-
-      if (loginType !== "teacher" || loginType !== "admin") {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You can not update " });
-      }
-
+      const { loginType, isSuperAdmin, _school } = req.user;
       const {
         firstName,
         lastName,
@@ -582,18 +628,36 @@ module.exports = {
         phone,
         bankDetails,
         address,
+        profileImage,
       } = req.body;
+
+      if (loginType !== "admin" && isSuperAdmin === false) {
+        return res.status(400).json({
+          error: true,
+          reason: "You are not authorized to update teacher details.",
+        });
+      }
 
       const user = await User.findOne({
         _id: req.params.id,
         loginType: "teacher",
-        isActive: true,
-      })
-        .select("firstName lastName phone email isActive")
-        .exec();
+      }).exec();
 
-      if (user === null) {
-        return res.status(400).json({ error: true, message: "No User Found" });
+      if (!user) {
+        return res
+          .status(400)
+          .json({ error: true, message: "No Teacher Found" });
+      }
+
+      // If admin, restrict update to teachers of the same school
+      if (
+        loginType === "admin" &&
+        user._school.toString() !== _school.toString()
+      ) {
+        return res.status(400).json({
+          error: true,
+          message: "You can only update teachers assigned to your school.",
+        });
       }
 
       if (firstName !== undefined) user.firstName = firstName;
@@ -604,39 +668,69 @@ module.exports = {
         user.bankDetails = bankDetails;
         user.bankAdded = true;
       }
-      if (email !== undefined) {
-        user.email = email;
-      }
+      if (email !== undefined) user.email = email;
       if (address !== undefined) user.address = address;
+      if (profileImage !== undefined) user.profileImage = profileImage;
 
       await user.save();
-      return res.status(200).json({ error: false, user });
+      return res.status(200).json({
+        error: false,
+        message: "Teacher profile updated successfully.",
+      });
     } catch (error) {
-      return res.status(500).json({ error: true, Error: error.message });
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 
-  // delete teacher using :id
+  /**
+   * @api {delete} /admin/teacher/delete/:id Delete Teacher by admin or superadmin
+   * @apiName DeleteTeacher
+   * @apiGroup Teacher
+   * @apiPermission Admin or SuperAdmin
+   *
+   * @apiParam {String} id The ID of the teacher to be deleted (as URL parameter).
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "reason": "user deleted"
+   *     }
+   *
+   * @apiErrorExample Error-Response (No Permission):
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "You do not have permission to delete teacher"
+   *     }
+   *
+   * @apiErrorExample Error-Response (Teacher Not Found):
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "teacher not found"
+   *     }
+   */
+
   async deleteTeacher(req, res) {
     try {
-      const { isAdmin } = req.user;
-      if (!isAdmin) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You are not Admin" });
+      if (req.user.loginType === "admin" || req.user.isSuperAdmin === true) {
+        const user = await User.findOne({ _id: req.params.id }).exec();
+        if (user === null) {
+          return res
+            .status(400)
+            .json({ error: true, reason: "teacher not found" });
+        }
+
+        await User.deleteOne({ _id: req.params.id });
+        return res.status(200).json({ error: false, reason: "user deleted" });
       }
 
-      const user = await User.findOne({ _id: req.params.id }).exec();
-      if (user === null) {
-        return res.status(400).json({ error: true, reason: "No such Admin" });
-      }
-
-      await User.deleteOne({ _id: req.params.id });
-      return res
-        .status(200)
-        .json({ error: false, reason: "Teacher Has Been Deleted" });
+      return res.status(400).json({
+        error: true,
+        reason: "You do not have permission to delete teacher",
+      });
     } catch (error) {
-      return res.status(400).json({ error: true, reason: error });
+      return res.status(400).json({ error: true, Error: error.message });
     }
   },
 };
