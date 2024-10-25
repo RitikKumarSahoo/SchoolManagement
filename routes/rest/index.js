@@ -146,8 +146,8 @@ router.post("/admin/transaction/create", adminTransaction.createTransaction);
 router.put("/admin/transaction/update", adminTransaction.updateTransaction);
 
 // teacher
-router.post("/admin/teacher/all", adminTeacher.getAllTeachers);
-router.get("/admin/teacher/find", adminTeacher.find);
+router.post("/admin/teachers", adminTeacher.getAllTeachers);
+router.post("/admin/teacher/find", adminTeacher.find);
 router.get("/admin/teacher/get/:id", adminTeacher.get);
 router.post("/admin/teacher/create", adminTeacher.createTeacher);
 router.put("/admin/teacher/update/:id", adminTeacher.updateTeacher);
