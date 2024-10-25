@@ -60,6 +60,7 @@ module.exports = {
    * @apiParam {String} establishYear The year the school was established.
    * @apiParam {String} pfname Principal's first name.
    * @apiParam {String} plname Principal's last name.
+   * @apiParam {String} schoolType  ["primary", "secondary", "highSchool"]
    *
    * @apiError (500) InternalServerError Unexpected error occurred.
    *
@@ -106,6 +107,7 @@ module.exports = {
         location,
         imageUrl,
         profileImage,
+        schoolType,
         email,
         firstName,
         lastName,
@@ -177,6 +179,7 @@ module.exports = {
         contact,
         location,
         imageUrl,
+        schoolType,
         registrationNumber,
         principalName: pfname + " " + plname,
         establishYear,
@@ -253,6 +256,7 @@ module.exports = {
    * @apiParam {String} establishYear The year the school was established.
    * @apiParam {String} pfname Principal's first name.
    * @apiParam {String} plname Principal's last name.
+   * @apiParam {String} schoolType The type of the school  ["primary", "secondary", "highSchool"]
    *
    * @apiError (400) {Boolean} error Whether there was an error.
    * @apiError (400) {String} reason Reason for the error (if applicable).
