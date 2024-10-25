@@ -61,6 +61,94 @@
     "groupTitle": "Admin-User"
   },
   {
+    "type": "delete",
+    "url": "/admin/delete/:id",
+    "title": "Delete Admin User",
+    "name": "DeleteAdmin",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "description": "<p>This endpoint allows a SuperAdmin to delete an admin user.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the admin user to delete.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Explanation of the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You are not authorized to delete an admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Admin Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"Admin not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error details here\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Admin deleted successfully.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "get",
     "url": "/admindetails/:id",
     "title": "Get admin by ID",
@@ -216,13 +304,13 @@
   {
     "type": "put",
     "url": "/admin/update/:id",
-    "title": "Update Admin by superAdmin",
+    "title": "Update users by superAdmin and admin",
     "name": "UpdateAdminProfile",
     "group": "Admin",
     "version": "1.0.0",
     "permission": [
       {
-        "name": "superadmin"
+        "name": "superadmin,admin"
       }
     ],
     "description": "<p>This endpoint allows an admin to update their profile details, such as first name, last name, and phone number.</p>",
@@ -234,7 +322,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token of superadmin for authorization.</p>"
+            "description": "<p>Bearer token for authorization.</p>"
           }
         ]
       }
@@ -247,49 +335,84 @@
             "type": "String",
             "optional": true,
             "field": "firstName",
-            "description": "<p>The new first name of the admin.</p>"
+            "description": "<p>The new first name of user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "lastName",
-            "description": "<p>The new last name of the admin.</p>"
+            "description": "<p>The new last name of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "phone",
-            "description": "<p>The new phone number of the admin.</p>"
+            "description": "<p>The new phone number of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "email",
-            "description": "<p>The new email of the admin.</p>"
+            "description": "<p>The new email of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "address",
-            "description": "<p>The new address of the admin.</p>"
+            "description": "<p>The new address of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "gender",
-            "description": "<p>Gender of the admin.</p>"
+            "description": "<p>Gender of the user.</p>"
           },
           {
             "group": "Parameter",
             "type": "Date",
             "optional": true,
             "field": "dob",
-            "description": "<p>The DOB of the admin.</p>"
+            "description": "<p>The DOB of the user.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "joinDate",
+            "description": "<p>Join date of the user (ISO format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": true,
+            "field": "leaveDate",
+            "description": "<p>Leave date of the user (ISO format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "_school",
+            "description": "<p>School reference of the user.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "admissionYear",
+            "description": "<p>Admission year of the user (for students).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "rollNo",
+            "description": "<p>Roll number of the user (for students).</p>"
           }
         ]
       }
@@ -5558,7 +5681,7 @@
     "groupTitle": "School"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/schools",
     "title": "Get All Schools",
     "name": "GetAllSchools",
@@ -7884,6 +8007,67 @@
     "version": "0.0.0",
     "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
+  },
+  {
+    "type": "put",
+    "url": "/deactivate/:id",
+    "title": "Deactivate User",
+    "name": "DeactivateUser",
+    "group": "User",
+    "permission": [
+      {
+        "name": "Admin,superAdmin"
+      }
+    ],
+    "description": "<p>Deactivates a user by setting their <code>isActive</code> status to false. Only admin and superadmin  can deactivate a user.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the user to deactivate.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether an error occurred (true when an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the failure.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "User Not Found",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"user not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Unauthorized Access",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You can not deactivate users\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "User"
   },
   {
     "type": "put",

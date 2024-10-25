@@ -377,7 +377,7 @@ module.exports = {
   },
 
   /**
-   * @api {get} /schools Get All Schools
+   * @api {post} /schools Get All Schools
    * @apiName GetAllSchools
    * @apiGroup School
    * @apiVersion 1.0.0
