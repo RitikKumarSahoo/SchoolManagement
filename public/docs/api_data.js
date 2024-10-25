@@ -8054,7 +8054,7 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/deactivate/:id",
+    "url": "/activatedeactivate/:id",
     "title": "Activate/Deactivate user",
     "name": "DeactivateUser",
     "group": "User",
