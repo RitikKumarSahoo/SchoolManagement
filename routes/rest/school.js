@@ -232,10 +232,11 @@ module.exports = {
    * @api {put} /school/:id Update School
    * @apiName UpdateSchool
    * @apiGroup School
+   * @apiPermission admin,superAdmin
    * @apiVersion 1.0.0
-   * @apiDescription This endpoint allows a admin to update the details of an existing school.
+   * @apiDescription This endpoint allows  to update the details of an existing school.
    *
-   * @apiHeader {String} Authorization admin's unique access token (JWT).
+   * @apiHeader {String} Authorization unique access token (JWT).
    *
    * @apiParam {String} [name] The updated name of the school.
    * @apiParam {Object} [address] The updated address of the school.
@@ -247,12 +248,11 @@ module.exports = {
    * @apiParam {String} [contact.phoneNo] Updated phone number of the school.
    * @apiParam {String} [contact.email] Updated email address of the school.
    * @apiParam {String} [contact.website] Updated website of the school (if applicable).
-   * @apiParam {String} [principalName] The updated principal's name.
    * @apiParam {Boolean} [isActive] Update the activation status of the school.
    * @apiParam {Boolean} [imageUrl] image of school
-   *
-   * @apiSuccess {Boolean} error Whether there was an error (false if successful).
-   * @apiSuccess {Object} school The updated school object.
+   * @apiParam {String} establishYear The year the school was established.
+   * @apiParam {String} pfname Principal's first name.
+   * @apiParam {String} plname Principal's last name.
    *
    * @apiError (400) {Boolean} error Whether there was an error.
    * @apiError (400) {String} reason Reason for the error (if applicable).
@@ -261,11 +261,8 @@ module.exports = {
    *     HTTP/1.1 400 Bad Request
    *     {
    *       "error": true,
-   *       "reason": "You are not superadmin"
+   *       "reason": "you are not authorized to update school details"
    *     }
-   *
-   * @apiError (500) {Boolean} error Whether there was an internal server error.
-   * @apiError (500) {String} Error Error message (if internal error occurs).
    *
    * @apiErrorExample {json} Error-Response:
    *     HTTP/1.1 500 Internal Server Error
@@ -281,35 +278,72 @@ module.exports = {
         name,
         address,
         contact,
-        principalName,
         isActive,
         schoolType,
         imageUrl,
+        location,
+        establishYear,
+        pfname,
+        plname,
       } = req.body;
+      const { isSuperAdmin, loginType, _school } = req.user;
 
-      if (req.user.isAdmin !== true) {
+      if (isSuperAdmin === true) {
+        const school = await School.findOne({ _id: req.params.id });
+
+        if (school === null) {
+          return res
+            .status(400)
+            .json({ error: true, reason: "school not found" });
+        }
+        if (name !== undefined) school.name = name;
+        if (address !== undefined) school.address = address;
+        if (contact !== undefined) school.contact = contact;
+        if (isActive !== undefined) school.isActive = isActive;
+        if (schoolType !== undefined) school.schoolType = schoolType;
+        if (imageUrl !== undefined) school.imageUrl = imageUrl;
+        if (pfname !== undefined && plname !== undefined) {
+          school.principalName = pfname + " " + plname;
+        }
+        if (establishYear !== undefined) school.establishYear = establishYear;
+        if (location !== undefined) school.location = location;
+
+        await school.save();
         return res
-          .status(400)
-          .json({ error: true, reason: "you are not admin" });
+          .status(200)
+          .json({ error: false, message: "school information updated" });
       }
-      const school = await School.findOne({ _id: req.params.id });
-      if (school === null) {
+
+      if (loginType === "admin") {
+        const school = await School.findOne({ _id: req.params.id });
+
+        if (_school !== school._id.toString()) {
+          return res
+            .status(400)
+            .json({ reason: "you can not update other school details" });
+        }
+        if (name !== undefined) school.name = name;
+        if (address !== undefined) school.address = address;
+        if (contact !== undefined) school.contact = contact;
+        if (isActive !== undefined) school.isActive = isActive;
+        if (schoolType !== undefined) school.schoolType = schoolType;
+        if (imageUrl !== undefined) school.imageUrl = imageUrl;
+        if (pfname !== undefined && plname !== undefined) {
+          school.principalName = pfname + " " + plname;
+        }
+        if (establishYear !== undefined) school.establishYear = establishYear;
+        if (location !== undefined) school.location = location;
+
+        await school.save();
         return res
-          .status(400)
-          .json({ error: true, reason: "school not found" });
+          .status(200)
+          .json({ error: false, message: "school information updated" });
       }
 
-      if (name !== undefined) school.name = name;
-      if (address !== undefined) school.address = address;
-      if (contact !== undefined) school.contact = contact;
-      if (principalName !== undefined) school.principalName = principalName;
-      if (isActive !== undefined) school.isActive = isActive;
-      if (schoolType !== undefined) school.schoolType = schoolType;
-      if (imageUrl !== undefined) school.imageUrl = imageUrl;
-
-      await school.save();
-
-      return res.status(200).json({ error: false, school });
+      return res.status(400).json({
+        error: true,
+        message: "you can not update the school information",
+      });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
