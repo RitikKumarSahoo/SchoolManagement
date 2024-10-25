@@ -7136,10 +7136,15 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/teacher/create",
+    "url": "admin/teacher/create",
     "title": "Create Teacher",
     "name": "CreateTeacher",
     "group": "Teacher",
+    "permission": [
+      {
+        "name": "admin,superAdmin"
+      }
+    ],
     "header": {
       "fields": {
         "Header": [
@@ -7148,7 +7153,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token access.</p>"
           }
         ]
       }
@@ -7218,6 +7223,20 @@ define({ "api": [
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>image url of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>school id(only use when superadmin will create )</p>"
           }
         ]
       }
@@ -7328,11 +7347,63 @@ define({ "api": [
     "groupTitle": "Teacher"
   },
   {
-    "type": "get",
-    "url": "/teacher/find",
+    "type": "delete",
+    "url": "/admin/teacher/delete/:id",
+    "title": "Delete Teacher by admin or superadmin",
+    "name": "DeleteTeacher",
+    "group": "Teacher",
+    "permission": [
+      {
+        "name": "Admin or SuperAdmin"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the teacher to be deleted (as URL parameter).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"reason\": \"user deleted\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response (No Permission):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete teacher\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Teacher Not Found):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"teacher not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTeacher.js",
+    "groupTitle": "Teacher"
+  },
+  {
+    "type": "post",
+    "url": "/admin/teacher/find",
     "title": "Find Teachers",
     "name": "FindTeachers",
     "group": "Teacher",
+    "description": "<p>Allows super admins and admins to search for teachers. Super admins can search all teachers, while admins can only search teachers in their assigned school.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -7341,7 +7412,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin or super admin access.</p>"
           }
         ]
       }
@@ -7352,43 +7423,18 @@ define({ "api": [
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
+            "optional": true,
             "field": "searchText",
-            "description": "<p>Optional search text to filter teachers by first name, last name, email, or phone.</p>"
+            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, or <code>phone</code>.</p>"
           }
         ]
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object[]",
-            "optional": false,
-            "field": "users",
-            "description": "<p>List of teachers matching the search criteria.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Number",
-            "optional": false,
-            "field": "usersCount",
-            "description": "<p>Total number of teachers matching the search criteria.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
           "type": "json"
         }
       ]
@@ -7399,8 +7445,8 @@ define({ "api": [
           {
             "group": "Error 4xx",
             "optional": false,
-            "field": "NotAdmin",
-            "description": "<p>You are not an admin.</p>"
+            "field": "UnauthorizedAccess",
+            "description": "<p>Unauthorized access (not an admin or super admin).</p>"
           },
           {
             "group": "Error 4xx",
@@ -7418,18 +7464,18 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not Admin\"\n}",
+          "title": "Unauthorized-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
+          "title": "NoTeachers-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "title": "InternalServerError-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
           "type": "json"
         }
       ]
@@ -7439,8 +7485,8 @@ define({ "api": [
     "groupTitle": "Teacher"
   },
   {
-    "type": "get",
-    "url": "/teachers",
+    "type": "post",
+    "url": "/admin/teachers",
     "title": "Get All Teachers",
     "name": "GetAllTeachers",
     "group": "Teacher",
@@ -7505,7 +7551,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/teacher/get/:id",
+    "url": "/admin/teacher/get/:id",
     "title": "Get Teacher Details",
     "name": "GetTeacherDetails",
     "group": "Teacher",
@@ -7517,7 +7563,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin or superadmin access.</p>"
           }
         ]
       }
@@ -7665,10 +7711,15 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/teacher/update/:id",
+    "url": "admin/teacher/update/:id",
     "title": "Update Teacher Details",
     "name": "UpdateTeacher",
     "group": "Teacher",
+    "permission": [
+      {
+        "name": "admin,superadmin"
+      }
+    ],
     "header": {
       "fields": {
         "Header": [
@@ -7677,7 +7728,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin,superadmin access.</p>"
           }
         ]
       }
@@ -7740,6 +7791,20 @@ define({ "api": [
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>image url of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "_school",
+            "description": "<p>school id</p>"
           }
         ]
       }
@@ -7748,7 +7813,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":\"address\",\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\"\n  }\n}",
           "type": "json"
         }
       ]
