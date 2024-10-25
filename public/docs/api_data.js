@@ -5681,7 +5681,7 @@ define({ "api": [
     "groupTitle": "School"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/schools",
     "title": "Get All Schools",
     "name": "GetAllSchools",
