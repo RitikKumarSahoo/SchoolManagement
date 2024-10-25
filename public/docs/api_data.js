@@ -6466,15 +6466,11 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/student",
-    "title": "3.0 Create a new student",
-    "name": "createStudent",
+    "url": "/admin/student/createstudent",
+    "title": "Create Student",
+    "name": "CreateStudent",
     "group": "Student",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
+    "version": "1.0.0",
     "header": {
       "fields": {
         "Header": [
@@ -6483,7 +6479,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+            "description": "<p>Admin's access token.</p>"
           }
         ]
       }
@@ -6496,180 +6492,137 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "firstName",
-            "description": ""
+            "description": "<p>Student's first name (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "lastName",
-            "description": ""
+            "description": "<p>Student's last name (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
+            "optional": true,
             "field": "email",
-            "description": ""
+            "description": "<p>Student's email address.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "gender",
-            "description": ""
+            "description": "<p>Student's gender (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": false,
             "field": "guardian",
-            "description": ""
+            "description": "<p>Guardian's information (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "guardian.fathersName",
-            "description": ""
+            "description": "<p>Guardian's father's name.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "guardian.mothersName",
-            "description": ""
+            "description": "<p>Guardian's mother's name.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "phone",
-            "description": ""
+            "description": "<p>Student's phone number (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "Number",
             "optional": false,
             "field": "admissionYear",
-            "description": ""
+            "description": "<p>Year of admission (required).</p>"
           },
           {
             "group": "Parameter",
-            "type": "ObjectID",
-            "optional": false,
-            "field": "_schoolId",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
+            "type": "String",
             "optional": false,
             "field": "dob",
-            "description": ""
+            "description": "<p>Student's date of birth (required).</p>"
           },
           {
             "group": "Parameter",
-            "type": "Number",
+            "type": "String",
             "optional": false,
-            "field": "rollNo",
-            "description": ""
+            "field": "classname",
+            "description": "<p>Class name (required).</p>"
           },
           {
             "group": "Parameter",
-            "type": "ObjectID",
+            "type": "String",
             "optional": false,
-            "field": "_classId",
-            "description": ""
+            "field": "section",
+            "description": "<p>Class section (required).</p>"
           },
           {
             "group": "Parameter",
-            "type": "ObjectID",
-            "optional": false,
-            "field": "_adminId",
-            "description": ""
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
+            "type": "String",
             "optional": false,
             "field": "joinDate",
-            "description": ""
+            "description": "<p>Date of joining (required).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "signature",
-            "description": ""
+            "description": "<p>Base64 encoded signature.</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "profileImage",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@example.com\",\n  \"gender\": \"Male\",\n  \"guardian\": {\n    \"fathersName\": \"John Doe Sr.\",\n    \"mothersName\": \"Jane Doe\"\n  },\n  \"phone\": \"0000000000\",\n  \"admissionYear\": 2019,\n  \"schoolId\": \"123456789012\",\n  \"dob\": \"2000-01-01\",\n  \"rollNo\": 1,\n  \"classId\": \"123456789012\",\n  \"addedBy\": \"123456789012\",\n  \"joinDate\": \"2019-01-01\",\n  \"signature\": \"John Doe\",\n  \"profileImage\": \"https://example.com/johndoe.jpg\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "fields": {
-        "201": [
-          {
-            "group": "201",
-            "type": "json",
-            "optional": false,
-            "field": "Student",
-            "description": ""
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"Student\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"John Doe Sr.\",\n      \"mothersName\": \"Jane Doe\"\n    },\n    \"phone\": \"0000000000\",\n    \"admissionYear\": 2019,\n    \"schoolId\": \"123456789012\",\n    \"dob\": \"2000-01-01\",\n    \"rollNo\": 1,\n    \"classId\": \"123456789012\",\n    \"addedBy\": \"123456789012\",\n    \"joinDate\": \"2019-01-01\",\n    \"signature\": \"John Doe\",\n    \"profileImage\": \"https://example.com/johndoe.jpg\"\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "json",
-            "optional": false,
-            "field": "MissingFields",
-            "description": "<p>Student creation failed due to missing required fields</p>"
+            "description": "<p>Path to the profile image.</p>"
           },
           {
-            "group": "400",
-            "type": "json",
-            "optional": false,
-            "field": "StudentExists",
-            "description": "<p>Student already exists</p>"
-          }
-        ],
-        "500": [
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "rollNo",
+            "description": "<p>Student's roll number. Required if autoAssignRoll is false.</p>"
+          },
           {
-            "group": "500",
-            "type": "json",
-            "optional": false,
-            "field": "ServerError",
-            "description": "<p>Server error occurred while creating student</p>"
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "autoAssignRoll",
+            "defaultValue": "false",
+            "description": "<p>Whether to auto-assign the roll number.</p>"
           }
         ]
       }
     },
-    "version": "0.0.0",
+    "description": "<p>Creates a new student record in the database. The roll number can be auto-assigned or manually entered by the admin. If manually entered, it must be sequential based on the last roll number in the class and section.</p>",
+    "examples": [
+      {
+        "title": "Example usage (Manual Roll Number):",
+        "content": "'{\n    \"firstName\": \"June\",\n    \"lastName\": \"David\",\n    \"gender\": \"Female\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"mothersName\": \"Milli David\"\n    },\n    \"phone\": \"9080264385\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-07-02\",\n    \"rollNo\": \"R004\",  // Manually assigned roll number\n    \"classname\": \"10\",\n    \"section\": \"A\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n    \"autoAssignRoll\": false\n  }'",
+        "type": "json"
+      },
+      {
+        "title": "Example usage (Auto-Assigned Roll Number):",
+        "content": "'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"Michael Doe\",\n      \"mothersName\": \"Sarah Doe\"\n    },\n    \"phone\": \"9123456789\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-08-15\",\n    \"classname\": \"10\",\n    \"section\": \"B\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic2.jpeg\",\n    \"autoAssignRoll\": true  // Roll number will be auto-assigned\n  }'",
+        "type": "json"
+      }
+    ],
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },

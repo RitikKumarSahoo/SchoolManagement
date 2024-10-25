@@ -36,215 +36,234 @@ function generateCustomPassword() {
 
 module.exports = {
   /**
-   * Create a new student   * @api {post} /student 3.0 Create a new student
-   * @apiName createStudent
-   * @apiGroup Student
-   * @apiPermission Public
-   *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiParam  {String} firstName
-   * @apiParam  {String} lastName
-   * @apiParam  {String} email
-   * @apiParam  {String} gender
-   * @apiParam  {Object} guardian
-   * @apiParam  {String} guardian.fathersName
-   * @apiParam  {String} guardian.mothersName
-   * @apiParam  {String} phone
-   * @apiParam  {Number} admissionYear
-   * @apiParam  {ObjectID} _schoolId
-   * @apiParam  {Date} dob
-   * @apiParam  {Number} rollNo
-   * @apiParam  {ObjectID} _classId
-   * @apiParam  {ObjectID} _adminId
-   * @apiParam  {Date} joinDate
-   * @apiParam  {String} signature
-   * @apiParam  {String} profileImage
-   *
-   * @apiSuccess (201) {json} Student
-   *
-   * @apiParamExample  {json} Request-Example:
-   * {
-   *   "firstName": "John",
-   *   "lastName": "Doe",
-   *   "email": "john@example.com",
-   *   "gender": "Male",
-   *   "guardian": {
-   *     "fathersName": "John Doe Sr.",
-   *     "mothersName": "Jane Doe"
-   *   },
-   *   "phone": "0000000000",
-   *   "admissionYear": 2019,
-   *   "schoolId": "123456789012",
-   *   "dob": "2000-01-01",
-   *   "rollNo": 1,
-   *   "classId": "123456789012",
-   *   "addedBy": "123456789012",
-   *   "joinDate": "2019-01-01",
-   *   "signature": "John Doe",
-   *   "profileImage": "https://example.com/johndoe.jpg"
-   * }
-   *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "Student": {
-   *     "firstName": "John",
-   *     "lastName": "Doe",
-   *     "email": "john@example.com",
-   *     "gender": "Male",
-   *     "guardian": {
-   *       "fathersName": "John Doe Sr.",
-   *       "mothersName": "Jane Doe"
-   *     },
-   *     "phone": "0000000000",
-   *     "admissionYear": 2019,
-   *     "schoolId": "123456789012",
-   *     "dob": "2000-01-01",
-   *     "rollNo": 1,
-   *     "classId": "123456789012",
-   *     "addedBy": "123456789012",
-   *     "joinDate": "2019-01-01",
-   *     "signature": "John Doe",
-   *     "profileImage": "https://example.com/johndoe.jpg"
-   *   }
-   * }
-   *
-   * @apiError (400) {json} MissingFields Student creation failed due to missing required fields
-   * @apiError (400) {json} StudentExists Student already exists
-   * @apiError (500) {json} ServerError Server error occurred while creating student
-   */
-  async createStudent(req,res){
-    
-    try {
+ * @api {post} /admin/student/createstudent Create Student
+ * @apiName CreateStudent
+ * @apiGroup Student
+ * @apiVersion 1.0.0
+ * 
+ * @apiHeader {String} Authorization Admin's access token.
+ * 
+ * @apiParam {String} firstName Student's first name (required).
+ * @apiParam {String} lastName Student's last name (required).
+ * @apiParam {String} [email] Student's email address.
+ * @apiParam {String} gender Student's gender (required).
+ * @apiParam {Object} guardian Guardian's information (required).
+ * @apiParam {String} guardian.fathersName Guardian's father's name.
+ * @apiParam {String} guardian.mothersName Guardian's mother's name.
+ * @apiParam {String} phone Student's phone number (required).
+ * @apiParam {Number} admissionYear Year of admission (required).
+ * @apiParam {String} dob Student's date of birth (required).
+ * @apiParam {String} classname Class name (required).
+ * @apiParam {String} section Class section (required).
+ * @apiParam {String} joinDate Date of joining (required).
+ * @apiParam {String} signature Base64 encoded signature.
+ * @apiParam {String} profileImage Path to the profile image.
+ * @apiParam {String} [rollNo] Student's roll number. Required if autoAssignRoll is false.
+ * @apiParam {Boolean} [autoAssignRoll=false] Whether to auto-assign the roll number.
+ * 
+ * @apiDescription Creates a new student record in the database. The roll number can be auto-assigned or manually entered by the admin. If manually entered, it must be sequential based on the last roll number in the class and section.
+ * 
+ * @apiExample Example usage (Manual Roll Number):
+ * '{
+ *     "firstName": "June",
+ *     "lastName": "David",
+ *     "gender": "Female",
+ *     "guardian": {
+ *       "fathersName": "Ryan David",
+ *       "mothersName": "Milli David"
+ *     },
+ *     "phone": "9080264385",
+ *     "admissionYear": 2024,
+ *     "dob": "1990-07-02",
+ *     "rollNo": "R004",  // Manually assigned roll number
+ *     "classname": "10",
+ *     "section": "A",
+ *     "joinDate": "2024-10-10",
+ *     "signature": "base64EncodedString",
+ *     "profileImage": "public/docsimg/ProfilePic.jpeg",
+ *     "autoAssignRoll": false
+ *   }'
+ * 
+ * @apiExample Example usage (Auto-Assigned Roll Number):
+ * '{
+ *     "firstName": "John",
+ *     "lastName": "Doe",
+ *     "gender": "Male",
+ *     "guardian": {
+ *       "fathersName": "Michael Doe",
+ *       "mothersName": "Sarah Doe"
+ *     },
+ *     "phone": "9123456789",
+ *     "admissionYear": 2024,
+ *     "dob": "1990-08-15",
+ *     "classname": "10",
+ *     "section": "B",
+ *     "joinDate": "2024-10-10",
+ *     "signature": "base64EncodedString",
+ *     "profileImage": "public/docsimg/ProfilePic2.jpeg",
+ *     "autoAssignRoll": true  // Roll number will be auto-assigned
+ *   }'
+ */
 
-      const { firstName, lastName, email, gender, guardian, phone, admissionYear, dob, rollNo, _classId, joinDate, signature,profileImage  } = req.body;
-      const {loginType,id}=req.user
-      // if(!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !schoolId || !dob || !rollNo || !classId || !addedBy || !joinDate || !signature){
-      //   return res.status(400).json({error: true, message: "All fields are required"})
-      // }
-      if(loginType!=='admin'){
+  async createStudent(req, res) {
+    try {
+      const { firstName, lastName, email, gender, guardian, phone, admissionYear, dob, classname, section, joinDate, signature, profileImage, autoAssignRoll = false } = req.body;
+      let {
+        rollNo
+      } = req.body
+
+      const { loginType, id } = req.user;
+
+      // Check if the user is an admin
+      if (loginType !== 'admin' ) {
         return res.status(403).json({ error: true, message: "Unauthorized" });
       }
-      const admin=await users.findOne({ _id: id, loginType: "admin" }).lean().exec();
-      if(!admin) return res.status(403).json({ error: true, message: "Unauthorized" });
-      
 
-      if (!firstName) {
-        return res.status(400).json({ error: true, message: "First name is required" });
+       // Validate required fields
+       if (!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !classname || !section || !dob || !joinDate) {
+        return res.status(400).json({ error: true, message: "All fields are required" });
       }
-      if (!lastName) {
-        return res.status(400).json({ error: true, message: "Last name is required" });
-      }
-      if (!gender) {
-        return res.status(400).json({ error: true, message: "Gender is required" });
-      }
-      if (!guardian || !guardian.fathersName || !guardian.mothersName) {
-        return res.status(400).json({ error: true, message: "Guardian information (father's and mother's name) is required" });
-      }
-      if (!phone) {
-        return res.status(400).json({ error: true, message: "Phone number is required" });
-      }
-      if (!admissionYear) {
-        return res.status(400).json({ error: true, message: "Admission year is required" });
-      }
-      if (!dob) {
-        return res.status(400).json({ error: true, message: "Date of birth is required" });
-      }
-      if (!_classId) {
-        return res.status(400).json({ error: true, message: "Class ID is required" });
-      }
-      if (!joinDate) {
-        return res.status(400).json({ error: true, message: "Join date is required" });
-      }
-      
-      
-      
-      const query = {phone,rollNo}
-      const studentExists = await users.findOne(query).lean().exec()
 
-      if(studentExists)  return res.status(400).json({error: true, message: "Student already exists"})
-       
-
-      const schoolName = await School.findOne({_id:admin._school}).select("name").exec()
-      
-      console.log("School Name:",schoolName);
+       // Admin manually inputs the roll number
+       if (!rollNo && !autoAssignRoll) {
+        return res.status(400).json({ error: true, message: "Roll number is required when autoAssignRoll is false" });
+       }
   
-      const username  = firstName.slice(0,3)+schoolName.name.slice(0,3)+phone.slice(-3)
-      const password = generateRandomPassword();
+      // Find admin and ensure they have access
+      const admin = await users.findOne({ _id: id, loginType: "admin" })
+        .select("_school")
+        .populate({
+          path: "_school",
+          select: "name"
+        })
+        .lean().exec();
+      if (admin === null) {
+        return res.status(403).json({ error: true, message: "Admin not found" });
+      }
+  
+      // Fetch the class details (assuming _classId is derived based on classname and section)
+    const classDetails = await Class.findOne({ name: classname, section: section.toUpperCase(), _school:admin._school }).select("_id id").lean()
+      if (!classDetails) {
+        return res.status(404).json({ error: true, message: "Class not found!" });
+      }
+  
+      // Fetch students in the given class and section
+      const studentCount = await users.countDocuments({ loginType: "student", _class: classDetails._id,_school:admin._school }).exec();
+      // const lastStudent = await users.findOne({ _class: classDetails._id, classname, section, _school:admin._school }).sort({ rollNo: -1 }).lean().exec();
+  
+      if (autoAssignRoll) {
+        rollNo = studentCount + 1
+      } else {
+        if (String(rollNo) !== String(studentCount + 1)) {
+          return res.status(400).json({
+            error: true,
+            message: `Roll number must be sequential. The last roll number is ${studentCount}, so the next roll should be ${studentCount + 1}.`
+          })
+        }
+      }
 
-      const student =await users.create({
+      // let newRollNo;
+      // if (autoAssignRoll) {
+      //   // Auto-assign roll number
+      //   newRollNo = studentCount + 1;
+      // } else {
+      //   // Admin manually inputs the roll number
+      //   if (!rollNo) {
+      //     return res.status(400).json({ error: true, message: "Roll number is required when autoAssignRoll is false" });
+      //   }
+  
+      //   // Check if rollNo is sequential
+      //   const lastRollNo = lastStudent ? parseInt(lastStudent.rollNo) : 0;
+      //   if (parseInt(rollNo) !== lastRollNo + 1) {
+      //     return res.status(400).json({
+      //       error: true,
+      //       message: `Roll number must be sequential. The last roll number is ${lastRollNo}, so the next roll should be ${lastRollNo + 1}.`
+      //     });
+      //   }
+  
+      //   newRollNo = rollNo;
+      // }
+  
+      // Check if roll number already exists for this class and section
+      // const existingStudent = await users.findOne({ _class: classDetails._id, classname, section, rollNo: newRollNo }).lean().exec();
+      // if (existingStudent) {
+      //   return res.status(400).json({
+      //     error: true,
+      //     message: `Roll number ${newRollNo} already exists for this class and section`,
+      //     existingStudent: {
+      //       id: existingStudent._id,
+      //       name: `${existingStudent.firstName} ${existingStudent.lastName}`,
+      //       rollNo: existingStudent.rollNo,
+      //       email: existingStudent.email
+      //     }
+      //   });
+      // }
+  
+      // Generate username and password for the student
+      // const schoolName = await School.findOne({ _id: admin._school }).select("name").exec();
+      // console.log(admin._school);
+      
+      const username = firstName.slice(0, 3) + admin._school.name.slice(0, 3) + phone.slice(-3);
+      const password = generateRandomPassword();
+  
+      // Create student record
+      const student = await users.create({
         firstName,
         lastName,
+        fullName: `${firstName} ${lastName}`,
         email,
         gender,
         guardian,
         phone,
         admissionYear,
-        _school:admin._school,
+        _school: admin._school._id,
         dob,
         rollNo,
-        _class:_classId,
-        _addedBy:req.user.id,
+        _class: classDetails._id,
+        _addedBy: admin._id,  // Using admin name instead of id
         joinDate,
         signature,
         username,
         password,
         profileImage,
-        loginType:"student"
-        
-      })
-      
-      // const adminDetails = await users.findById(req.user.id).exec()
-      const adminName = admin.firstName
-      const adminEmail = admin.email
-      // Determine the recipient email
-      const recipientEmail = student.email || adminEmail;
-
-      
-
-       //This should be change to admin(_addedBy) email. Before that verify that mail in mailgun
-      await mail("adminNotification", {
-        to: recipientEmail,
-        subject: "New Student Created",
-        locals: {
-          studentEmail: student.email,
-          studentName: student.firstName,
-          username: student.username,
-          password: password,
-          adminName: adminName
-        }
+        loginType: "student"
       });
-
-      return res.status(201).json({error: false, StudentUserName: student.username, StudentPassword: student.password})
+  
+      // Send email notification
+      const adminName = admin.firstName;
+      const adminEmail = admin.email;
+      const recipientEmail = student.email || adminEmail;
+      // await mail("adminNotification", {
+      //   to: recipientEmail,
+      //   subject: "New Student Created",
+      //   locals: {
+      //     studentEmail: student.email,
+      //     studentName: student.firstName,
+      //     username: student.username,
+      //     password: password,
+      //     adminName: adminName
+      //   }
+      // });
+  
+      return res.status(201).json({
+        error: false,
+        StudentUserName: student.username,
+        StudentPassword: student.password
+      });
+  
     } catch (error) {
       console.log(error);
-      
-      return res.status(500).json({error: true, message: error.message})
+      return res.status(500).json({ error: true, message: error.message });
     }
-  },
+  }
+  ,
 
   /**
-   * Edit student details
-   * 
+   * Admin edit student details using student id
+   * {put} /admin/student/edit/:id
    * This endpoint is restricted to admins only.
    * 
    * @param {string} studentId - The ID of the student to be edited
-   * @param {object} req.body - The request body containing the fields to be updated
-   * @param {string} req.body.adminId - The ID of the admin making the request
-   * @param {string} [req.body.firstName] - The new first name of the student
-   * @param {string} [req.body.lastName] - The new last name of the student
-   * @param {string} [req.body.email] - The new email of the student
-   * @param {string} [req.body.gender] - The new gender of the student
-   * @param {string} [req.body.guardian] - The new guardian of the student
-   * @param {string} [req.body.phone] - The new phone number of the student
-   * @param {string} [req.body.admissionYear] - The new admission year of the student
-   * @param {string} [req.body._schoolId] - The new school ID of the student
-   * @param {string} [req.body.dob] - The new date of birth of the student
-   * @param {string} [req.body.rollNo] - The new roll number of the student
-   * @param {string} [req.body._classId] - The new class ID of the student
-   * @param {string} [req.body.signature] - The new signature of the student
-   * @param {string} [req.body.profileImage] - The new profile image of the student
    * 
    * @returns {object} - The updated student object
    * 
@@ -274,7 +293,7 @@ module.exports = {
         admissionYear,
         dob,
         rollNo,
-        _classId,
+        _class,
         signature,
         profileImage,
         
@@ -291,13 +310,13 @@ module.exports = {
       if (admissionYear) updateData.admissionYear = admissionYear;
       if (dob) updateData.dob = dob;
       if (rollNo) updateData.rollNo = rollNo;
-      if (_classId) updateData._classId = _classId;
+      // if (_class) updateData._class = _class;
       if (signature) updateData.signature = signature;
       if (profileImage) updateData.profileImage = profileImage;
   
       // Update the student record in the database
       const updatedStudent = await users.findByIdAndUpdate(
-        studentId,
+        {_id: studentId},
         { $set: updateData },
         { new: true } // Return the updated document
       );
@@ -388,23 +407,55 @@ module.exports = {
     try {
       const {loginType } = req.user; // Check if the user is an admin
       if (loginType!=="admin") {
-        return res.status(403).json({ message: 'Only admins can view student details' });
+        return res.status(403).jpageNoson({ message: 'Only admins can view student details' });
+      }
+
+      const {
+        name, rollNo, _class
+      } = req.body;
+
+      let {
+        pageNo = 1,
+        skipLimit = 20
+      } = req.body;
+
+      pageNo = Number(pageNo);
+      skipLimit = Number(skipLimit);
+
+      const query = {
+        _school: req.user._school,
+        loginType: "student"
+      };
+
+      if (rollNo) {
+        query.rollNo = rollNo
+       }
+
+       if (_class) {
+        query._class = _class
+       }
+
+       if (name) {
+        query.$and = [
+          { firstName: { $regex: name, $options: 'i' } }, // case-insensitive search for firstName
+          { lastName: { $regex: name, $options: 'i' } } , // case-insensitive search for lastName
+          { fullName: { $regex: name, $options: 'i' } }  // case-insensitive search for lastName
+        ];
       }
   
       // Get pagination values, with default values if not provided by frontend
-      const pageNo = parseInt(req.body.pageNo) || 1;
-      const skipLimit = parseInt(req.body.skipLimit) || 20;
       const skip = (pageNo - 1) * skipLimit;
   
       // Fetch students with pagination, while excluding sensitive fields
       const [students, totalStudents] = await Promise.all([
-        users.find({ _school: req.user._school, loginType: "student" })
+        users.find(query)
           .select('-password -forgotpassword -bankDetails')  // Exclude sensitive fields
           .skip(skip)
           .limit(skipLimit)
           .populate('_class', 'name section -_id')  // Populate class details and exclude the _id field
+          .lean()
           .exec(),
-        users.countDocuments({ _school: req.user._school, loginType: "student" }).exec()
+        users.countDocuments(query).lean()
       ]);
   
       // Calculate total pages
@@ -422,9 +473,6 @@ module.exports = {
     }
   },
   
-
-
-
 
   /**
    * View a student's details
@@ -478,21 +526,16 @@ module.exports = {
    *     message: "Student deactivated successfully"
    * }
    */
-  async deactivateStudent(req, res) {
+  async changeStudentStatus(req, res) {
     try {
-        const {studentId} = req.params
-        const { isAdmin } = req.user; // Get adminId from the request body 
         // Check if the user exists and has the 'admin' role
-        if (!isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
+        if (!req.user.isAdmin) return res.status(403).json({ message: 'Only admins can edit student details' });
         console.log(isAdmin);
-
-        const student = await users.findOne({ _id: studentId, isActive: true, loginType: "student" }).exec();
-
+        const student = await users.findOne({ _id: req.params.id, loginType: "student" }).exec();
         if(!student) return res.status(404).json({ error: true, message: "Student not found" });
-
-        student.isActive = false
+        student.isActive = !student.isActive
         await student.save()
-        return res.json({ error: false, message: "Student deactivated successfully" });
+        return res.json({ error: false, message: "Student status changed successfully" });
 
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
@@ -571,6 +614,26 @@ module.exports = {
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: true, message: 'Error searching students', details: error.message });
+    }
+  },
+
+  async fetchAllClassList(req, res) {
+    try {
+        // This route is for creating the class and section in this format and sent to FE during searching a student 10 - A
+        const classes = await Class.find({ _school: req.params.id })
+            .select('name section _id')
+            .lean()
+
+        const classList = classes.map((cls) => ({
+          _id: cls._id,
+          id: cls._id,
+          nameWiseSection: `${cls.name} - ${cls.section}`
+        }))
+        
+        return res.json({ error: false, classList });
+
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 

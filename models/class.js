@@ -9,7 +9,7 @@ const ClassSchema = new mongoose.Schema({
     type: String,
   },
   section: {
-    type: String,
+    type: String
   },
   academicYear: {
     type: String,

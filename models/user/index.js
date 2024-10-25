@@ -18,6 +18,9 @@ const UserSchema = new mongoose.Schema({
   firstName: String,
 
   lastName: String,
+
+  fullName: String,
+
   profileImage: String,
   email: {
     type: String,
@@ -149,6 +152,10 @@ UserSchema.pre("save", async function (next) {
     } catch (error) {
       return next(error);
     }
+  }
+
+  if (this.isNew || this.isModified("firstName") || this.isModified("lastName")) {
+    this.fullName = `${this.firstName} ${this.lastName}`
   }
   return next();
 });
