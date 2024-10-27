@@ -59,8 +59,8 @@ router.post(
 );
 router.get("/progressReport/:id", progressReportRoutes.get);
 
-router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
-router.post("/attendance/mark", attendance.markAttendance);
+router.post("/class/students", attendance.getClassStudentsForAttendance); //specific class
+router.post("/markattendance", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
 router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
