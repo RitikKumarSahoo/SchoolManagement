@@ -773,110 +773,6 @@
     "groupTitle": "Attendance"
   },
   {
-    "type": "post",
-    "url": "/attendance/getstudents",
-    "title": "Get StudentsForAttendance",
-    "name": "GetClassStudentsForAttendance",
-    "group": "Attendance",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for teacher access.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "_class",
-            "description": "<p>The ID of the class for which students are being retrieved.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false for success).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object[]",
-            "optional": false,
-            "field": "students",
-            "description": "<p>Array of students in the specified class.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "students._id",
-            "description": "<p>The unique ID of the student.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "students.rollNo",
-            "description": "<p>The roll number of the student.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"60c72b2f9b1e8a3b4c3e4f6a\",\n      \"rollNo\": \"001\"\n    },\n    {\n      \"_id\": \"60c72b2f9b1e8a3b4c3e4f6b\",\n      \"rollNo\": \"002\"\n    }\n  ]\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>The reason for the error (e.g., &quot;You are not teacher&quot;, &quot;you are not assigned to this class&quot;).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not teacher\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/attendance.js",
-    "groupTitle": "Attendance"
-  },
-  {
     "type": "get",
     "url": "/attendance/percentage",
     "title": "Student_Attendance_Percentage",
@@ -1094,7 +990,7 @@
   },
   {
     "type": "post",
-    "url": "/attendance/mark",
+    "url": "/markattendance",
     "title": "Mark Student Attendance",
     "name": "MarkAttendance",
     "group": "Attendance",
@@ -1124,9 +1020,9 @@
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
-            "field": "studentId",
-            "description": "<p>The ID of the student whose attendance is being marked.</p>"
+            "optional": true,
+            "field": "studentIds",
+            "description": "<p>The ID of the students:array format(presentIds)</p>"
           }
         ]
       }
@@ -1135,34 +1031,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendance\": {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"_class\": \"60c72b2f9b1e8a3b4c3e4f6a\",\n    \"date\": \"2024-10-04T00:00:00.000Z\",\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\"]\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>The reason for the error (e.g., &quot;You are not a teacher&quot;, &quot;You are not assigned to this class&quot;, &quot;Student is not assigned to this class&quot;).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not a teacher\"\n}",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendanceRecord\":[\n  {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"rollNo\":\"1\",\n    \"isPresent\": true,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\",]\n  },\n {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4fcd\",\n    \"rollNo\":\"2\",\n    \"isPresent\": false,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\"]\n  }\n  ]\n\"date\": \"2024-10-26T18:30:00.000Z\"\n}",
           "type": "json"
         }
       ]
@@ -2156,6 +2025,74 @@
     },
     "version": "0.0.0",
     "filename": "routes/rest/adminClass.js",
+    "groupTitle": "Class"
+  },
+  {
+    "type": "post",
+    "url": "/class/students",
+    "title": "Get Class Students",
+    "name": "Get_Class_Students",
+    "group": "Class",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "classname",
+            "description": "<p>The name of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section of the class. Example: &quot;A&quot;.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the class. Example: &quot;2024&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not teacher\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/attendance.js",
     "groupTitle": "Class"
   },
   {
