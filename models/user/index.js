@@ -82,9 +82,9 @@ const UserSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: true },
 
-  isAdmin: { type: Boolean, defaul:false },
+  isAdmin: { type: Boolean, defaul: false },
 
-  isSuperAdmin: { type: Boolean, default:false },
+  isSuperAdmin: { type: Boolean, default: false },
 
   joinDate: { type: String },
 
@@ -124,6 +124,9 @@ const UserSchema = new mongoose.Schema({
   },
   address: {
     type: String,
+  },
+  currentYear: {
+    type: "String",
   },
 });
 
@@ -180,8 +183,8 @@ UserSchema.post("save", function (doc) {
 });
 
 UserSchema.virtual("fullname").get(function () {
-  return `${this.firstName} ${this.lastName}`
-})
+  return `${this.firstName} ${this.lastName}`;
+});
 
 UserSchema.virtual("name.full").set(function (v) {
   this.name.first = v.substr(0, v.indexOf(" "));
