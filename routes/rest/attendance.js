@@ -73,11 +73,8 @@ module.exports = {
         _class: classExist._id,
         loginType: "student",
         _school: isSuperAdmin === true ? schoolId : req.user._school,
-        currentYear: academicYear,
       })
-        .select(
-          "_id RollNo name gender phone firstName lastName email currentYear"
-        )
+        .select("_id RollNo name gender phone firstName lastName email")
         .lean();
 
       return res
