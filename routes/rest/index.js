@@ -16,6 +16,8 @@ const attendance = require("../rest/attendance");
 const classRoute = require("../rest/class");
 const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
+const settings = require("../../routes/rest/settings");
+const linkedin = require("../rest/linkedin");
 
 // admin file
 const adminUsers = require("./adminUsers");
@@ -31,6 +33,8 @@ const adminStripe = require("../../lib/stripe");
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
+
+router.get("/profile", linkedin.profile);
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
@@ -158,5 +162,9 @@ router.post("/admin/class/create", adminClassRoute.Post);
 router.get("/admin/class/find", adminClassRoute.find);
 router.get("/admin/class/get/:id", adminClassRoute.get);
 router.post("/admin/class/assignclass", adminClassRoute.assignClass);
+
+//settings
+router.post("/admin/setsettings", settings.setSettings);
+router.put("/admin/updatesettings", settings.updateClassSettings);
 
 module.exports = router;
