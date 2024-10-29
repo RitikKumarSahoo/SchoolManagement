@@ -128,6 +128,9 @@ const UserSchema = new mongoose.Schema({
   address: {
     type: String,
   },
+  currentAcademicYear:{
+    type: String,
+  }
 });
 
 // UserSchema.pre("validate", function (next) {
@@ -149,6 +152,7 @@ UserSchema.pre("save", async function (next) {
         user.password,
         +process.env.SALT_ROUNDS || 10
       );
+      
     } catch (error) {
       return next(error);
     }

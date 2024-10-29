@@ -52,12 +52,13 @@ router.get("/user/:id", users.get);
 router.put("/updateprofile/", users.editData);
 
 const upload = multer({ dest: "../public/uploads" });
-router.post(
-  "/progressReport/teachers/create-progress-report",
-  upload.single("csvFile"),
-  progressReportRoutes.post
-);
-router.get("/progressReport/:id", progressReportRoutes.get);
+const uplodFile = multer();
+// router.post(
+//   "/progressReport/teachers/create-progress-report",
+//   upload.single("csvFile"),
+//   progressReportRoutes.post
+// );
+// router.get("/progressReport/:id", progressReportRoutes.get);
 
 router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
 router.post("/attendance/mark", attendance.markAttendance);
@@ -98,6 +99,7 @@ router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
+router.post("/admin/students/bulk-upload",uplodFile.single("studentCSV"), adminStudentRoutes.bulkCreateFromCSV);
 router.put("/admin/student/:id", adminStudentRoutes.editStudentDetails);
 router.put("/admin/student/change-status/:id", adminStudentRoutes.changeStudentStatus);
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);

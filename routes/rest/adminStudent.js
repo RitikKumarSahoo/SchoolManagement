@@ -4,6 +4,9 @@ const School = require("../../models/school")
 const Class = require('../../models/class')
 const mail = require("../../lib/mail")
 const randomstring = require("randomstring");
+const { Readable } = require('stream');
+const csv = require('csv-parser');
+const _class = require("./class");
 
 
 function generateCustomPassword() {
@@ -444,75 +447,77 @@ module.exports = {
  * }
  */
 
-  async viewAllStudents(req, res) {
-    try {
-      const {loginType } = req.user; // Check if the user is an admin
-      if (loginType!=="admin") {
-        return res.status(403).json({ message: 'Only admins can view student details' });
-      }
-
-      const {
-        name, rollNo, _class
-      } = req.body;
-
-      let {
-        pageNo = 1,
-        skipLimit = 20
-      } = req.body;
-
-      pageNo = Number(pageNo);
-      skipLimit = Number(skipLimit);
-
-      const query = {
-        _school: req.user._school,
-        loginType: "student"
-      };
-
-      if (rollNo) {
-        query.rollNo = rollNo
-       }
-
-       if (_class) {
-        query._class = _class
-       }
-
-       if (name) {
-        query.$or = [
-          { firstName: { $regex: name, $options: 'i' } }, // case-insensitive search for firstName
-          { lastName: { $regex: name, $options: 'i' } } , // case-insensitive search for lastName
-          { fullName: { $regex: name, $options: 'i' } }  // case-insensitive search for lastName
-        ];
-      }
-  
-      // Get pagination values, with default values if not provided by frontend
-      const skip = (pageNo - 1) * skipLimit;
-  
-      // Fetch students with pagination, while excluding sensitive fields
-      const [students, totalStudents] = await Promise.all([
-        users.find(query)
-          .select('-password -forgotpassword -bankDetails')  // Exclude sensitive fields
-          .skip(skip)
-          .limit(skipLimit)
-          .populate('_class', 'name section -_id')  // Populate class details and exclude the _id field
-          .lean()
-          .exec(),
-        users.countDocuments(query).lean()
-      ]);
-  
-      // Calculate total pages
-      const totalPages = Math.ceil(totalStudents / skipLimit);
-  
-      // Send response with students and pagination data
-      return res.json({
-        error: false,
-        students: students,
-        totalStudents: totalStudents
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ error: true, message: error.message });
+ async viewAllStudents(req, res) {
+  try {
+    const {loginType } = req.user; // Check if the user is an admin
+    if (loginType!=="admin") {
+      return res.status(403).json({ message: 'Only admins can view student details' });
     }
-  },
+
+    const {
+      name, rollNo,className,section,academicYear
+    } = req.body;
+
+    let {
+      pageNo = 1,
+      skipLimit = 20
+    } = req.body;
+
+    pageNo = Number(pageNo);
+    skipLimit = Number(skipLimit);
+
+    _class =await Class.findOne({_school: req.user._school,name: className, section: section, academicYear: academicYear});
+
+    const query = {
+      _school: req.user._school,
+      loginType: "student"
+    };
+
+    if (rollNo) {
+      query.rollNo = rollNo
+     }
+
+     if (_class) {
+      query._class = _class
+     }
+
+     if (name) {
+      query.$or = [
+        { firstName: { $regex: name, $options: 'i' } }, // case-insensitive search for firstName
+        { lastName: { $regex: name, $options: 'i' } } , // case-insensitive search for lastName
+        { fullName: { $regex: name, $options: 'i' } }  // case-insensitive search for lastName
+      ];
+    }
+
+    // Get pagination values, with default values if not provided by frontend
+    const skip = (pageNo - 1) * skipLimit;
+
+    // Fetch students with pagination, while excluding sensitive fields
+    const [students, totalStudents] = await Promise.all([
+      users.find(query)
+        .select('-password -forgotpassword -bankDetails -bankAdded')  // Exclude sensitive fields
+        .skip(skip)
+        .limit(skipLimit)
+        .populate('_class', 'name section -_id')  // Populate class details and exclude the _id field
+        .lean()
+        .exec(),
+      users.countDocuments(query).lean()
+    ]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalStudents / skipLimit);
+
+    // Send response with students and pagination data
+    return res.json({
+      error: false,
+      students: students,
+      totalStudents: totalStudents
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: true, message: error.message });
+  }
+},
   
 
   /**
@@ -757,6 +762,217 @@ module.exports = {
     }
   },
 
+  /**
+ * @api {post} /admin/students/bulk-upload Bulk Create Students from CSV
+ * @apiName BulkCreateStudents
+ * @apiGroup Admin
+ * @apiVersion 1.0.0
+ * 
+ * @apiHeader {String} Authorization Bearer token for admin authentication.
+ * 
+ * @apiParam {File} file The CSV file containing student data to be uploaded.
+ * @apiParam {String} className The name of the class where students will be enrolled.
+ * @apiParam {String} section The section of the class.
+ * @apiParam {String} academicYear The academic year for the enrollment.
+ * 
+ * @apiSuccess {String} message Success message indicating the outcome of the operation.
+ * @apiSuccess {Number} totalCreated The total number of students successfully created.
+ * 
+ * @apiError BadRequest The uploaded file is missing or not provided.
+ * @apiError Unauthorized The user is not authorized to perform this action.
+ * @apiError NotFound The specified class was not found.
+ * @apiError InternalServerError Some students failed to be created due to errors.
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "No file uploaded."
+ *     }
+ *
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       "error": "Unauthorized. Only admins can upload student data."
+ *     }
+ *
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": "Class not found."
+ *     }
+ *
+ * @apiErrorExample {json} Error Response:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Some students failed to be created.",
+ *       "totalCreated": 5,
+ *       "totalFailed": 2,
+ *       "failedRecords": [
+ *         {
+ *           "student": "John Doe",
+ *           "error": "Email already exists."
+ *         },
+ *         {
+ *           "student": "Jane Smith",
+ *           "error": "Phone number is invalid."
+ *         }
+ *       ]
+ *     }
+ */
+
+  async bulkCreateFromCSV(req, res) {
+    try {
+      // Ensure a file is uploaded
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded." });
+      }
+  
+      // Extract user details from JWT token
+      const { _school, loginType } = req.user;
+  
+      // Validate user role: ensure they are an admin
+      if (loginType !== "admin") {
+        return res.status(403).json({ error: "Unauthorized. Only admins can upload student data." });
+      }
+  
+      const { className, section, academicYear } = req.body;
+      const studentsToCreate = [];
+      const studentsWithoutEmail = [];
+      const emailPromises = [];
+      // Getting the Class Id:-
+      const classDetails = await Class.findOne({ name: className, section, academicYear });
+      // Validate if class exists
+      if (!classDetails) {
+        return res.status(404).json({ error: "Class not found." });
+      }
+      const school = await School.findOne({ _id:_school}).lean();
+      
+      
+      // Create a readable stream from the uploaded file buffer
+      const bufferStream = new Readable();
+      bufferStream.push(req.file.buffer);
+      bufferStream.push(null); // End the stream
+  
+     bufferStream
+        .pipe(csv())
+        .on("data", (row) => {
+          // Generate a username based on the required format
+          
+          
+          const username = `${row.FirstName.slice(0, 3).toLowerCase()}${school.name.slice(0, 3).toLowerCase()}${row.Phone.slice(-3)}`;
+          const password = generateCustomPassword(); // Assuming you have a function for generating a custom password
+  
+          // Student data preparation
+          const studentData = {
+            username,
+            password, // Use your hashing method later when saving
+            firstName: row.FirstName,
+            lastName: row.LastName,
+            fullName: `${row.FirstName} ${row.LastName}`,
+            email: row.Email || "", // Optional email
+            phone: row.Phone,
+            gender: row.Gender,
+            dob: row.Dob,
+            guardian: {
+              fathersName: row.FathersName,
+              mothersName: row.MothersName
+            },
+            admissionYear: row.JoinDate.split("-")[0], // Extract year as admissionYear
+            joinDate: row.JoinDate,
+            rollNo: row.RollNo,
+            _addedBy: req.user._id,
+            _class: classDetails._id,
+            _school: _school, // Assuming _school is an object with an _id field
+            loginType: "student",
+            currentAcademicYear: row.AcademicYear
+
+          }
+
+          studentsToCreate.push(studentData);
+
+          if (!studentData.email) {
+            studentsWithoutEmail.push({
+                fullName: studentData.fullName,
+                username: studentData.username,
+                password,
+            });
+        } else {
+            // Create a promise for sending email to student if they have an email
+            const emailPromise = mail("adminNotification", {
+                to: studentData.email,
+                subject: `Welcome to the School`,
+                locals: {
+                    studentEmail: studentData.email,
+                    studentName: studentData.firstName,
+                    username: studentData.username,
+                    password: password,
+                    adminName: req.user.firstName // Or other property for admin's name
+                }
+            });
+            emailPromises.push(emailPromise);
+        }
+
+        })
+        .on("end", async () => {
+          try {
+            // Wait for all email promises to resolve
+            await Promise.all(emailPromises);
+            
+            // Bulk insert students without hashing passwords here
+            // await users.insertMany(studentsToCreate);
+            const saveErrors = [];
+                    for (const studentData of studentsToCreate) {
+                        try {
+                          await users.create(studentData);   
+                        } catch (saveError) {
+                            saveErrors.push({
+                                student: studentData.fullName,
+                                error: saveError.message
+                            });
+                        }
+                    }
+
+            
+            if (studentsWithoutEmail.length > 0) {
+              
+              await mail("adminNotification", {
+                to: req.user.email, // Admin email from the request user info
+                subject: "New Students Created - Email Notification",
+                locals: {
+                    adminName: req.user.firstName,
+                    studentName: '', // No student name available for admin notification
+                    username: '', // No username available for admin notification
+                    password: '', // No password available for admin notification
+                    studentEmail: '', // Set to empty string
+                    studentList: studentsWithoutEmail // List of students without emails
+                }
+              });
+          }
+
+          if (saveErrors.length > 0) {
+            return res.status(500).json({
+                message: "Some students failed to be created.",
+                totalCreated: studentsToCreate.length - saveErrors.length,
+                totalFailed: saveErrors.length,
+                failedRecords: saveErrors
+            });
+        }
+
+          res.status(200).json({
+            message: "All students created successfully!",
+            totalCreated: studentsToCreate.length,
+            // studentsToCreate
+        });
+            
+          } catch (error) {
+            console.error(`Error saving students: ${error.message}`);
+            res.status(500).json({ error: "Error processing the data", details: error.message });
+          }
+        });
+    } catch (error) {
+      res.status(500).json({ error: "Error processing the file", details: error.message });
+    }
+  },
+  
   
   
 }
