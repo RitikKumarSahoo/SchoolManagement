@@ -126,7 +126,11 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
   address: {
-    type: String,
+    locality: { type: String },
+    city: { type: String },
+    state: { type: String },
+    pin: { type: String },
+    country: { type: String },
   },
   currentAcademicYear: {
     type: String,
