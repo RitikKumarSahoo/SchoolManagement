@@ -7,81 +7,79 @@ const moment = require("moment");
 
 module.exports = {
   /**
+   * @api {post} /class/students Get Class Students
+   * @apiName Get Class Students
+   * @apiGroup Class
    *
-   * @api {post} /attendance/getstudents Get StudentsForAttendance
-   * @apiName GetClassStudentsForAttendance
-   * @apiGroup Attendance
+   * @apiHeader {String} Authorization Bearer token for access.
    *
-   * @apiHeader {String} Authorization Bearer token for teacher access.
-   *
-   * @apiParam {String} _class The ID of the class for which students are being retrieved.
-   *
-   * @apiSuccess {Boolean} error Indicates whether there was an error (false for success).
-   * @apiSuccess {Object[]} students Array of students in the specified class.
-   * @apiSuccess {String} students._id The unique ID of the student.
-   * @apiSuccess {String} students.rollNo The roll number of the student.
+   * @apiParam {String} classname The name of the class.
+   * @apiParam {String} section The section of the class. Example: "A".
+   * @apiParam {String} academicYear The academic year for the class. Example: "2024".
    *
    * @apiSuccessExample {json} Success-Response:
    * {
    *   "error": false,
    *   "students": [
    *     {
-   *       "_id": "60c72b2f9b1e8a3b4c3e4f6a",
-   *       "rollNo": "001"
-   *     },
-   *     {
-   *       "_id": "60c72b2f9b1e8a3b4c3e4f6b",
-   *       "rollNo": "002"
+   *       "_id": "670cf6badbb09a7c2b2af9b2",
+   *       "firstName": "Pratik",
+   *       "lastName": "Sahu",
+   *       "email": "pk2181121@gmail.com",
+   *       "phone": "09981240192",
+   *       "gender": "Male",
+   *       "currentYear": "2024"
    *     }
-   *   ]
+   *   ],
+   *   "classId": "670cf194dbb09a7c2b2af991"
    * }
-   *
-   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (400) {String} reason The reason for the error (e.g., "You are not teacher", "you are not assigned to this class").
    *
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
    *   "reason": "You are not teacher"
    * }
-   *
    */
 
   async getClassStudentsForAttendance(req, res) {
     try {
-      const { _class } = req.body;
-      const { id, loginType } = req.user;
+      const { classname, section, academicYear, schoolId } = req.body;
+      const { loginType, isSuperAdmin } = req.user;
 
-      if (!(loginType === "teacher")) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You are not teacher" });
-      }
-
-      // check teacher is assigned to this class or not
-      const assignedClass = await Attendance.findOne({
-        _school: req.user._school,
-        _class,
-        _teacher: id,
-      });
-
-      if (assignedClass === null) {
+      if (
+        !(
+          loginType === "teacher" ||
+          loginType === "admin" ||
+          isSuperAdmin === true
+        )
+      ) {
         return res.status(400).json({
           error: true,
-          reason: "you are not assigned to this class",
+          reason: "you do not have permission to access",
         });
       }
 
-      // fetch students for the specific class
+      const classExist = await Class.findOne({
+        name: classname,
+        section,
+        academicYear,
+        _school: isSuperAdmin === true ? schoolId : req.user._school,
+      });
+      if (classExist === null) {
+        return res.status(400).json({ error: true, reason: "class not found" });
+      }
+
       const students = await User.find({
-        _class,
+        _class: classExist._id,
         loginType: "student",
-        _school: req.user._school,
+        _school: isSuperAdmin === true ? schoolId : req.user._school,
       })
-        .select("_id rollNo")
+        .select("_id RollNo name gender phone firstName lastName email")
         .lean();
 
-      return res.status(200).json({ error: false, students });
+      return res
+        .status(200)
+        .json({ error: false, students, classId: classExist._id });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error });
     }
@@ -89,135 +87,91 @@ module.exports = {
 
   /**
    *
-   * @api {post} /attendance/mark  Mark Student Attendance
+   * @api {post} /markattendance  Mark Student Attendance
    * @apiName MarkAttendance
    * @apiGroup Attendance
    *
    * @apiHeader {String} Authorization Bearer token for teacher access.
    *
    * @apiParam {String} _class The ID of the class for which attendance is being marked.
-   * @apiParam {String} studentId The ID of the student whose attendance is being marked.
+   * @apiParam {String} [studentIds] The ID of the students:array format(presentIds)
    *
    *
    * @apiSuccessExample {json} Success-Response:
    * {
    *   "error": false,
    *   "message": "Student has been marked present",
-   *   "attendance": {
+   *   "attendanceRecord":[
+   *   {
    *     "_id": "60c72b2f9b1e8a3b4c3e4f6c",
-   *     "_class": "60c72b2f9b1e8a3b4c3e4f6a",
-   *     "date": "2024-10-04T00:00:00.000Z",
+   *     "rollNo":"1",
+   *     "isPresent": true,
+   *     "presentIds": ["60c72b2f9b1e8a3b4c3e4f6b",]
+   *   },
+   *  {
+   *     "_id": "60c72b2f9b1e8a3b4c3e4fcd",
+   *     "rollNo":"2",
+   *     "isPresent": false,
    *     "presentIds": ["60c72b2f9b1e8a3b4c3e4f6b"]
    *   }
-   * }
-   *
-   * @apiError (400) {Boolean} error Indicates whether there was an error (true).
-   * @apiError (400) {String} reason The reason for the error (e.g., "You are not a teacher", "You are not assigned to this class", "Student is not assigned to this class").
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "reason": "You are not a teacher"
+   *   ]
+   * "date": "2024-10-26T18:30:00.000Z"
    * }
    *
    */
   async markAttendance(req, res) {
     try {
-      const { _class, name, section, studentId } = req.body;
-      const { id } = req.user;
+      const { _class, studentIds } = req.body;
+      const { id, loginType } = req.user;
 
-      const existClass = await Class.findOne({ name, section }).exec();
-      if (existClass === null) {
-        return res.status(400).json({ error: true, reason: "class not found" });
-      }
-
-      // Check if the user is a teacher
-      const teacher = await User.findOne({
-        _id: id,
-        loginType: "teacher",
-      });
-      if (teacher === null) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You are not a teacher" });
-      }
-
-      // Check if the teacher is assigned to the class
-      const TeacherAssignClass = await Attendance.findOne({
-        _school: req.user._school,
-        _class: existClass._id,
-        _teacher: id,
-      });
-      if (TeacherAssignClass === null) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You are not assigned to this class" });
-      }
-
-      // Check if the student is assigned to the class
-      const student = await User.findOne({
-        _id: studentId,
-        _class: existClass._id,
-        loginType: "student",
-      });
-
-      if (student === null) {
-        return res.status(400).json({
+      if (!(loginType === "teacher" || loginType === "admin")) {
+        return res.status(200).json({
           error: true,
-          reason: "Student is not assigned to this class",
+          reason: "you do not have permission to take attendance",
         });
+      }
+      const classExist = await Class.findOne({ _id: _class });
+      if (classExist === null) {
+        return res.status(400).json({ error: true, reason: "class not found" });
       }
 
       const today = moment().startOf("day");
 
-      // Find the attendance record for today for this class
-      let attendanceRecord = await Attendance.findOne({
-        _class: existClass._id,
+      let attendance = await Attendance.findOne({
+        _class,
         date: {
           $gte: today.toDate(),
           $lte: moment(today).endOf("day").toDate(),
         },
-        _school: teacher._school,
       });
 
-      if (attendanceRecord !== null) {
-        if (attendanceRecord.presentIds.includes(studentId)) {
-          return res.status(400).json({
-            error: true,
-            reason: "Student has already been marked present",
-          });
-        }
+      const classStudents = await User.find({ _class }).select("_id rollNo");
 
-        attendanceRecord.presentIds.push(studentId);
-        await attendanceRecord.save();
+      const attendanceRecord = classStudents.map((student) => ({
+        _id: student._id,
+        rollNo: student.rollNo,
+        isPresent: studentIds.includes(student._id.toString()),
+      }));
 
-        return res.status(200).json({
-          error: false,
-          message: `${studentId} has been marked present`,
-          attendance: attendanceRecord,
-        });
+      if (attendance !== null) {
+        attendance.presentIds = studentIds;
+        await attendance.save();
       } else {
-        // If no attendance record exists, create a new one
-        attendanceRecord = new Attendance({
-          _school: teacher._school,
+        attendance = await Attendance.create({
+          _school: req.user._school,
           _class,
-          _teacher: req.user.id,
-          presentIds: [studentId],
-          date: moment().toDate(),
+          _teacher: id,
+          presentIds: studentIds,
+          date: today.toDate(),
         });
-        await attendanceRecord.save();
 
-        const classRecord = await Class.findOne({ _id: _class });
-        if (classRecord) {
-          classRecord.totalClassTill += 1;
-          await classRecord.save();
-        }
-        return res.status(200).json({
-          error: false,
-          message: "Attendance created successfully",
-          attendance: attendanceRecord,
-        });
+        classExist.totalClassTill += 1;
+        await classExist.save();
       }
+
+      return res
+        .status(200)
+        .json({ error: false, attendanceRecord, date: attendance.date });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error.message });
     }

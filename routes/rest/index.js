@@ -16,6 +16,8 @@ const attendance = require("../rest/attendance");
 const classRoute = require("../rest/class");
 const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
+const settings = require("../../routes/rest/settings");
+const linkedin = require("../rest/linkedin");
 
 // admin file
 const adminUsers = require("./adminUsers");
@@ -31,6 +33,8 @@ const adminStripe = require("../../lib/stripe");
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
+
+router.get("/profile", linkedin.profile);
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
@@ -52,15 +56,16 @@ router.get("/user/:id", users.get);
 router.put("/updateprofile/", users.editData);
 
 const upload = multer({ dest: "../public/uploads" });
-router.post(
-  "/progressReport/teachers/create-progress-report",
-  upload.single("csvFile"),
-  progressReportRoutes.post
-);
-router.get("/progressReport/:id", progressReportRoutes.get);
+const uplodFile = multer();
+// router.post(
+//   "/progressReport/teachers/create-progress-report",
+//   upload.single("csvFile"),
+//   progressReportRoutes.post
+// );
+// router.get("/progressReport/:id", progressReportRoutes.get);
 
-router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
-router.post("/attendance/mark", attendance.markAttendance);
+router.post("/class/students", attendance.getClassStudentsForAttendance); //specific class
+router.post("/markattendance", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
 router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
@@ -98,6 +103,7 @@ router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
+router.post("/admin/students/bulk-upload",uplodFile.single("studentCSV"), adminStudentRoutes.bulkCreateFromCSV);
 router.put("/admin/student/:id", adminStudentRoutes.editStudentDetails);
 router.put("/admin/student/change-status/:id", adminStudentRoutes.changeStudentStatus);
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
@@ -150,5 +156,9 @@ router.post("/admin/class/create", adminClassRoute.Post);
 router.get("/admin/class/find", adminClassRoute.find);
 router.get("/admin/class/get/:id", adminClassRoute.get);
 router.post("/admin/class/assignclass", adminClassRoute.assignClass);
+
+//settings
+router.post("/admin/setsettings", settings.setSettings);
+router.put("/admin/updatesettings", settings.updateClassSettings);
 
 module.exports = router;

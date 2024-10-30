@@ -22,7 +22,6 @@ const attendanceSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
-
   date: {
     type: Date,
   },
