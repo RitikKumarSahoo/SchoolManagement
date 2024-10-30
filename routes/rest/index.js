@@ -56,12 +56,13 @@ router.get("/user/:id", users.get);
 router.put("/updateprofile/", users.editData);
 
 const upload = multer({ dest: "../public/uploads" });
-router.post(
-  "/progressReport/teachers/create-progress-report",
-  upload.single("csvFile"),
-  progressReportRoutes.post
-);
-router.get("/progressReport/:id", progressReportRoutes.get);
+const uplodFile = multer();
+// router.post(
+//   "/progressReport/teachers/create-progress-report",
+//   upload.single("csvFile"),
+//   progressReportRoutes.post
+// );
+// router.get("/progressReport/:id", progressReportRoutes.get);
 
 router.post("/class/students", attendance.getClassStudentsForAttendance); //specific class
 router.post("/markattendance", attendance.markAttendance);
@@ -99,21 +100,14 @@ router.post("/admin/stripe/addcard", adminStripe.cardAdd);
 router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 
 //list of all routers
-router.post("/admin/students/create-student", adminStudentRoutes.createStudent);
-router.put("/admin/student/edit/:id", adminStudentRoutes.editStudentDetails);
-router.post(
-  "/admin/students/view-students",
-  adminStudentRoutes.viewAllStudents
-);
-router.get(
-  "/admin/students/view-student/:studentId",
-  adminStudentRoutes.viewStudentDetails
-);
-router.put(
-  "/admin/students/deactivate/:studentId",
-  adminStudentRoutes.deactivateStudent
-);
-router.get("/admin/students/search", adminStudentRoutes.searchStudents);
+router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
+router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
+router.post("/admin/student", adminStudentRoutes.createStudent);
+router.post("/admin/students/bulk-upload",uplodFile.single("studentCSV"), adminStudentRoutes.bulkCreateFromCSV);
+router.put("/admin/student/:id", adminStudentRoutes.editStudentDetails);
+router.put("/admin/student/change-status/:id", adminStudentRoutes.changeStudentStatus);
+//  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
+router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
 
 // Noice board Rute
 router.get("/admin/notices/find-all-notices", adminNoticeRoutes.findAllNotices); // Fetch all notices

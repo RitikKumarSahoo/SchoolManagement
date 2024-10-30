@@ -92,6 +92,26 @@
             margin-top: 20px;
             font-size: 18px;
         }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #ff6ec7;
+            color: white;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -118,16 +138,38 @@
                 </div>
             <% } else { %>
                 <div class="admin-notification">
-                    <p>Hello <strong><%= adminName %></strong>,</p>
-                    <p>We would like to inform you that a new student has joined our school community, but they do not have an email address registered.</p>
-                    <p>Here are the student’s credentials:</p>
-                    <p><strong>Student Name:</strong> <%= studentName %><br>
-                       <strong>Username:</strong> <%= username %><br>
-                       <strong>Password:</strong> <%= password %></p>
-                    <p>Please make sure to reach out to the student to provide them with necessary support and assistance in their onboarding process.</p>
-                    <p>Thank you for your attention!</p>
+                  <p>Hello <strong><%= adminName %></strong>,</p>
+                  <p>
+                    We would like to inform you that a new student has joined our school
+                    community, but they do not have an email address registered.
+                  </p>
+                  <p>Here are the students’ credentials:</p>
+        
+                  <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% studentList.forEach(student => { %>
+                            <tr>
+                                <td><%= student.fullName %></td>
+                                <td><%= student.username %></td>
+                                <td><%= student.password %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+                  <p>
+                    Please make sure to reach out to the student to provide them with
+                    necessary support and assistance in their onboarding process.
+                  </p>
+                  <p>Thank you for your attention!</p>
                 </div>
-            <% } %>
+                <% } %>
         </div>
 
         <!-- CTA Button -->

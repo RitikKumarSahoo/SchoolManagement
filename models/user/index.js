@@ -18,6 +18,9 @@ const UserSchema = new mongoose.Schema({
   firstName: String,
 
   lastName: String,
+
+  fullName: String,
+
   profileImage: String,
   email: {
     type: String,
@@ -125,8 +128,8 @@ const UserSchema = new mongoose.Schema({
   address: {
     type: String,
   },
-  currentYear: {
-    type: "String",
+  currentAcademicYear: {
+    type: String,
   },
 });
 
@@ -152,6 +155,14 @@ UserSchema.pre("save", async function (next) {
     } catch (error) {
       return next(error);
     }
+  }
+
+  if (
+    this.isNew ||
+    this.isModified("firstName") ||
+    this.isModified("lastName")
+  ) {
+    this.fullName = `${this.firstName} ${this.lastName}`;
   }
   return next();
 });
@@ -182,14 +193,14 @@ UserSchema.post("save", function (doc) {
   }
 });
 
-UserSchema.virtual("fullname").get(function () {
-  return `${this.firstName} ${this.lastName}`;
-});
+// UserSchema.virtual("fullname").get(function () {
+//   return `${this.firstName} ${this.lastName}`
+// })
 
-UserSchema.virtual("name.full").set(function (v) {
-  this.name.first = v.substr(0, v.indexOf(" "));
-  this.name.last = v.substr(v.indexOf(" ") + 1);
-});
+// UserSchema.virtual("name.full").set(function (v) {
+//   this.name.first = v.substr(0, v.indexOf(" "));
+//   this.name.last = v.substr(v.indexOf(" ") + 1);
+// });
 
 UserSchema.set("timestamps", true);
 UserSchema.set("toJSON", { virtuals: true });

@@ -4,6 +4,9 @@ const School = require("../../models/school");
 const Class = require("../../models/class");
 const mail = require("../../lib/mail");
 const randomstring = require("randomstring");
+const { Readable } = require("stream");
+const csv = require("csv-parser");
+const _class = require("./class");
 
 function generateCustomPassword() {
   const upperCaseLetter = randomstring.generate({
@@ -33,84 +36,75 @@ function generateCustomPassword() {
 
 module.exports = {
   /**
-   * Create a new student   * @api {post} /student 3.0 Create a new student
-   * @apiName createStudent
+   * @api {post} /admin/student/createstudent Create Student
+   * @apiName CreateStudent
    * @apiGroup Student
-   * @apiPermission Public
+   * @apiVersion 1.0.0
    *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   * @apiHeader {String} Authorization Admin's access token.
    *
-   * @apiParam  {String} firstName
-   * @apiParam  {String} lastName
-   * @apiParam  {String} email
-   * @apiParam  {String} gender
-   * @apiParam  {Object} guardian
-   * @apiParam  {String} guardian.fathersName
-   * @apiParam  {String} guardian.mothersName
-   * @apiParam  {String} phone
-   * @apiParam  {Number} admissionYear
-   * @apiParam  {ObjectID} _schoolId
-   * @apiParam  {Date} dob
-   * @apiParam  {Number} rollNo
-   * @apiParam  {ObjectID} _classId
-   * @apiParam  {ObjectID} _adminId
-   * @apiParam  {Date} joinDate
-   * @apiParam  {String} signature
-   * @apiParam  {String} profileImage
+   * @apiParam {String} firstName Student's first name (required).
+   * @apiParam {String} lastName Student's last name (required).
+   * @apiParam {String} [email] Student's email address.
+   * @apiParam {String} gender Student's gender (required).
+   * @apiParam {Object} guardian Guardian's information (required).
+   * @apiParam {String} guardian.fathersName Guardian's father's name.
+   * @apiParam {String} guardian.mothersName Guardian's mother's name.
+   * @apiParam {String} phone Student's phone number (required).
+   * @apiParam {Number} admissionYear Year of admission (required).
+   * @apiParam {String} dob Student's date of birth (required).
+   * @apiParam {String} classname Class name (required).
+   * @apiParam {String} section Class section (required).
+   * @apiParam {String} joinDate Date of joining (required).
+   * @apiParam {String} signature Base64 encoded signature.
+   * @apiParam {String} profileImage Path to the profile image.
+   * @apiParam {String} [rollNo] Student's roll number. Required if autoAssignRoll is false.
+   * @apiParam {Boolean} [autoAssignRoll=false] Whether to auto-assign the roll number.
    *
-   * @apiSuccess (201) {json} Student
+   * @apiDescription Creates a new student record in the database. The roll number can be auto-assigned or manually entered by the admin. If manually entered, it must be sequential based on the last roll number in the class and section.
    *
-   * @apiParamExample  {json} Request-Example:
-   * {
-   *   "firstName": "John",
-   *   "lastName": "Doe",
-   *   "email": "john@example.com",
-   *   "gender": "Male",
-   *   "guardian": {
-   *     "fathersName": "John Doe Sr.",
-   *     "mothersName": "Jane Doe"
-   *   },
-   *   "phone": "0000000000",
-   *   "admissionYear": 2019,
-   *   "schoolId": "123456789012",
-   *   "dob": "2000-01-01",
-   *   "rollNo": 1,
-   *   "classId": "123456789012",
-   *   "addedBy": "123456789012",
-   *   "joinDate": "2019-01-01",
-   *   "signature": "John Doe",
-   *   "profileImage": "https://example.com/johndoe.jpg"
-   * }
+   * @apiExample Example usage (Manual Roll Number):
+   * '{
+   *     "firstName": "June",
+   *     "lastName": "David",
+   *     "gender": "Female",
+   *     "guardian": {
+   *       "fathersName": "Ryan David",
+   *       "mothersName": "Milli David"
+   *     },
+   *     "phone": "9080264385",
+   *     "admissionYear": 2024,
+   *     "dob": "1990-07-02",
+   *     "rollNo": "R004",  // Manually assigned roll number
+   *     "classname": "10",
+   *     "section": "A",
+   *     "joinDate": "2024-10-10",
+   *     "signature": "base64EncodedString",
+   *     "profileImage": "public/docsimg/ProfilePic.jpeg",
+   *     "autoAssignRoll": false
+   *   }'
    *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "Student": {
+   * @apiExample Example usage (Auto-Assigned Roll Number):
+   * '{
    *     "firstName": "John",
    *     "lastName": "Doe",
-   *     "email": "john@example.com",
    *     "gender": "Male",
    *     "guardian": {
-   *       "fathersName": "John Doe Sr.",
-   *       "mothersName": "Jane Doe"
+   *       "fathersName": "Michael Doe",
+   *       "mothersName": "Sarah Doe"
    *     },
-   *     "phone": "0000000000",
-   *     "admissionYear": 2019,
-   *     "schoolId": "123456789012",
-   *     "dob": "2000-01-01",
-   *     "rollNo": 1,
-   *     "classId": "123456789012",
-   *     "addedBy": "123456789012",
-   *     "joinDate": "2019-01-01",
-   *     "signature": "John Doe",
-   *     "profileImage": "https://example.com/johndoe.jpg"
-   *   }
-   * }
-   *
-   * @apiError (400) {json} MissingFields Student creation failed due to missing required fields
-   * @apiError (400) {json} StudentExists Student already exists
-   * @apiError (500) {json} ServerError Server error occurred while creating student
+   *     "phone": "9123456789",
+   *     "admissionYear": 2024,
+   *     "dob": "1990-08-15",
+   *     "classname": "10",
+   *     "section": "B",
+   *     "joinDate": "2024-10-10",
+   *     "signature": "base64EncodedString",
+   *     "profileImage": "public/docsimg/ProfilePic2.jpeg",
+   *     "autoAssignRoll": true  // Roll number will be auto-assigned
+   *   }'
    */
+
   async createStudent(req, res) {
     try {
       const {
@@ -122,105 +116,165 @@ module.exports = {
         phone,
         admissionYear,
         dob,
-        rollNo,
-        _classId,
+        classname,
+        section,
         joinDate,
         signature,
         profileImage,
+        autoAssignRoll = false,
       } = req.body;
+      let { rollNo } = req.body;
+
       const { loginType, id } = req.user;
-      // if(!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !schoolId || !dob || !rollNo || !classId || !addedBy || !joinDate || !signature){
-      //   return res.status(400).json({error: true, message: "All fields are required"})
-      // }
+
+      // Check if the user is an admin
       if (loginType !== "admin") {
         return res.status(403).json({ error: true, message: "Unauthorized" });
       }
+
+      // Validate required fields
+      if (
+        !firstName ||
+        !lastName ||
+        !gender ||
+        !guardian ||
+        !phone ||
+        !admissionYear ||
+        !classname ||
+        !section ||
+        !dob ||
+        !joinDate
+      ) {
+        return res
+          .status(400)
+          .json({ error: true, message: "All fields are required" });
+      }
+
+      // Admin manually inputs the roll number
+      if (!rollNo && !autoAssignRoll) {
+        return res
+          .status(400)
+          .json({
+            error: true,
+            message: "Roll number is required when autoAssignRoll is false",
+          });
+      }
+
+      // Find admin and ensure they have access
       const admin = await users
         .findOne({ _id: id, loginType: "admin" })
+        .select("_school")
+        .populate({
+          path: "_school",
+          select: "name",
+        })
         .lean()
         .exec();
-      if (!admin)
-        return res.status(403).json({ error: true, message: "Unauthorized" });
-
-      if (!firstName) {
+      if (admin === null) {
         return res
-          .status(400)
-          .json({ error: true, message: "First name is required" });
-      }
-      if (!lastName) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Last name is required" });
-      }
-      if (!gender) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Gender is required" });
-      }
-      if (!guardian || !guardian.fathersName || !guardian.mothersName) {
-        return res.status(400).json({
-          error: true,
-          message:
-            "Guardian information (father's and mother's name) is required",
-        });
-      }
-      if (!phone) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Phone number is required" });
-      }
-      if (!admissionYear) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Admission year is required" });
-      }
-      if (!dob) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Date of birth is required" });
-      }
-      if (!_classId) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Class ID is required" });
-      }
-      if (!joinDate) {
-        return res
-          .status(400)
-          .json({ error: true, message: "Join date is required" });
+          .status(403)
+          .json({ error: true, message: "Admin not found" });
       }
 
-      const query = { phone, rollNo };
-      const studentExists = await users.findOne(query).lean().exec();
-
-      if (studentExists)
+      // Fetch the class details (assuming _classId is derived based on classname and section)
+      const classDetails = await Class.findOne({
+        name: classname,
+        section: section.toUpperCase(),
+        _school: admin._school,
+      })
+        .select("_id id")
+        .lean();
+      if (!classDetails) {
         return res
-          .status(400)
-          .json({ error: true, message: "Student already exists" });
+          .status(404)
+          .json({ error: true, message: "Class not found!" });
+      }
 
-      const schoolName = await School.findOne({ _id: admin._school })
-        .select("name")
+      // Fetch students in the given class and section
+      const studentCount = await users
+        .countDocuments({
+          loginType: "student",
+          _class: classDetails._id,
+          _school: admin._school,
+        })
         .exec();
+      // const lastStudent = await users.findOne({ _class: classDetails._id, classname, section, _school:admin._school }).sort({ rollNo: -1 }).lean().exec();
 
-      console.log("School Name:", schoolName);
+      if (autoAssignRoll) {
+        rollNo = studentCount + 1;
+      } else {
+        if (String(rollNo) !== String(studentCount + 1)) {
+          return res.status(400).json({
+            error: true,
+            message: `Roll number must be sequential. The last roll number is ${studentCount}, so the next roll should be ${
+              studentCount + 1
+            }.`,
+          });
+        }
+      }
+
+      // let newRollNo;
+      // if (autoAssignRoll) {
+      //   // Auto-assign roll number
+      //   newRollNo = studentCount + 1;
+      // } else {
+      //   // Admin manually inputs the roll number
+      //   if (!rollNo) {
+      //     return res.status(400).json({ error: true, message: "Roll number is required when autoAssignRoll is false" });
+      //   }
+
+      //   // Check if rollNo is sequential
+      //   const lastRollNo = lastStudent ? parseInt(lastStudent.rollNo) : 0;
+      //   if (parseInt(rollNo) !== lastRollNo + 1) {
+      //     return res.status(400).json({
+      //       error: true,
+      //       message: `Roll number must be sequential. The last roll number is ${lastRollNo}, so the next roll should be ${lastRollNo + 1}.`
+      //     });
+      //   }
+
+      //   newRollNo = rollNo;
+      // }
+
+      // Check if roll number already exists for this class and section
+      // const existingStudent = await users.findOne({ _class: classDetails._id, classname, section, rollNo: newRollNo }).lean().exec();
+      // if (existingStudent) {
+      //   return res.status(400).json({
+      //     error: true,
+      //     message: `Roll number ${newRollNo} already exists for this class and section`,
+      //     existingStudent: {
+      //       id: existingStudent._id,
+      //       name: `${existingStudent.firstName} ${existingStudent.lastName}`,
+      //       rollNo: existingStudent.rollNo,
+      //       email: existingStudent.email
+      //     }
+      //   });
+      // }
+
+      // Generate username and password for the student
+      // const schoolName = await School.findOne({ _id: admin._school }).select("name").exec();
+      // console.log(admin._school);
 
       const username =
-        firstName.slice(0, 3) + schoolName.name.slice(0, 3) + phone.slice(-3);
+        firstName.slice(0, 3) +
+        admin._school.name.slice(0, 3) +
+        phone.slice(-3);
       const password = generateCustomPassword();
 
+      // Create student record
       const student = await users.create({
         firstName,
         lastName,
+        fullName: `${firstName} ${lastName}`,
         email,
         gender,
         guardian,
         phone,
         admissionYear,
-        _school: admin._school,
+        _school: admin._school._id,
         dob,
         rollNo,
-        _class: _classId,
-        _addedBy: req.user.id,
+        _class: classDetails._id,
+        _addedBy: admin._id, // Using admin name instead of id
         joinDate,
         signature,
         username,
@@ -229,63 +283,83 @@ module.exports = {
         loginType: "student",
       });
 
-      // const adminDetails = await users.findById(req.user.id).exec()
+      // Send email notification
       const adminName = admin.firstName;
       const adminEmail = admin.email;
-      // Determine the recipient email
       const recipientEmail = student.email || adminEmail;
-
-      //This should be change to admin(_addedBy) email. Before that verify that mail in mailgun
-      await mail("adminNotification", {
-        to: recipientEmail,
-        subject: "New Student Created",
-        locals: {
-          studentEmail: student.email,
-          studentName: student.firstName,
-          username: student.username,
-          password: password,
-          adminName: adminName,
-        },
-      });
+      // await mail("adminNotification", {
+      //   to: recipientEmail,
+      //   subject: "New Student Created",
+      //   locals: {
+      //     studentEmail: student.email,
+      //     studentName: student.firstName,
+      //     username: student.username,
+      //     password: password,
+      //     adminName: adminName
+      //   }
+      // });
 
       return res.status(201).json({
         error: false,
         StudentUserName: student.username,
-        StudentPassword: student.password,
+        StudentPassword: password,
       });
     } catch (error) {
       console.log(error);
-
       return res.status(500).json({ error: true, message: error.message });
     }
   },
-
   /**
-   * Edit student details
+   * @api {put} /admin/student/:id Edit Student Details
+   * @apiName EditStudentDetails
+   * @apiGroup Student
    *
-   * This endpoint is restricted to admins only.
+   * @apiHeader {String} Authorization Bearer token of the admin.
    *
-   * @param {string} studentId - The ID of the student to be edited
-   * @param {object} req.body - The request body containing the fields to be updated
-   * @param {string} req.body.adminId - The ID of the admin making the request
-   * @param {string} [req.body.firstName] - The new first name of the student
-   * @param {string} [req.body.lastName] - The new last name of the student
-   * @param {string} [req.body.email] - The new email of the student
-   * @param {string} [req.body.gender] - The new gender of the student
-   * @param {string} [req.body.guardian] - The new guardian of the student
-   * @param {string} [req.body.phone] - The new phone number of the student
-   * @param {string} [req.body.admissionYear] - The new admission year of the student
-   * @param {string} [req.body._schoolId] - The new school ID of the student
-   * @param {string} [req.body.dob] - The new date of birth of the student
-   * @param {string} [req.body.rollNo] - The new roll number of the student
-   * @param {string} [req.body._classId] - The new class ID of the student
-   * @param {string} [req.body.signature] - The new signature of the student
-   * @param {string} [req.body.profileImage] - The new profile image of the student
+   * @apiParam {String} id Student's unique ID.
    *
-   * @returns {object} - The updated student object
+   * @apiDescription This route allows only admin users to edit details of a specific student. The admin must be logged in and authorized to access this endpoint. Only the provided fields in the request body will be updated.
    *
-   * @throws {Error} - If the student is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
+   * @apiParam (Request Body) {String} [firstName] Student's first name.
+   * @apiParam (Request Body) {String} [lastName] Student's last name.
+   * @apiParam (Request Body) {String} [email] Student's email.
+   * @apiParam (Request Body) {String} [gender] Student's gender.
+   * @apiParam (Request Body) {String} [guardian] Guardian's name.
+   * @apiParam (Request Body) {String} [phone] Student's phone number.
+   * @apiParam (Request Body) {String} [admissionYear] Admission year of the student.
+   * @apiParam (Request Body) {String} [dob] Date of birth of the student.
+   * @apiParam (Request Body) {String} [rollNo] Roll number of the student.
+   * @apiParam (Request Body) {String} [signature] Signature of the student.
+   * @apiParam (Request Body) {String} [profileImage] Profile image URL of the student.
+   *
+   * @apiError (403) Forbidden Only admins can edit student details.
+   * @apiError (404) NotFound Student not found.
+   * @apiError (500) InternalServerError An error occurred while updating student details.
+   *
+   * @apiExample {json} Request-Example:
+   *     {
+   *       "firstName": "Jane",
+   *       "lastName": "Doe",
+   *       "email": "janedoe@example.com",
+   *       "gender": "Female",
+   *       "phone": "0987654321"
+   *     }
+   *
+   * @apiExample {json} Error-Response:
+   *     {
+   *       "message": "Only admins can edit student details"
+   *     }
+   *
+   * @apiExample {json} Error-Response:
+   *     {
+   *       "message": "Student not found"
+   *     }
+   *
+   * @apiExample {json} Error-Response:
+   *     {
+   *       "message": "An error occurred while updating student details",
+   *       "error": "Error details here"
+   *     }
    */
   async editStudentDetails(req, res) {
     try {
@@ -312,7 +386,7 @@ module.exports = {
         admissionYear,
         dob,
         rollNo,
-        _classId,
+        _class,
         signature,
         profileImage,
       } = req.body;
@@ -328,13 +402,13 @@ module.exports = {
       if (admissionYear) updateData.admissionYear = admissionYear;
       if (dob) updateData.dob = dob;
       if (rollNo) updateData.rollNo = rollNo;
-      if (_classId) updateData._classId = _classId;
+      // if (_class) updateData._class = _class;
       if (signature) updateData.signature = signature;
       if (profileImage) updateData.profileImage = profileImage;
 
       // Update the student record in the database
       const updatedStudent = await users.findByIdAndUpdate(
-        studentId,
+        { _id: studentId },
         { $set: updateData },
         { new: true } // Return the updated document
       );
@@ -436,23 +510,55 @@ module.exports = {
           .json({ message: "Only admins can view student details" });
       }
 
+      const { name, rollNo, className, section, academicYear } = req.body;
+
+      let { pageNo = 1, skipLimit = 20 } = req.body;
+
+      pageNo = Number(pageNo);
+      skipLimit = Number(skipLimit);
+
+      _class = await Class.findOne({
+        _school: req.user._school,
+        name: className,
+        section: section,
+        academicYear: academicYear,
+      });
+
+      const query = {
+        _school: req.user._school,
+        loginType: "student",
+      };
+
+      if (rollNo) {
+        query.rollNo = rollNo;
+      }
+
+      if (_class) {
+        query._class = _class;
+      }
+
+      if (name) {
+        query.$or = [
+          { firstName: { $regex: name, $options: "i" } }, // case-insensitive search for firstName
+          { lastName: { $regex: name, $options: "i" } }, // case-insensitive search for lastName
+          { fullName: { $regex: name, $options: "i" } }, // case-insensitive search for lastName
+        ];
+      }
+
       // Get pagination values, with default values if not provided by frontend
-      const pageNo = parseInt(req.body.pageNo) || 1;
-      const skipLimit = parseInt(req.body.skipLimit) || 20;
       const skip = (pageNo - 1) * skipLimit;
 
       // Fetch students with pagination, while excluding sensitive fields
       const [students, totalStudents] = await Promise.all([
         users
-          .find({ _school: req.user._school, loginType: "student" })
-          .select("-password -forgotpassword -bankDetails") // Exclude sensitive fields
+          .find(query)
+          .select("-password -forgotpassword -bankDetails -bankAdded") // Exclude sensitive fields
           .skip(skip)
           .limit(skipLimit)
           .populate("_class", "name section -_id") // Populate class details and exclude the _id field
+          .lean()
           .exec(),
-        users
-          .countDocuments({ _school: req.user._school, loginType: "student" })
-          .exec(),
+        users.countDocuments(query).lean(),
       ]);
 
       // Calculate total pages
@@ -471,20 +577,76 @@ module.exports = {
   },
 
   /**
-   * View a student's details
+   * @api {get} /admin/student/:id View Student Details
+   * @apiName ViewStudentDetails
+   * @apiGroup Student
    *
-   * This endpoint is restricted to admins only.
+   * @apiHeader {String} Authorization Bearer token of the admin.
    *
-   * @param {string} studentId - The ID of the student
-   * @returns {object} - The student's details
+   * @apiParam {String} id Unique ID of the student to view details.
    *
-   * @throws {Error} - If the student is not found
-   * @throws {Error} - If the request is not authorized (not an admin)
+   * @apiPermission Admin
+   *
+   * @apiDescription This endpoint allows an admin to view detailed information of a specific student by their ID. Only users with admin privileges can access this route.
+   *
+   * @apiError (403) Forbidden Only admins can view student details.
+   * @apiError (404) NotFound Student not found.
+   * @apiError (500) InternalServerError Unexpected error occurred.
+   *
+   * @apiExample {json} Response-Example:
+   * {
+   *   "error": false,
+   *   "student": {
+   *     "_id": "67052d954cbe69ed12657f76",
+   *     "username": "student123",
+   *     "email": "student@example.com",
+   *     "loginType": "student",
+   *     "firstName": "John",
+   *     "lastName": "Doe",
+   *     "isActive": true,
+   *     "_school": {
+   *          "address": {
+   *              "city": "Panskura",
+   *              "state": "West Bengal",
+   *              "country": "India",
+   *              "pinCode": "721641"
+   *          },
+   *          "contact": {
+   *              "phoneNo": "+91 8172059732",
+   *              "email": "kicmmhs@gmail.com",
+   *              "website": "kicmmhs.edu"
+   *          },
+   *          "location": {
+   *              "type": "Point",
+   *              "coordinates": [
+   *                  21.418325060918168,
+   *                  84.02980772446274
+   *              ]
+   *          },
+   *          "name": "Khukurdaha I C M M High School",
+   *          "registrationNumber": "REG3167",
+   *          "principalName": "Mrinal undefined",
+   *          "establishYear": 1995,
+   *          "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR991hgwd5EAqJRywib6kdEyDFFIxmmA20x_evuRgHj5zlRqYq8Wq16u_rYSEkXieoQFQg&usqp=CAU",
+   *          "isActive": true,
+   *          "schoolType": "highSchool"
+   *      }
+   *     "_class": {
+   *       "name": "10th Grade"
+   *     },
+   *     "gender": "Male",
+   *     "address": "123 Main St",
+   *     "phone": "123-456-7890",
+   *     "dob": "01/01/2005",
+   *     "createdAt": "2024-10-21T00:00:00.000Z",
+   *     "updatedAt": "2024-10-21T00:00:00.000Z"
+   *   }
+   * }
    */
   async viewStudentDetails(req, res) {
     try {
       // Get student ID from params
-      const { studentId } = req.params;
+      const { id } = req.params;
 
       //This may be changed as in this route only admin have access to enter this route
       const { isAdmin } = req.user; // Get adminId from the request body
@@ -492,15 +654,20 @@ module.exports = {
       if (!isAdmin)
         return res
           .status(403)
-          .json({ message: "Only admins can edit student details" });
-      console.log(isAdmin);
+          .json({ message: "Only admins can view student details" });
 
       const student = await users
-        .findOne({ _id: studentId, isActive: true, loginType: "student" })
+        .findOne({ _id: id, isActive: true, loginType: "student" })
         .select("-password")
-        .populate("_school", "-_id name")
-        .populate("_class", "-_id name")
+        .populate("_school", "-_id")
+        .populate("_class", "-_id name section")
+        .populate("_addedBy", "fullName")
         .exec();
+
+      if (!student)
+        return res
+          .status(404)
+          .json({ error: true, message: "Student not found" });
 
       if (!student)
         return res
@@ -515,7 +682,7 @@ module.exports = {
 
   /**
    * Deactivate a student
-   * @api {put} /students/deactivate/:studentId 5.0 Deactivate a student
+   * @api {put} /admin/student/change-status/:id 5.0 Deactivate a student
    * @apiName deactivateStudent
    * @apiGroup Student
    * @apiPermission Admin
@@ -531,25 +698,27 @@ module.exports = {
    *     message: "Student deactivated successfully"
    * }
    */
-  async deactivateStudent(req, res) {
+  async changeStudentStatus(req, res) {
     try {
-      const { studentId } = req.params;
-      const { isAdmin } = req.user; // Get adminId from the request body
       // Check if the user exists and has the 'admin' role
-      if (!isAdmin)
+      if (!req.user.isAdmin)
         return res
           .status(403)
           .json({ message: "Only admins can edit student details" });
       console.log(isAdmin);
-
       const student = await users
-        .findOne({ _id: studentId, isActive: true, loginType: "student" })
+        .findOne({ _id: req.params.id, loginType: "student" })
         .exec();
-
       if (!student)
         return res
           .status(404)
           .json({ error: true, message: "Student not found" });
+      student.isActive = !student.isActive;
+      await student.save();
+      return res.json({
+        error: false,
+        message: "Student status changed successfully",
+      });
 
       student.isActive = false;
       await student.save();
@@ -562,22 +731,6 @@ module.exports = {
     }
   },
 
-  /**
-   * Search students based on name, roll number, or class
-   * @api {get} /students/search 5.0 Search students
-   * @apiName searchStudents
-   * @apiGroup Student
-   * @apiPermission Admin
-   *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiParam {String} name `Query Param` The name of the student
-   * @apiParam {String} rollNo `Query Param` The roll number of the student
-   * @apiParam {ObjectId} classId `Query Param` The _id of the class
-   *
-   * @apiSuccessExample {type} Success-Response: 200 OK
-   * { students: [{}] }
-   */
   async searchStudents(req, res) {
     try {
       const { isAdmin } = req.user; // Get adminId from the request body
@@ -644,6 +797,287 @@ module.exports = {
         message: "Error searching students",
         details: error.message,
       });
+    }
+  },
+
+  /**
+   * @api {get} /admin/classsection  classes Fetch all classes and section for a school
+   * @apiName Fetch All Classes Section For School
+   * @apiGroup Class
+   *
+   * @apiHeader {String} Authorization Bearer token of the admin.
+   *
+   * @apiParam {ObjectId} id `URL Param` The _id of the school for which classes are to be fetched.
+   *
+   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
+   * @apiSuccess {Array} classList Array of classes in the format: [{ _id, id, nameWiseSection }]
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * {
+   *   "error": false,
+   *   "classList": [
+   *     {
+   *       "_id": "60d5f60c9b4d7635e8aebaf7",
+   *       "id": "60d5f60c9b4d7635e8aebaf7",
+   *       "nameWiseSection": "10 - A"
+   *     }
+   *   ]
+   * }
+   *
+   * @apiError NotAdmin You are not an admin.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "message": "You are not an admin"
+   * }
+   *
+   * @apiError InternalServerError Internal server error.
+   * @apiErrorExample {json} Error-Response:
+   * {
+   *   "error": true,
+   *   "reason": "Internal server error"
+   * }
+   */
+  async fetchAllClassList(req, res) {
+    try {
+      // This route is for creating the class and section in this format and sent to FE during searching a student 10 - A
+      const classes = await Class.find({ _school: req.params.id })
+        .select("name section _id")
+        .lean();
+
+      const classList = classes.map((cls) => ({
+        _id: cls._id,
+        id: cls._id,
+        nameWiseSection: `${cls.name} - ${cls.section}`,
+      }));
+
+      return res.json({ error: false, classList });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * @api {post} /admin/students/bulk-upload Bulk Create Students from CSV
+   * @apiName BulkCreateStudents
+   * @apiGroup Admin
+   * @apiVersion 1.0.0
+   *
+   * @apiHeader {String} Authorization Bearer token for admin authentication.
+   *
+   * @apiParam {File} file The CSV file containing student data to be uploaded.
+   * @apiParam {String} className The name of the class where students will be enrolled.
+   * @apiParam {String} section The section of the class.
+   * @apiParam {String} academicYear The academic year for the enrollment.
+   *
+   * @apiSuccess {String} message Success message indicating the outcome of the operation.
+   * @apiSuccess {Number} totalCreated The total number of students successfully created.
+   *
+   * @apiError BadRequest The uploaded file is missing or not provided.
+   * @apiError Unauthorized The user is not authorized to perform this action.
+   * @apiError NotFound The specified class was not found.
+   * @apiError InternalServerError Some students failed to be created due to errors.
+   * @apiErrorExample {json} Error Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": "No file uploaded."
+   *     }
+   *
+   * @apiErrorExample {json} Error Response:
+   *     HTTP/1.1 403 Forbidden
+   *     {
+   *       "error": "Unauthorized. Only admins can upload student data."
+   *     }
+   *
+   * @apiErrorExample {json} Error Response:
+   *     HTTP/1.1 404 Not Found
+   *     {
+   *       "error": "Class not found."
+   *     }
+   *
+   * @apiErrorExample {json} Error Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "message": "Some students failed to be created.",
+   *       "totalCreated": 5,
+   *       "totalFailed": 2,
+   *       "failedRecords": [
+   *         {
+   *           "student": "John Doe",
+   *           "error": "Email already exists."
+   *         },
+   *         {
+   *           "student": "Jane Smith",
+   *           "error": "Phone number is invalid."
+   *         }
+   *       ]
+   *     }
+   */
+
+  async bulkCreateFromCSV(req, res) {
+    try {
+      // Ensure a file is uploaded
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded." });
+      }
+
+      // Extract user details from JWT token
+      const { _school, loginType } = req.user;
+
+      // Validate user role: ensure they are an admin
+      if (loginType !== "admin") {
+        return res
+          .status(403)
+          .json({
+            error: "Unauthorized. Only admins can upload student data.",
+          });
+      }
+
+      const { className, section, academicYear } = req.body;
+      const studentsToCreate = [];
+      const studentsWithoutEmail = [];
+      const emailPromises = [];
+      // Getting the Class Id:-
+      const classDetails = await Class.findOne({
+        name: className,
+        section,
+        academicYear,
+      });
+      // Validate if class exists
+      if (!classDetails) {
+        return res.status(404).json({ error: "Class not found." });
+      }
+      const school = await School.findOne({ _id: _school }).lean();
+
+      // Create a readable stream from the uploaded file buffer
+      const bufferStream = new Readable();
+      bufferStream.push(req.file.buffer);
+      bufferStream.push(null); // End the stream
+
+      bufferStream
+        .pipe(csv())
+        .on("data", (row) => {
+          // Generate a username based on the required format
+
+          const username = `${row.FirstName.slice(
+            0,
+            3
+          ).toLowerCase()}${school.name
+            .slice(0, 3)
+            .toLowerCase()}${row.Phone.slice(-3)}`;
+          const password = generateCustomPassword(); // Assuming you have a function for generating a custom password
+
+          // Student data preparation
+          const studentData = {
+            username,
+            password, // Use your hashing method later when saving
+            firstName: row.FirstName,
+            lastName: row.LastName,
+            fullName: `${row.FirstName} ${row.LastName}`,
+            email: row.Email || "", // Optional email
+            phone: row.Phone,
+            gender: row.Gender,
+            dob: row.Dob,
+            guardian: {
+              fathersName: row.FathersName,
+              mothersName: row.MothersName,
+            },
+            admissionYear: row.JoinDate.split("-")[0], // Extract year as admissionYear
+            joinDate: row.JoinDate,
+            rollNo: row.RollNo,
+            _addedBy: req.user._id,
+            _class: classDetails._id,
+            _school: _school, // Assuming _school is an object with an _id field
+            loginType: "student",
+            currentAcademicYear: row.AcademicYear,
+          };
+
+          studentsToCreate.push(studentData);
+
+          if (!studentData.email) {
+            studentsWithoutEmail.push({
+              fullName: studentData.fullName,
+              username: studentData.username,
+              password,
+            });
+          } else {
+            // Create a promise for sending email to student if they have an email
+            const emailPromise = mail("adminNotification", {
+              to: studentData.email,
+              subject: `Welcome to the School`,
+              locals: {
+                studentEmail: studentData.email,
+                studentName: studentData.firstName,
+                username: studentData.username,
+                password: password,
+                adminName: req.user.firstName, // Or other property for admin's name
+              },
+            });
+            emailPromises.push(emailPromise);
+          }
+        })
+        .on("end", async () => {
+          try {
+            // Wait for all email promises to resolve
+            await Promise.all(emailPromises);
+
+            // Bulk insert students without hashing passwords here
+            // await users.insertMany(studentsToCreate);
+            const saveErrors = [];
+            for (const studentData of studentsToCreate) {
+              try {
+                await users.create(studentData);
+              } catch (saveError) {
+                saveErrors.push({
+                  student: studentData.fullName,
+                  error: saveError.message,
+                });
+              }
+            }
+
+            if (studentsWithoutEmail.length > 0) {
+              await mail("adminNotification", {
+                to: req.user.email, // Admin email from the request user info
+                subject: "New Students Created - Email Notification",
+                locals: {
+                  adminName: req.user.firstName,
+                  studentName: "", // No student name available for admin notification
+                  username: "", // No username available for admin notification
+                  password: "", // No password available for admin notification
+                  studentEmail: "", // Set to empty string
+                  studentList: studentsWithoutEmail, // List of students without emails
+                },
+              });
+            }
+
+            if (saveErrors.length > 0) {
+              return res.status(500).json({
+                message: "Some students failed to be created.",
+                totalCreated: studentsToCreate.length - saveErrors.length,
+                totalFailed: saveErrors.length,
+                failedRecords: saveErrors,
+              });
+            }
+
+            res.status(200).json({
+              message: "All students created successfully!",
+              totalCreated: studentsToCreate.length,
+              // studentsToCreate
+            });
+          } catch (error) {
+            console.error(`Error saving students: ${error.message}`);
+            res
+              .status(500)
+              .json({
+                error: "Error processing the data",
+                details: error.message,
+              });
+          }
+        });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ error: "Error processing the file", details: error.message });
     }
   },
 };
