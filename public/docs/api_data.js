@@ -61,6 +61,135 @@ define({ "api": [
     "groupTitle": "Admin-User"
   },
   {
+    "type": "post",
+    "url": "/admin/students/bulk-upload",
+    "title": "Bulk Create Students from CSV",
+    "name": "BulkCreateStudents",
+    "group": "Admin",
+    "version": "1.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "File",
+            "optional": false,
+            "field": "file",
+            "description": "<p>The CSV file containing student data to be uploaded.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "className",
+            "description": "<p>The name of the class where students will be enrolled.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the enrollment.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating the outcome of the operation.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "totalCreated",
+            "description": "<p>The total number of students successfully created.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>The uploaded file is missing or not provided.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "Unauthorized",
+            "description": "<p>The user is not authorized to perform this action.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>The specified class was not found.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Some students failed to be created due to errors.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": \"No file uploaded.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized. Only admins can upload student data.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": \"Class not found.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"message\": \"Some students failed to be created.\",\n  \"totalCreated\": 5,\n  \"totalFailed\": 2,\n  \"failedRecords\": [\n    {\n      \"student\": \"John Doe\",\n      \"error\": \"Email already exists.\"\n    },\n    {\n      \"student\": \"Jane Smith\",\n      \"error\": \"Phone number is invalid.\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "delete",
     "url": "/admin/delete/:id",
     "title": "Delete Admin User",
