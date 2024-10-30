@@ -17,7 +17,6 @@ const classRoute = require("../rest/class");
 const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
 const settings = require("../../routes/rest/settings");
-const linkedin = require("../rest/linkedin");
 
 // admin file
 const adminUsers = require("./adminUsers");
@@ -33,8 +32,6 @@ const adminStripe = require("../../lib/stripe");
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
-
-router.get("/profile", linkedin.profile);
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
@@ -100,14 +97,24 @@ router.post("/admin/stripe/addcard", adminStripe.cardAdd);
 router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 
 //list of all routers
-router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
+router.post(
+  "/admin/students/view-students",
+  adminStudentRoutes.viewAllStudents
+);
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
-router.post("/admin/students/bulk-upload",uplodFile.single("studentCSV"), adminStudentRoutes.bulkCreateFromCSV);
+router.post(
+  "/admin/students/bulk-upload",
+  uplodFile.single("studentCSV"),
+  adminStudentRoutes.bulkCreateFromCSV
+);
 router.put("/admin/student/:id", adminStudentRoutes.editStudentDetails);
-router.put("/admin/student/change-status/:id", adminStudentRoutes.changeStudentStatus);
+router.put(
+  "/admin/student/change-status/:id",
+  adminStudentRoutes.changeStudentStatus
+);
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
-router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
+router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList);
 
 // Noice board Rute
 router.get("/admin/notices/find-all-notices", adminNoticeRoutes.findAllNotices); // Fetch all notices
