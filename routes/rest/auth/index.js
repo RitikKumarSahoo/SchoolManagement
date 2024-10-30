@@ -107,10 +107,9 @@ module.exports = {
    * @apiParam {String} [lastName] The new last name of the user.
    * @apiParam {String} [phone] The new phone number of the user.
    * @apiParam {String} [email] The new email of the user.
-   * @apiParam {String} [address] The new address of the user.
+   * @apiParam {Object} [address] The new address of the user.
    * @apiParam {String} [gender] Gender of the user.
    * @apiParam {Date}   [dob] The DOB of the user.
-   * @apiParam {String} [address] address of the user
    * @apiParam {Date} [joinDate] Join date of the user (ISO format).
    * @apiParam {Date} [leaveDate] Leave date of the user (ISO format).
    * @apiParam {String} [_school] School reference of the user.
