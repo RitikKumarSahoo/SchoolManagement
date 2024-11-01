@@ -228,7 +228,7 @@ module.exports = {
   async find(req, res) {
     try {
       const { isSuperAdmin, loginType, _school } = req.user;
-      const { searchText, pageNumber = 1, pageSize = 10 } = req.body;
+      let { searchText, pageNumber = 1, pageSize = 10 } = req.body;
 
       // Error if the user is not a super admin or admin
       if (!(loginType === "admin" || isSuperAdmin === true)) {
