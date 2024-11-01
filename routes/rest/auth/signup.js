@@ -8,6 +8,115 @@ const stripe = require("stripe")(
 
 module.exports = {
   /**
+   * @api {post} /admin/find Find Admins
+   * @apiName FindAdmins
+   * @apiGroup Admin
+   * @apiDescription Super admins can search all teachers details.
+   *
+   * @apiHeader {String} Authorization Bearer token  super admin access.
+   *
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, `joinDate`,`gender` `phone`.
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "users": [
+   *     {
+   *       "_id": "60d5f60c9b4d7635e8aebaf7",
+   *       "firstName": "John",
+   *       "lastName": "Doe",
+   *       "email": "john.doe@example.com",
+   *       "phone": "1234567890",
+   *       "isActive": true,
+   *       "loginType": "teacher"
+   *     }
+   *   ],
+   *   "usersCount": 1
+   * }
+   *
+   * @apiError UnauthorizedAccess Unauthorized access (not an admin or super admin).
+   * @apiErrorExample {json} Unauthorized-Response:
+   * HTTP/1.1 403 Forbidden
+   * {
+   *   "error": true,
+   *   "reason": "Unauthorized access"
+   * }
+   *
+   * @apiError NoTeachersFound No teachers found matching the search criteria.
+   * @apiErrorExample {json} NoTeachers-Response:
+   * HTTP/1.1 404 Not Found
+   * {
+   *   "error": true,
+   *   "reason": "No teacher found"
+   * }
+   *
+   * @apiError InternalServerError Internal server error.
+   * @apiErrorExample {json} InternalServerError-Response:
+   * HTTP/1.1 500 Internal Server Error
+   * {
+   *   "error": true,
+   *   "reason": "Internal server error"
+   * }
+   */
+  async find(req, res) {
+    try {
+      const { isSuperAdmin } = req.user;
+      let { searchText, pageNumber = 1, pageSize = 10, schoolId } = req.body;
+
+      // Error if the user is not a super admin or admin
+      if (isSuperAdmin !== true) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not superadmin" });
+      }
+
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      let query = {
+        loginType: "admin",
+        isActive: true,
+        isSuperAdmin: false,
+      };
+
+      if (schoolId) {
+        query._school = schoolId;
+      }
+      if (searchText) {
+        const searchRegex = new RegExp(searchText.trim(), "i");
+        query.$or = [
+          { firstName: { $regex: searchRegex } },
+          { lastName: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+          { phone: { $regex: searchRegex } },
+          { gender: { $regex: searchText } },
+          { joinDate: { $regex: searchText } },
+        ];
+      }
+
+      const [users, usersCount] = await Promise.all([
+        User.find(query)
+          .select("-password -bankDetails -forgotpassword")
+          .skip(skipNumber)
+          .limit(Number(pageSize))
+          .exec(),
+        User.countDocuments(query),
+      ]);
+
+      if (users.length === 0) {
+        return res
+          .status(404)
+          .json({ error: true, reason: "No teacher found" });
+      }
+
+      return res.status(200).json({ error: false, users, usersCount });
+    } catch (error) {
+      return res.status(500).json({ error: true, reason: error.message });
+    }
+  },
+  /**
    * @api {post} /admins  Get all admins
    * @apiName GetAllAdmins
    * @apiGroup Admin
