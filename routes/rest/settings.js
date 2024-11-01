@@ -290,6 +290,7 @@ module.exports = {
    * @apiParam {Object} [busFee] The updated bus fee structure (e.g., { "0-5": 600, "6-10": 800 }).
    * @apiParam {Boolean} [isActive] Indicates if the settings should be active or not.
    * @apiParam {Boolean} [academicYear] "2024-2025"
+   * @apiParam {Number}  [salary] salary of teacher
    *
    * @apiParamExample {json} Request-Example:
    *     {
