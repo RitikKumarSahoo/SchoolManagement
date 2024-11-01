@@ -489,7 +489,7 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>The new address of the user.</p>"
@@ -2316,6 +2316,187 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "routes/rest/attendance.js",
     "groupTitle": "Class"
+  },
+  {
+    "type": "post",
+    "url": "/leave/get",
+    "title": "Get Leaves",
+    "description": "<p>Fetches leave applications for teachers or all teachers by admin. Teachers can filter their leaves based on leave type and status, while admins can view leaves for specific teachers or filter by leave type and status.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "leaveType",
+            "description": "<p>Filter leaves by leave type (e.g., CL, SL, PL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "status",
+            "description": "<p>Filter leaves by status (e.g., pending, approved, etc.).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "teacherId",
+            "description": "<p>Filter by a specific teacher's ID (Admin Only).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isHalfDay",
+            "description": "<p>Filter by HalfDay</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leaves\": [\n    {\n      \"_id\": \"leaveId\",\n      \"_school\": \"schoolId\",\n      \"_teacher\": \"teacherId\",\n      \"leaveType\": \"CL\",\n      \"startDate\": \"2024-11-01T00:00:00Z\",\n      \"endDate\": \"2024-11-05T00:00:00Z\",\n      \"reason\": \"Family function\",\n      \"status\": \"approved\",\n      \"appliedDate\": \"2024-10-25T00:00:00Z\",\n      \"approvedBy\": \"approverId\"\n    }\n    // More leave objects...\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostLeaveGet"
+  },
+  {
+    "type": "post",
+    "url": "/teacher/leave",
+    "title": "Apply Leave",
+    "description": "<p>Allows teachers to apply for leave by providing the necessary details.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "leaveType",
+            "description": "<p>Type of leave (CL, PL, SL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "startDate",
+            "description": "<p>Start date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "endDate",
+            "description": "<p>End date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isHalfDay",
+            "description": "<p>Indicates if the leave is a half day.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Leave applied successfully\",\n  \"leave\": {\n    \"_id\": \"leaveId\",\n    \"_school\": \"schoolId\",\n    \"_teacher\": \"teacherId\",\n    \"leaveType\": \"CL\",\n    \"startDate\": \"2024-11-01T00:00:00Z\",\n    \"endDate\": \"2024-11-05T00:00:00Z\",\n    \"reason\": \"Family function\",\n    \"isHalfDay\": false,\n    \"appliedDate\": \"2024-10-25T00:00:00Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response (Missing startDate):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"startDate is required\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad Request Response (Invalid leaveType):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Invalid leave type. Must be one of CL, PL, or SL\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "POST /api/leaves/apply\nAuthorization: Bearer <token>\n{\n  \"leaveType\": \"CL\",\n  \"startDate\": \"2024-11-01\",\n  \"endDate\": \"2024-11-05\",\n  \"reason\": \"Family function\",\n  \"isHalfDay\": false\n}",
+        "type": "http"
+      }
+    ],
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostTeacherLeave"
   },
   {
     "type": "post",
@@ -6737,6 +6918,377 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "routes/rest/adminSchools.js",
     "groupTitle": "School"
+  },
+  {
+    "type": "delete",
+    "url": "/admin/deletesetting",
+    "title": "Delete Setting",
+    "name": "DeleteSetting",
+    "group": "Settings",
+    "permission": [
+      {
+        "name": "admin superadmin"
+      }
+    ],
+    "description": "<p>Deletes a specific setting for a given academic year and school.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": false,
+        "field": "academicYear",
+        "description": "<p>The academic year for the setting to be deleted (e.g., &quot;2024-2025&quot;).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "schoolId",
+        "description": "<p>School ID to specify if the user is a superadmin. Admins delete settings only for their school.</p>"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (false on success).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message confirming deletion.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"deleted\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Permission Error:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Not-Found Error:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"setting not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if a server error occurred.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "Error",
+            "description": "<p>Server error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "post",
+    "url": "admin/settings",
+    "title": "Get Class Settings",
+    "name": "GetSettings",
+    "group": "Settings",
+    "permission": [
+      {
+        "name": "admin superadmin"
+      }
+    ],
+    "description": "<p>Retrieve class settings for a specific school with optional filtering by academic year and active status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "query": [
+      {
+        "group": "Query",
+        "type": "String",
+        "optional": true,
+        "field": "schoolId",
+        "description": "<p>The ID of the school. (Super Admins only)</p>"
+      }
+    ],
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "academicYear",
+        "description": "<p>Optional filter by academic year (e.g., &quot;2024-2025&quot;).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Boolean",
+        "optional": true,
+        "field": "isActive",
+        "description": "<p>Optional filter to return active/inactive settings.</p>"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"settings\": [\n    {\n      \"_id\": \"60f7f15d9b1e8b001c3a8b8c\",\n      \"_school\": \"60f7f12e9b1e8b001c3a8b8b\",\n      \"academicYear\": \"2024-2025\",\n      \"availableClasses\": [\n        {\n          \"grade\": \"5\",\n          \"section\": [\"A\", \"B\", \"C\"],\n          \"monthlyFee\": 1500,\n          \"salary\": 2000\n        }\n      ],\n      \"busFee\": {\n        \"morning\": 500,\n        \"evening\": 500\n      },\n      \"isActive\": true\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "post",
+    "url": "/admin/setsettings",
+    "title": "Set Settings",
+    "name": "SetSettings",
+    "group": "Settings",
+    "description": "<p>This endpoint is used to set the school settings, including available classes, academic year, bus fees, and more.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin or super admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "availableClasses",
+            "description": "<p>List of classes with their details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the settings.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "busFee",
+            "description": "<p>The bus fee structure (e.g., { &quot;0-5&quot;: 600, &quot;6-10&quot;: 800 }).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>Optional school ID for super admins to set settings for a specific school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"availableClasses\": [\n    {\n      \"grade\": \"1\",\n      \"monthlyFee\": 500,\n      \"salary\": 2000\n    },\n    {\n      \"grade\": \"2\",\n      \"monthlyFee\": 600,\n      \"salary\": 2200\n    }\n  ],\n  \"academicYear\": \"2024-2025\",\n  \"busFee\": {\n    \"0-5\": 600,\n    \"6-10\": 800\n  },\n  \"schoolId\": \"60c72b2f5f1b2c001c4f8b3e\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Settings updated successfully\",\n  \"settingsClass\": {\n    \"_school\": \"60c72b2f5f1b2c001c4f8b3e\",\n    \"academicYear\": \"2024-2025\",\n    \"availableClasses\": [\n      {\n        \"grade\": \"1\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 500,\n        \"salary\": 2000\n      },\n      {\n        \"grade\": \"2\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 600,\n        \"salary\": 2200\n      }\n    ],\n    \"busFee\": {\n      \"0-5\": 600,\n      \"6-10\": 800\n    },\n    \"isActive\": true\n  },\n  \"AllClass\": [\n    {\n      \"_id\": \"60c72b2f5f1b2c001c4f8b4f\",\n      \"name\": \"1\",\n      \"section\": \"A\",\n      \"academicYear\": \"2024-2025\",\n      \"_school\": \"60c72b2f5f1b2c001c4f8b3e\"\n    },\n    {\n      \"_id\": \"60c72b2f5f1b2c001c4f8b50\",\n      \"name\": \"2\",\n      \"section\": \"A\",\n      \"academicYear\": \"2024-2025\",\n      \"_school\": \"60c72b2f5f1b2c001c4f8b3e\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Settings not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Permission-Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "put",
+    "url": "/admin/updatesettings",
+    "title": "Update Settings",
+    "name": "UpdateClassSettings",
+    "group": "Settings",
+    "description": "<p>This endpoint updates the class settings, including available classes, bus fees, and the active status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin or super admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "availableClasses",
+            "description": "<p>List of available classes with details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "busFee",
+            "description": "<p>The updated bus fee structure (e.g., { &quot;0-5&quot;: 600, &quot;6-10&quot;: 800 }).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isActive",
+            "description": "<p>Indicates if the settings should be active or not.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "academicYear",
+            "description": "<p>&quot;2024-2025&quot;</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"availableClasses\": [\n    {\n      \"grade\": \"1\",\n      \"section\": [\"A\", \"B\"],\n      \"monthlyFee\": 500,\n      \"salary\": 2000\n    },\n    {\n      \"grade\": \"2\",\n      \"monthlyFee\": 600,\n      \"salary\": 2200\n    }\n  ],\n  \"busFee\": {\n    \"0-5\": 600,\n    \"6-10\": 800\n  },\n  \"isActive\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Class settings updated successfully\",\n  \"updatedSettings\": {\n    \"_school\": \"60c72b2f5f1b2c001c4f8b3e\",\n    \"academicYear\": \"2024-2025\",\n    \"availableClasses\": [\n      {\n        \"grade\": \"1\",\n        \"section\": [\"A\", \"B\"],\n        \"monthlyFee\": 500,\n        \"salary\": 2000\n      },\n      {\n        \"grade\": \"2\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 600,\n        \"salary\": 2200\n      }\n    ],\n    \"busFee\": {\n      \"0-5\": 600,\n      \"6-10\": 800\n    },\n    \"isActive\": true\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Settings not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Permission-Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
   },
   {
     "type": "post",
