@@ -2319,6 +2319,187 @@
   },
   {
     "type": "post",
+    "url": "/leave/get",
+    "title": "Get Leaves",
+    "description": "<p>Fetches leave applications for teachers or all teachers by admin. Teachers can filter their leaves based on leave type and status, while admins can view leaves for specific teachers or filter by leave type and status.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "leaveType",
+            "description": "<p>Filter leaves by leave type (e.g., CL, SL, PL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "status",
+            "description": "<p>Filter leaves by status (e.g., pending, approved, etc.).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "teacherId",
+            "description": "<p>Filter by a specific teacher's ID (Admin Only).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isHalfDay",
+            "description": "<p>Filter by HalfDay</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leaves\": [\n    {\n      \"_id\": \"leaveId\",\n      \"_school\": \"schoolId\",\n      \"_teacher\": \"teacherId\",\n      \"leaveType\": \"CL\",\n      \"startDate\": \"2024-11-01T00:00:00Z\",\n      \"endDate\": \"2024-11-05T00:00:00Z\",\n      \"reason\": \"Family function\",\n      \"status\": \"approved\",\n      \"appliedDate\": \"2024-10-25T00:00:00Z\",\n      \"approvedBy\": \"approverId\"\n    }\n    // More leave objects...\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostLeaveGet"
+  },
+  {
+    "type": "post",
+    "url": "/teacher/leave",
+    "title": "Apply Leave",
+    "description": "<p>Allows teachers to apply for leave by providing the necessary details.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "leaveType",
+            "description": "<p>Type of leave (CL, PL, SL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "startDate",
+            "description": "<p>Start date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "endDate",
+            "description": "<p>End date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isHalfDay",
+            "description": "<p>Indicates if the leave is a half day.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Leave applied successfully\",\n  \"leave\": {\n    \"_id\": \"leaveId\",\n    \"_school\": \"schoolId\",\n    \"_teacher\": \"teacherId\",\n    \"leaveType\": \"CL\",\n    \"startDate\": \"2024-11-01T00:00:00Z\",\n    \"endDate\": \"2024-11-05T00:00:00Z\",\n    \"reason\": \"Family function\",\n    \"isHalfDay\": false,\n    \"appliedDate\": \"2024-10-25T00:00:00Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response (Missing startDate):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"startDate is required\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad Request Response (Invalid leaveType):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Invalid leave type. Must be one of CL, PL, or SL\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "POST /api/leaves/apply\nAuthorization: Bearer <token>\n{\n  \"leaveType\": \"CL\",\n  \"startDate\": \"2024-11-01\",\n  \"endDate\": \"2024-11-05\",\n  \"reason\": \"Family function\",\n  \"isHalfDay\": false\n}",
+        "type": "http"
+      }
+    ],
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostTeacherLeave"
+  },
+  {
+    "type": "post",
     "url": "/message/createthread/:userId",
     "title": "Create ChatThread",
     "name": "CreateChatThread",
