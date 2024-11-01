@@ -91,7 +91,7 @@ module.exports = {
   async getAllTeachers(req, res) {
     try {
       const { _school, loginType } = req.user;
-      const { pageNumber, pageSize } = req.body;
+      let { pageNumber, pageSize } = req.body;
 
       if (pageNumber === undefined) {
         pageNumber = 1;
@@ -228,34 +228,23 @@ module.exports = {
   async find(req, res) {
     try {
       const { isSuperAdmin, loginType, _school } = req.user;
-      const { searchText, pageNumber, pageSize } = req.body;
+      const { searchText, pageNumber = 1, pageSize = 10 } = req.body;
 
-      //error user is either a superadmin or an admin
+      // Error if the user is not a super admin or admin
       if (!(loginType === "admin" || isSuperAdmin === true)) {
         return res
           .status(403)
           .json({ error: true, reason: "Unauthorized access" });
       }
 
-      if (pageNumber === undefined) {
-        pageNumber = 1;
-      } else {
-        pageNumber = Number(pageNumber);
-      }
-      // here check pagesize else set default
-      if (pageSize === undefined) {
-        pageSize = 10;
-      } else {
-        pageSize = Number(pageSize);
-      }
       const skipNumber = (pageNumber - 1) * pageSize;
 
-      const query = {
+      let query = {
         loginType: "teacher",
         isActive: true,
       };
 
-      if (isSuperAdmin === false) {
+      if (!isSuperAdmin) {
         query._school = _school;
       }
 
@@ -271,13 +260,14 @@ module.exports = {
         ];
       }
 
-      const users = await User.find(query)
-        .select("-password -bankDetails -forgotpassword")
-        .skip(skipNumber)
-        .limit(pageSize)
-        .exec();
-
-      const usersCount = await User.countDocuments(query);
+      const [users, usersCount] = await Promise.all([
+        User.find(query)
+          .select("-password -bankDetails -forgotpassword")
+          .skip(skipNumber)
+          .limit(Number(pageSize))
+          .exec(),
+        User.countDocuments(query),
+      ]);
 
       if (users.length === 0) {
         return res
@@ -601,7 +591,12 @@ module.exports = {
       //     return res.status(400).json({ error: true, Error: error.message });
       //   }
       // }
-      return res.status(200).json({ error: true, user });
+
+      const response = await User.findOne({ email: user.email }).select(
+        "-forgotpassword -password -bankDetails"
+      );
+
+      return res.status(200).json({ error: true, user: response });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
