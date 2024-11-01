@@ -41,6 +41,7 @@ router.post("/admins", signup.getAllAdmin);
 router.get("/admindetails/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
 router.delete("/admin/delete/:id", signup.deleteAdmin);
+router.post("/admin/find", signup.find);
 
 //school
 router.post("/schools", school.getAllSchool);
