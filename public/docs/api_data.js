@@ -7064,6 +7064,13 @@ define({ "api": [
             "optional": true,
             "field": "academicYear",
             "description": "<p>&quot;2024-2025&quot;</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
           }
         ]
       },
