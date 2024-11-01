@@ -302,7 +302,14 @@ module.exports = {
             .json({ error: true, reason: "school not found" });
         }
         if (name !== undefined) school.name = name;
-        if (address !== undefined) school.address = address;
+        if (address !== undefined) {
+          if (address.country !== undefined)
+            school.address.country = address.country;
+          if (address.state !== undefined) school.address.state = address.state;
+          if (address.city !== undefined) school.address.city = address.city;
+          if (address.pinCode !== undefined)
+            school.address.pinCode = address.pinCode;
+        }
         if (contact !== undefined) school.contact = contact;
         if (isActive !== undefined) school.isActive = isActive;
         if (schoolType !== undefined) school.schoolType = schoolType;
