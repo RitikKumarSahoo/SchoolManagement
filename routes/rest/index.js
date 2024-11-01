@@ -29,6 +29,7 @@ const adminTeacher = require("./adminTeacher");
 const adminClassRoute = require("./adminClass");
 const adminTransaction = require("./adminTransaction");
 const adminStripe = require("../../lib/stripe");
+const leave = require("./leave");
 
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
@@ -172,5 +173,9 @@ router.post("/admin/settings", settings.get);
 router.post("/admin/setsettings", settings.setSettings);
 router.put("/admin/updatesettings", settings.updateClassSettings);
 router.delete("/admin/deletesetting", settings.deleteSetting);
+
+//Leave
+router.post("/teacher/leave", leave.applyLeave);
+router.post("/leave/get", leave.getLeaves);
 
 module.exports = router;
