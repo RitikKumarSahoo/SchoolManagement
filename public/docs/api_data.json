@@ -7837,7 +7837,7 @@
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
@@ -7881,7 +7881,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\"\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\",\n    \"address\":{\n       \"locality\":\"\",\n       \"city\":\"\",\n       \"state\":\"\",\n       \"pin\":\"\",\n       \"country\":\"\"\n     }\n  }\n}",
           "type": "json"
         }
       ]
@@ -8043,7 +8043,23 @@
             "type": "String",
             "optional": true,
             "field": "searchText",
-            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, or <code>phone</code>.</p>"
+            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>joinDate</code>,<code>gender</code> <code>phone</code>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
           }
         ]
       }
@@ -8405,7 +8421,7 @@
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
@@ -8431,7 +8447,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":\"address\",\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\"\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n},\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\"\n  }\n}",
           "type": "json"
         }
       ]
