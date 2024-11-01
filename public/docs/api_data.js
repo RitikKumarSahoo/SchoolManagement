@@ -8139,6 +8139,28 @@ define({ "api": [
         ]
       }
     },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "examples": [
         {
