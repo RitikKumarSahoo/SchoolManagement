@@ -108,6 +108,7 @@ module.exports = {
    * @apiParam {String} academicYear The academic year for the settings.
    * @apiParam {Object} busFee The bus fee structure (e.g., { "0-5": 600, "6-10": 800 }).
    * @apiParam {String} [schoolId] Optional school ID for super admins to set settings for a specific school.
+   * @apiParam {Number} salary salary of teacher
    *
    * @apiParamExample {json} Request-Example:
    *     {
