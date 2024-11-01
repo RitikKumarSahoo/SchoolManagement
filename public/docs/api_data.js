@@ -6969,6 +6969,13 @@ define({ "api": [
             "optional": true,
             "field": "schoolId",
             "description": "<p>Optional school ID for super admins to set settings for a specific school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
           }
         ]
       },
