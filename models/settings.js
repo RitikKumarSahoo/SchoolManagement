@@ -5,7 +5,8 @@ const settingSchema = new mongoose.Schema({
     {
       grade: { type: String },
       section: [String],
-      monthlyFee: { type: Number },
+      monthlyFee: { type: Number }, // student Fee
+      salary: { type: Number }, //teacher salary
     },
   ],
 
