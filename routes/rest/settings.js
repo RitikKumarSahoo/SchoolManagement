@@ -100,7 +100,7 @@ module.exports = {
    * @api {post} /admin/setsettings Set Settings
    * @apiName SetSettings
    * @apiGroup Settings
-   * @apiDescription This endpoint is used to set or update the school settings, including available classes, academic year, bus fees, and more.
+   * @apiDescription This endpoint is used to set the school settings, including available classes, academic year, bus fees, and more.
    *
    * @apiHeader {String} Authorization Bearer token for admin or super admin access.
    *

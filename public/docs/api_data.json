@@ -6925,7 +6925,7 @@
     "title": "Set Settings",
     "name": "SetSettings",
     "group": "Settings",
-    "description": "<p>This endpoint is used to set or update the school settings, including available classes, academic year, bus fees, and more.</p>",
+    "description": "<p>This endpoint is used to set the school settings, including available classes, academic year, bus fees, and more.</p>",
     "header": {
       "fields": {
         "Header": [
