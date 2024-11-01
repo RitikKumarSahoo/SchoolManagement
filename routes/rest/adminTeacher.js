@@ -152,7 +152,9 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token for admin or super admin access.
    *
-   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, or `phone`.
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, `joinDate`,`gender` `phone`.
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
    *
    * @apiSuccessExample {json} Success-Response:
    * HTTP/1.1 200 OK
@@ -200,7 +202,7 @@ module.exports = {
   async find(req, res) {
     try {
       const { isSuperAdmin, loginType, _school } = req.user;
-      const { searchText } = req.body;
+      const { searchText, pageNumber, pageSize } = req.body;
 
       //error user is either a superadmin or an admin
       if (!(loginType === "admin" || isSuperAdmin === true)) {
@@ -208,6 +210,19 @@ module.exports = {
           .status(403)
           .json({ error: true, reason: "Unauthorized access" });
       }
+
+      if (pageNumber === undefined) {
+        pageNumber = 1;
+      } else {
+        pageNumber = Number(pageNumber);
+      }
+      // here check pagesize else set default
+      if (pageSize === undefined) {
+        pageSize = 10;
+      } else {
+        pageSize = Number(pageSize);
+      }
+      const skipNumber = (pageNumber - 1) * pageSize;
 
       const query = {
         loginType: "teacher",
@@ -225,12 +240,17 @@ module.exports = {
           { lastName: { $regex: searchRegex } },
           { email: { $regex: searchRegex } },
           { phone: { $regex: searchRegex } },
+          { gender: { $regex: searchText } },
+          { joinDate: { $regex: searchText } },
         ];
       }
 
-      const users = await User.find(query).select(
-        "-password -bankDetails -forgotpassword"
-      );
+      const users = await User.find(query)
+        .select("-password -bankDetails -forgotpassword")
+        .skip(skipNumber)
+        .limit(pageSize)
+        .exec();
+
       const usersCount = await User.countDocuments(query);
 
       if (users.length === 0) {
@@ -314,7 +334,6 @@ module.exports = {
 
       const query = {
         loginType: "teacher",
-        isActive: true,
         _id: req.params.id,
       };
 
@@ -353,7 +372,7 @@ module.exports = {
    * @apiParam {String} dob Date of birth of the teacher in DD/MM/YYYY format.
    * @apiParam {String} [signature] Optional signature of the teacher.
    * @apiParam {Object} [bankDetails] Optional bank details of the teacher.
-   * @apiParam {String} [address] address of the teacher
+   * @apiParam {Object} [address] address of the teacher
    * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [schoolId] school id(only use when superadmin will create )
    *
@@ -373,7 +392,14 @@ module.exports = {
    *     "dob": "1990-01-01T00:00:00.000Z",
    *     "username": "Joh1230",
    *     "isActive": true,
-   *     "customerStripeId": "cus_123456789"
+   *     "customerStripeId": "cus_123456789",
+   *     "address":{
+   *        "locality":"",
+   *        "city":"",
+   *        "state":"",
+   *        "pin":"",
+   *        "country":""
+   *      }
    *   }
    * }
    *
@@ -532,23 +558,23 @@ module.exports = {
         .lean()
         .exec();
 
-      if (user.email !== undefined) {
-        try {
-          await mail("teacher-welcome", {
-            to: user.email,
-            subject: `Welcome to ${schoolName.name}`,
-            locals: {
-              username,
-              firstName,
-              password,
-              schoolName: schoolName.name,
-            },
-          });
-        } catch (error) {
-          console.error(error).message;
-          return res.status(400).json({ error: true, Error: error.message });
-        }
-      }
+      // if (user.email !== undefined) {
+      //   try {
+      //     await mail("teacher-welcome", {
+      //       to: user.email,
+      //       subject: `Welcome to ${schoolName.name}`,
+      //       locals: {
+      //         username,
+      //         firstName,
+      //         password,
+      //         schoolName: schoolName.name,
+      //       },
+      //     });
+      //   } catch (error) {
+      //     console.error(error).message;
+      //     return res.status(400).json({ error: true, Error: error.message });
+      //   }
+      // }
       return res.status(200).json({ error: true, user });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
@@ -571,7 +597,7 @@ module.exports = {
    * @apiParam {Boolean} [isActive] Indicates if the teacher is active.
    * @apiParam {String} [phone] Teacher's phone number.
    * @apiParam {Object} [bankDetails] Teacher's bank details.
-   * @apiParam {String} [address] address of the teacher
+   * @apiParam {Object} [address] address of the teacher
    * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [_school]  school id
    *
@@ -589,7 +615,13 @@ module.exports = {
    *       "accountNumber": "123456789",
    *       "ifscCode": "IFSC0001"
    *     }
-   *    "address":"address",
+   *    "address":{
+   *    "locality":"",
+   *    "city":"",
+   *    "state":"",
+   *    "pin":"",
+   *    "country":""
+   * },
    *    "_school":"schoolid",
    *    "profileImage":""
    *   }
@@ -669,7 +701,15 @@ module.exports = {
         user.bankAdded = true;
       }
       if (email !== undefined) user.email = email;
-      if (address !== undefined) user.address = address;
+      if (address !== undefined) {
+        if (address.locality !== undefined)
+          user.address.locality = address.locality;
+        if (address.state !== undefined) user.address.state = address.state;
+        if (address.city !== undefined) user.address.city = address.city;
+        if (address.pin !== undefined) user.address.pin = address.pin;
+        if (address.country !== undefined)
+          user.address.country = address.country;
+      }
       if (profileImage !== undefined) user.profileImage = profileImage;
 
       await user.save();
