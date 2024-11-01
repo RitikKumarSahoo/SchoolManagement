@@ -38,6 +38,9 @@ module.exports = {
    * @apiDescription Retrieves all teachers belonging to the school
    *
    * @apiHeader {String} Authorization Bearer token for admin authentication.
+   *
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
    *  {
@@ -88,11 +91,30 @@ module.exports = {
   async getAllTeachers(req, res) {
     try {
       const { _school, loginType } = req.user;
+      const { pageNumber, pageSize } = req.body;
+
+      if (pageNumber === undefined) {
+        pageNumber = 1;
+      } else {
+        pageNumber = Number(pageNumber);
+      }
+      // here check pagesize else set default
+      if (pageSize === undefined) {
+        pageSize = 10;
+      } else {
+        pageSize = Number(pageSize);
+      }
+      const skipNumber = (pageNumber - 1) * pageSize;
+
       if (loginType === "admin") {
         const teachers = await User.find({
           loginType: "teacher",
           _school: _school,
-        }).select("-password -bankDetails -forgotpassword");
+        })
+          .select("-password -bankDetails -forgotpassword")
+          .skip(skipNumber)
+          .limit(pageSize)
+          .exec();
 
         if (teachers.length === 0) {
           return res.status(404).json({
@@ -116,7 +138,11 @@ module.exports = {
       if (req.user.isSuperAdmin === true) {
         const teachers = await User.find({
           loginType: "teacher",
-        }).select("-password -bankDetails -forgotpassword");
+        })
+          .select("-password -bankDetails -forgotpassword")
+          .skip(skipNumber)
+          .limit(pageSize)
+          .exec();
 
         if (teachers.length === 0) {
           return res.status(404).json({
