@@ -16,6 +16,8 @@ module.exports = {
    * @apiDescription Fetch all admin users
    *
    * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
    *
    * @apiSuccessExample {json} Success Response:
    *     HTTP/1.1 200 OK
@@ -62,6 +64,7 @@ module.exports = {
   async getAllAdmin(req, res) {
     try {
       const { isSuperAdmin } = req.user;
+      let { pageNumber = 1, pageSize = 10 } = req.body;
 
       if (isSuperAdmin !== true) {
         return res
@@ -69,10 +72,15 @@ module.exports = {
           .json({ error: true, reason: "You are not superAdmin" });
       }
 
+      const skipNumber = (pageNumber - 1) * pageSize;
       const admins = await User.find({
         loginType: "admin",
         isSuperAdmin: false,
-      }).select("-password -forgotpassword -isSuperAdmin");
+      })
+        .select("-password -forgotpassword -isSuperAdmin")
+        .skip(skipNumber)
+        .limit(Number(pageSize))
+        .exec();
 
       const totalAdmins = await User.countDocuments({
         loginType: "admin",
@@ -238,7 +246,7 @@ module.exports = {
    * @apiGroup User
    * @apiPermission Admin,superAdmin
    *
-   * @apiParam {String} id The ID of the user to deactivate.
+   * @apiParam {String} id The ID of the user
    * @apiParam {Boolean} flag true or false
    *
    * @apiError {Boolean} error Indicates whether an error occurred (true when an error occurred).

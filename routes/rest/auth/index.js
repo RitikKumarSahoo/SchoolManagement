@@ -164,12 +164,12 @@ module.exports = {
         dob,
         profileImage,
         admissionYear,
-        rollNo,
         _class,
         guardian,
         joinDate,
         leaveDate,
         _school,
+        rollNo,
       } = req.body;
       const { isSuperAdmin, loginType } = req.user;
 
@@ -181,7 +181,7 @@ module.exports = {
         if (user === null) {
           return res.status(400).json({
             error: true,
-            reason: "You are not authorized to update this user",
+            reason: "user not found",
           });
         }
 
@@ -189,7 +189,16 @@ module.exports = {
         if (lastName !== undefined) user.lastName = lastName;
         if (phone !== undefined) user.phone = phone;
         if (email !== undefined) user.email = email;
-        if (address !== undefined) user.address = address;
+        if (address !== undefined) {
+          if (address.locality !== undefined) {
+            user.address.locality = address.locality;
+          }
+          if (address.state !== undefined) user.address.state = address.state;
+          if (address.city !== undefined) user.address.city = address.city;
+          if (address.pin !== undefined) user.address.pin = address.pin;
+          if (address.country !== undefined)
+            user.address.country = address.country;
+        }
         if (gender !== undefined) user.gender = gender;
         if (dob !== undefined) user.dob = dob;
         if (profileImage !== undefined) user.profileImage = profileImage;
@@ -197,6 +206,7 @@ module.exports = {
         if (_school !== undefined) user._school = _school;
         if (joinDate !== undefined) user.joinDate = joinDate;
         if (leaveDate !== undefined) user.leaveDate = leaveDate;
+        if (rollNo !== undefined) user.rollNo = rollNo;
 
         await user.save();
 
@@ -223,7 +233,16 @@ module.exports = {
         if (lastName !== undefined) user.lastName = lastName;
         if (phone !== undefined) user.phone = phone;
         if (email !== undefined) user.email = email;
-        if (address !== undefined) user.address = address;
+        if (address !== undefined) {
+          if (address.locality !== undefined) {
+            user.address.locality = address.locality;
+          }
+          if (address.state !== undefined) user.address.state = address.state;
+          if (address.city !== undefined) user.address.city = address.city;
+          if (address.pin !== undefined) user.address.pin = address.pin;
+          if (address.country !== undefined)
+            user.address.country = address.country;
+        }
         if (gender !== undefined) user.gender = gender;
         if (dob !== undefined) user.dob = dob;
         if (profileImage !== undefined) user.profileImage = profileImage;
