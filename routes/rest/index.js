@@ -8,7 +8,7 @@ const checkJwt = expressJwt({
 }); // the JWT auth check middleware
 
 const users = require("./users");
-const login = require("./auth");
+const login = require("./auth/index");
 const signup = require("./auth/signup");
 const forgotpassword = require("./auth/password");
 const school = require("../rest/school");

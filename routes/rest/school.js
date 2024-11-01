@@ -118,6 +118,7 @@ module.exports = {
         establishYear,
         pfname,
         plname,
+        joinDate,
       } = req.body;
       const { isSuperAdmin } = req.user;
       if (isSuperAdmin !== true) {
@@ -208,19 +209,19 @@ module.exports = {
         gender,
         address,
         profileImage,
-        joinDate: new Date(),
+        joinDate: joinDate || new Date(),
       });
 
-      await mail("admin-welcome", {
-        to: email,
-        subject: `Welcome to ${newSchool.name}`,
-        locals: {
-          username,
-          firstName,
-          password,
-          schoolName: newSchool.name,
-        },
-      });
+      // await mail("admin-welcome", {
+      //   to: email,
+      //   subject: `Welcome to ${newSchool.name}`,
+      //   locals: {
+      //     username,
+      //     firstName,
+      //     password,
+      //     schoolName: newSchool.name,
+      //   },
+      // });
       return res.status(201).json({
         error: false,
         message: "Admin successfully created.",
