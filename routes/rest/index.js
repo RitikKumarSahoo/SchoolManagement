@@ -176,5 +176,6 @@ router.delete("/admin/deletesetting", settings.deleteSetting);
 //Leave
 router.post("/teacher/leave", leave.applyLeave);
 router.post("/leave/get", leave.getLeaves);
+router.post("/leave/find", leave.find);
 
 module.exports = router;

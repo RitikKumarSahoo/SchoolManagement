@@ -3,6 +3,85 @@ const User = require("../../models/user/index");
 
 module.exports = {
   /**
+   * @api {post} /leave/find Find Teacher Leaves
+   * @apiName FindTeacherLeaves
+   * @apiGroup Leaves
+   * @apiPermission Teacher
+   *
+   * @apiDescription This endpoint allows teachers to retrieve their leave requests with optional filtering by leave type, reason, or status.
+   *
+   * @apiBody {String} [searchText] Optional search text to filter leaves based on leave type, reason, or status.
+   * @apiBody {Number} [pageNumber=1] The page number for pagination.
+   * @apiBody {Number} [pageSize=10] The number of records per page for pagination.
+   *
+   * @apiError {Boolean} error Indicates if there was an error (true if there was an error).
+   * @apiError {String} reason The reason for the error.
+   *
+   * @apiErrorExample {json} Unauthorized Access
+   *     HTTP/1.1 403 Forbidden
+   *     {
+   *       "error": true,
+   *       "reason": "Unauthorized access. Only teachers can view this data."
+   *     }
+   *
+   * @apiErrorExample {json} No Leaves Found
+   *     HTTP/1.1 404 Not Found
+   *     {
+   *       "error": true,
+   *       "reason": "No leaves found"
+   *     }
+   *
+   * @apiErrorExample {json} Server Error
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "reason": "Error message"
+   *     }
+   */
+
+  async find(req, res) {
+    try {
+      const { loginType, _school } = req.user;
+      let { searchText, pageNumber = 1, pageSize = 10 } = req.body;
+
+      // Error if the user is not a super admin or admin
+      if (!(loginType === "teacher")) {
+        return res
+          .status(403)
+          .json({ error: true, reason: "you are not teacher" });
+      }
+
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      let query = {
+        _teacher: req.user._id,
+        _school,
+      };
+
+      if (searchText) {
+        const searchRegex = new RegExp(searchText.trim(), "i");
+        query.$or = [
+          { leaveType: { $regex: searchRegex } },
+          { reason: { $regex: searchRegex } },
+          { status: { $regex: searchRegex } },
+        ];
+      }
+
+      const [leaves] = await Promise.all([
+        Leave.find(query).skip(skipNumber).limit(Number(pageSize)).exec(),
+      ]);
+
+      if (leaves.length === 0) {
+        return res.status(404).json({ error: true, reason: "Not found" });
+      }
+
+      return res.status(200).json({ error: false, leaves });
+    } catch (error) {
+      return res.status(500).json({ error: true, reason: error.message });
+    }
+  },
+
+  /**
    * @api {post} /teacher/leave Apply Leave
    * @apiDescription Allows teachers to apply for leave by providing the necessary details.
    * @apiVersion 1.0.0
