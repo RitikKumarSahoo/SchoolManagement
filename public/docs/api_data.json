@@ -1158,7 +1158,7 @@
   },
   {
     "type": "get",
-    "url": "/attendance/percentage",
+    "url": "/attendance/percentage/id",
     "title": "Student_Attendance_Percentage",
     "name": "GetStudentAttendancePercentage",
     "group": "Attendance",
