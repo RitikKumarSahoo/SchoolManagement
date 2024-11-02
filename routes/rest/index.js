@@ -40,7 +40,7 @@ router.post("/activatedeactivate/:id", signup.Deactive);
 router.post("/admins", signup.getAllAdmin);
 router.get("/admindetails/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
-router.delete("/admin/delete/:id", signup.deleteAdmin);
+router.delete("/admin/delete/:id", signup.deleteUser);
 router.post("/admin/find", signup.find);
 router.post("/createadmin/:id", login.createAdmin);
 
