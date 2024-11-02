@@ -274,16 +274,17 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/delete/:id Delete Admin User
+   * @api {delete} /admin/delete/:id  Delete superadmin can delete admin and admin can delete student and teacher
    * @apiName DeleteAdmin
    * @apiGroup Admin
-   * @apiPermission SuperAdmin
+   * @apiPermission SuperAdmin,admin
    *
-   * @apiDescription This endpoint allows a SuperAdmin to delete an admin user.
+   * @apiDescription superadmin can delete admin and admin can delete student and teacher
+   * @apiName DeleteUser
    *
    * @apiHeader {String} Authorization Bearer token for authentication.
    *
-   * @apiParam {String} id The ID of the admin user to delete.
+   * @apiParam {String} id The ID of  user to delete.
    *
    * @apiError {Boolean} error Indicates if there was an error (true if an error occurred).
    * @apiError {String} reason Explanation of the error.
@@ -317,32 +318,41 @@ module.exports = {
    *    }
    */
 
-  async deleteAdmin(req, res) {
+  async deleteUser(req, res) {
     try {
-      const { isSuperAdmin } = req.user;
+      const { isSuperAdmin, loginType, _school } = req.user;
+      const user = await User.findOne({ _id: req.params.id });
+
+      if (user === null) {
+        return res.status(400).json({ error: true, reason: "User not found" });
+      }
 
       // Check if the user is a superadmin
-      if (isSuperAdmin === false) {
-        return res.status(403).json({
-          error: true,
-          reason: "You are not authorized to delete an admin",
+      if (isSuperAdmin === true) {
+        await user.deleteOne({ _id: req.params.id });
+        return res.status(200).json({
+          error: false,
+          message: "Admin deleted",
         });
       }
 
-      const admin = await User.findOne({
-        _id: req.params.id,
-        loginType: "admin",
-      });
+      // admin can delete only teacher and student
+      if (loginType === "admin") {
+        if (user.loginType === "student" || user.loginType === "teacher") {
+          if (user._school.toString() !== _school.toString()) {
+            return res
+              .status(400)
+              .json({ error: false, reason: "not in same school" });
+          }
 
-      if (admin === null) {
-        return res.status(404).json({ error: true, reason: "Admin not found" });
+          user.isActive = flag;
+          await user.save();
+          return res.status(200).json({ error: false });
+        }
       }
-
-      await admin.deleteOne({ _id: req.params.id });
-
-      return res.status(200).json({
-        error: false,
-        message: "Admin deleted successfully.",
+      return res.status(400).json({
+        error: true,
+        reason: "You are not authorized to delete user",
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
