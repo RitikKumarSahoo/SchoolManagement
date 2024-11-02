@@ -322,15 +322,15 @@ define({ "api": [
   {
     "type": "delete",
     "url": "/admin/delete/:id",
-    "title": "Delete Admin User",
-    "name": "DeleteAdmin",
+    "title": "Delete superadmin can delete admin and admin can delete student and teacher",
+    "name": "DeleteUser",
     "group": "Admin",
     "permission": [
       {
-        "name": "SuperAdmin"
+        "name": "SuperAdmin,admin"
       }
     ],
-    "description": "<p>This endpoint allows a SuperAdmin to delete an admin user.</p>",
+    "description": "<p>superadmin can delete admin and admin can delete student and teacher</p>",
     "header": {
       "fields": {
         "Header": [
@@ -352,7 +352,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>The ID of the admin user to delete.</p>"
+            "description": "<p>The ID of  user to delete.</p>"
           }
         ]
       }
