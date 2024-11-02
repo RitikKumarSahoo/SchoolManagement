@@ -3,6 +3,7 @@ const School = require("../../models/school");
 const Class = require("../../models/class");
 const Attendance = require("../../models/attendance");
 const CheckIn = require("../../models/teachersCheckin");
+const Settings = require("../../models/settings");
 const moment = require("moment");
 
 module.exports = {
@@ -77,9 +78,16 @@ module.exports = {
         .select("_id RollNo name gender phone firstName lastName email")
         .lean();
 
+      const totalStudents = await students.countDocuments();
+
       return res
         .status(200)
-        .json({ error: false, students, classId: classExist._id });
+        .json({
+          error: false,
+          students,
+          totalStudents,
+          classId: classExist._id,
+        });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error });
     }
