@@ -80,14 +80,12 @@ module.exports = {
 
       const totalStudents = await students.countDocuments();
 
-      return res
-        .status(200)
-        .json({
-          error: false,
-          students,
-          totalStudents,
-          classId: classExist._id,
-        });
+      return res.status(200).json({
+        error: false,
+        students,
+        totalStudents,
+        classId: classExist._id,
+      });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error });
     }
@@ -288,7 +286,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /attendance/percentage Student_Attendance_Percentage
+   * @api {get} /attendance/percentage/id Student_Attendance_Percentage
    * @apiName GetStudentAttendancePercentage
    * @apiGroup Attendance
    *
@@ -331,11 +329,9 @@ module.exports = {
    */
   async getStudentAttendancePercentage(req, res) {
     try {
-      const { studentId } = req.body;
-
       // Step 1: Find the student in the database
       const student = await User.findOne({
-        _id: studentId,
+        _id: req.params.id,
         loginType: "student",
       }).populate("_class");
 
@@ -446,10 +442,10 @@ module.exports = {
 
       const student = await User.findOne({
         _id: id,
-        loginType: { $in: ["student", "admin"] },
+        loginType: { $in: ["student"] },
       });
-      if (!student) {
-        return res.status(403).json({ error: true, reason: "no permission" });
+      if (student === null) {
+        return res.status(403).json({ error: true, reason: "user not found" });
       }
 
       let attendanceRecords = await Attendance.find({
@@ -558,7 +554,7 @@ module.exports = {
       if (!teacher) {
         return res.status(400).json({
           error: true,
-          reason: "You are not a teacher",
+          reason: "You do not have permission to update",
         });
       }
 
