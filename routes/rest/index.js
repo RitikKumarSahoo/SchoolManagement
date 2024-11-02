@@ -67,7 +67,10 @@ const uplodFile = multer();
 router.post("/class/students", attendance.getClassStudentsForAttendance); //specific class
 router.post("/markattendance", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
-router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
+router.get(
+  "/attendance/percentage/:id",
+  attendance.getStudentAttendancePercentage
+);
 router.get("/attendance/viewattendance", attendance.viewAttendance);
 router.put("/attendance/update", attendance.updateAttendance);
 
