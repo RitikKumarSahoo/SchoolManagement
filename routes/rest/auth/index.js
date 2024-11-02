@@ -1,6 +1,31 @@
 const jwt = require("jsonwebtoken");
 
 const User = require("../../../models/user");
+const School = require("../../../models/school");
+const randomstring = require("randomstring");
+const mail = require("../../../lib/mail");
+const moment = require("moment");
+
+function generateCustomPassword() {
+  const upperCaseLetter = randomstring.generate({
+    length: 1,
+    charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  });
+  const lowerCaseLetters = randomstring.generate({
+    length: 3,
+    charset: "abcdefghijklmnopqrstuvwxyz",
+  });
+  const specialChar = randomstring.generate({
+    length: 1,
+    charset: "!@#$%^&*()_+[]{}|;:,.<>?/",
+  });
+  const numbers = randomstring.generate({
+    length: 3,
+    charset: "0123456789",
+  });
+  const password = upperCaseLetter + lowerCaseLetters + specialChar + numbers;
+  return password;
+}
 
 module.exports = {
   /**
@@ -267,6 +292,195 @@ module.exports = {
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
+    }
+  },
+
+  /**
+   * @api {post} /createadmin/:id Create a new Admin
+   * @apiName CreateAdmin
+   * @apiGroup Admin
+   * @apiPermission SuperAdmin
+   *
+   * @apiDescription This endpoint allows a super admin to create a new admin for a specific school.
+   *
+   * @apiParam {String} id The ID of the school to which the admin belongs (in URL parameter).
+   * @apiParam {String} firstName The first name of the admin.
+   * @apiParam {String} lastName The last name of the admin.
+   * @apiParam {String} phone The phone number of the admin (must be unique).
+   * @apiParam {String} email The email address of the admin (must be unique).
+   * @apiParam {Object} address The address of the admin.
+   * @apiParam {String} gender The gender of the admin.
+   * @apiParam {String} dob The date of birth of the admin (format: DD/MM/YYYY).
+   * @apiParam {String} profileImage The URL of the profile image of the admin.
+   * @apiParam {String} joinDate The join date of the admin.
+   * @apiParam {Object} bankDetails The bank details of the admin (optional).
+   * @apiParam {String} signature The digital signature of the admin.
+   *
+   * @apiErrorExample {json} Unauthorized Access
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "You are not superadmin"
+   *     }
+   *
+   * @apiErrorExample {json} Email or Phone Exists
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "Email already in use, please provide a unique email"
+   *     }
+   *
+   * @apiErrorExample {json} Invalid Date Format
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "Invalid date of birth format. Use DD/MM/YYYY."
+   *     }
+   *
+   * @apiErrorExample {json} Server Error
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "Error": "An error message"
+   *     }
+   */
+
+  async createAdmin(req, res) {
+    try {
+      const {
+        firstName,
+        lastName,
+        phone,
+        email,
+        address,
+        gender,
+        dob,
+        profileImage,
+        joinDate,
+        bankDetails,
+        signature,
+      } = req.body;
+
+      if (req.user.isSuperAdmin !== true) {
+        return res
+          .status(400)
+          .json({ error: false, reason: "You are not superadmin" });
+      }
+
+      if (firstName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "First name is required" });
+      }
+      if (lastName === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Last name is required" });
+      }
+      if (gender === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Gender is required" });
+      }
+
+      if (phone === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Phone number is required" });
+      }
+
+      if (email === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "email is required" });
+      }
+
+      const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+      if (!dateOfBirth.isValid()) {
+        return res.status(400).json({
+          error: true,
+          message: "Invalid date of birth format. Use DD/MM/YYYY.",
+        });
+      }
+
+      // check user already exists
+      const checkUserData = await User.findOne({ email })
+        .select("email phone")
+        .exec();
+
+      if (checkUserData !== null) {
+        // if email match
+        if (
+          email !== undefined &&
+          checkUserData.email === email.toLowerCase()
+        ) {
+          throw new Error("Email already use, please provide an unique email");
+        }
+
+        // if phone match
+        if (checkUserData.phone === phone) {
+          throw new Error(
+            "Phone number already use, please provide an unique phone number"
+          );
+        }
+      }
+
+      const randomStr = generateCustomPassword();
+      const existSchool = await School.findOne({ _id: req.params.id })
+        .select("_id name")
+        .exec();
+
+      const username =
+        firstName.slice(0, 3) + existSchool.name.slice(0, 3) + phone.slice(-3);
+      const password = randomStr;
+
+      const user = await User.create({
+        firstName,
+        lastName,
+        gender,
+        email,
+        dob: dateOfBirth,
+        _school: existSchool._id,
+        _addedBy: req.user.id,
+        joinDate,
+        signature,
+        username,
+        phone,
+        password,
+        loginType: "admin",
+        bankDetails,
+        bankAdded: bankDetails !== undefined ? true : false,
+        isActive: true,
+        address,
+        isSuperAdmin: false,
+        profileImage,
+      });
+
+      if (user.email !== undefined) {
+        try {
+          await mail("admin-welcome", {
+            to: user.email,
+            subject: `Welcome to ${existSchool.name}`,
+            locals: {
+              username,
+              firstName,
+              password,
+              schoolName: existSchool.name,
+            },
+          });
+        } catch (error) {
+          console.error(error).message;
+          return res.status(400).json({ error: true, Error: error.message });
+        }
+      }
+
+      const response = await User.findOne({ email: user.email }).select(
+        "-forgotpassword -password -bankDetails"
+      );
+
+      return res.status(200).json({ error: true, user: response });
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message });
     }
   },
 };
