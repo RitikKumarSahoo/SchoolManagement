@@ -78,16 +78,13 @@ module.exports = {
         .select("_id RollNo name gender phone firstName lastName email")
         .lean();
 
-      const totalStudents = await students.countDocuments();
-
       return res.status(200).json({
         error: false,
         students,
-        totalStudents,
         classId: classExist._id,
       });
     } catch (error) {
-      return res.status(400).json({ error: true, reason: error });
+      return res.status(400).json({ error: true, reason: error.message });
     }
   },
 
