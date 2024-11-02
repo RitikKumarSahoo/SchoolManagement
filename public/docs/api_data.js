@@ -2574,6 +2574,84 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/leave/find",
+    "title": "Find Teacher Leaves",
+    "name": "FindTeacherLeaves",
+    "group": "Leaves",
+    "permission": [
+      {
+        "name": "Teacher"
+      }
+    ],
+    "description": "<p>This endpoint allows teachers to retrieve their leave requests with optional filtering by leave type, reason, or status.</p>",
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "searchText",
+        "description": "<p>Optional search text to filter leaves based on leave type, reason, or status.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageNumber",
+        "defaultValue": "1",
+        "description": "<p>The page number for pagination.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageSize",
+        "defaultValue": "10",
+        "description": "<p>The number of records per page for pagination.</p>"
+      }
+    ],
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if there was an error).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The reason for the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access. Only teachers can view this data.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "No Leaves Found",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No leaves found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves"
+  },
+  {
+    "type": "post",
     "url": "/leave/get",
     "title": "Get Leaves",
     "description": "<p>Fetches leave applications for teachers or all teachers by admin. Teachers can filter their leaves based on leave type and status, while admins can view leaves for specific teachers or filter by leave type and status.</p>",
