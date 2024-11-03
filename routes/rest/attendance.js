@@ -185,13 +185,11 @@ module.exports = {
    *     "_id": "60c72b2f9b1e8a3b4c3e4f6c",
    *     "rollNo":"1",
    *     "isPresent": true,
-   *     "presentIds": ["60c72b2f9b1e8a3b4c3e4f6b",]
    *   },
    *  {
    *     "_id": "60c72b2f9b1e8a3b4c3e4fcd",
    *     "rollNo":"2",
    *     "isPresent": false,
-   *     "presentIds": ["60c72b2f9b1e8a3b4c3e4f6b"]
    *   }
    *   ]
    * "date": "2024-10-26T18:30:00.000Z"
