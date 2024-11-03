@@ -7771,12 +7771,12 @@ define({ "api": [
     "examples": [
       {
         "title": "Example usage (Manual Roll Number):",
-        "content": "'{\n    \"firstName\": \"June\",\n    \"lastName\": \"David\",\n    \"gender\": \"Female\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"mothersName\": \"Milli David\"\n    },\n    \"phone\": \"9080264385\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-07-02\",\n    \"rollNo\": \"R004\",  // Manually assigned roll number\n    \"classname\": \"10\",\n    \"section\": \"A\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n    \"autoAssignRoll\": false\n  }'",
+        "content": "'{\n    \"firstName\": \"June\",\n    \"lastName\": \"David\",\n    \"gender\": \"Female\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"fathersOccupation\":\"School Teacher\"\n      \"mothersName\": \"Milli David\",\n       \"mothersOccupation\":\"Housewife\"\n    },\n   \"address\":{\n     locality:\"Godrej Waterside, Salt Lake,Kolkata, 700009\",\n       \"city\":\"Kolkata\",\n       \"state\":\"West Bengal\",\n       \"pin\":\"700009\"\n       \"country\":\"India\",\n     },\n    \"phone\": \"9080264385\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-07-02\",\n    \"rollNo\": \"R004\",  // Manually assigned roll number\n    \"classname\": \"10\",\n    \"section\": \"A\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n    \"autoAssignRoll\": false\n  }'",
         "type": "json"
       },
       {
         "title": "Example usage (Auto-Assigned Roll Number):",
-        "content": "'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"Michael Doe\",\n      \"mothersName\": \"Sarah Doe\"\n    },\n    \"phone\": \"9123456789\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-08-15\",\n    \"classname\": \"10\",\n    \"section\": \"B\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic2.jpeg\",\n    \"autoAssignRoll\": true  // Roll number will be auto-assigned\n  }'",
+        "content": "'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"fathersOccupation\":\"School Teacher\"\n      \"mothersName\": \"Milli David\",\n       \"mothersOccupation\":\"Housewife\"\n    },\n\"address\":{\n     \"locality\":\"Godrej Waterside, Salt Lake,Kolkata, 700009\",\n       \"city\":\"Kolkata\",\n       \"state\":\"West Bengal\",\n       \"pin\":\"700009\",\n       \"country\":\"India\",\n     },\n    \"phone\": \"9123456789\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-08-15\",\n    \"classname\": \"10\",\n    \"section\": \"B\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic2.jpeg\",\n    \"autoAssignRoll\": true  // Roll number will be auto-assigned\n  }'",
         "type": "json"
       }
     ],
@@ -7945,6 +7945,150 @@ define({ "api": [
         "type": "json"
       }
     ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Student"
+  },
+  {
+    "type": "get",
+    "url": "/admin/lastrollnumber",
+    "title": "Get Last Roll Number of a Class",
+    "name": "GetLastRollNumber",
+    "group": "Student",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>This endpoint retrieves the last roll number of students in a class.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "className",
+            "description": "<p>The name of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year of the class.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>The response message.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "lastRollNumber",
+            "description": "<p>The last roll number of students in the class.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "401": [
+          {
+            "group": "401",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "401",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message stating the user is not authenticated.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message stating the user is not an admin.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message stating the class was not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred (true means error).</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Detailed error message for server-side issues.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin access.</p>"
+          }
+        ]
+      }
+    },
     "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"

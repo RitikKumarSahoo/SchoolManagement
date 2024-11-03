@@ -1071,6 +1071,36 @@ module.exports = {
   },
   
   // Get Last Roll No of The class and section
+  
+  /**
+   * @api {get} /admin/lastrollnumber Get Last Roll Number of a Class
+   * @apiName GetLastRollNumber
+   * @apiGroup Student
+   * @apiPermission Admin
+   *
+   * @apiDescription This endpoint retrieves the last roll number of students in a class.
+   *
+   * @apiParam {String} className The name of the class.
+   * @apiParam {String} section The section of the class.
+   * @apiParam {String} academicYear The academic year of the class.
+   *
+   * @apiSuccess {String} message The response message.
+   * @apiSuccess {Number} lastRollNumber The last roll number of students in the class.
+   *
+   * @apiError (401) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (401) {String} message Error message stating the user is not authenticated.
+   *
+   * @apiError (403) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (403) {String} message Error message stating the user is not an admin.
+   *
+   * @apiError (404) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (404) {String} message Error message stating the class was not found.
+   *
+   * @apiError (500) {Boolean} error Indicates an error occurred (true means error).
+   * @apiError (500) {String} reason Detailed error message for server-side issues.
+   *
+   * @apiHeader {String} Authorization Bearer token for admin access.
+   */
   async getLastRollNumber(req,res){
     const {loginType} = req.user;
     if(loginType!=="admin"){
