@@ -1566,7 +1566,7 @@
     "groupTitle": "Attendance"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/attendance/viewattendance",
     "title": "View Attendance Records",
     "name": "ViewAttendance",
@@ -1588,7 +1588,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"attendanceStatus\": [\n    {\n      \"date\": \"2024-10-01T00:00:00.000Z\",\n      \"isPresent\": true\n    },\n    {\n      \"date\": \"2024-10-02T00:00:00.000Z\",\n      \"isPresent\": false\n    }\n  ]\n}",
+          "content": "{\n  \"error\": false,\n  \"attendanceStatus\": [\n    {\n      \"_id\":\"attendanceId\"\n      \"date\": \"2024-10-01T00:00:00.000Z\",\n      \"isPresent\": true\n    },\n    {\n      \"_id\":\"attendanceId\"\n      \"date\": \"2024-10-02T00:00:00.000Z\",\n      \"isPresent\": false\n    }\n  ]\n}",
           "type": "json"
         }
       ]
@@ -2508,7 +2508,7 @@
     "type": "post",
     "url": "/class/students",
     "title": "Get Class Students",
-    "name": "Get_Class_Students",
+    "name": "GetClassStudentsForAttendance",
     "group": "Class",
     "header": {
       "fields": {
@@ -2538,14 +2538,21 @@
             "type": "String",
             "optional": false,
             "field": "section",
-            "description": "<p>The section of the class. Example: &quot;A&quot;.</p>"
+            "description": "<p>The section of the class (e.g., &quot;A&quot;).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": false,
             "field": "academicYear",
-            "description": "<p>The academic year for the class. Example: &quot;2024&quot;.</p>"
+            "description": "<p>The academic year of the class (e.g., &quot;2024&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>The ID of the school (required for super admins).</p>"
           }
         ]
       }
@@ -2554,16 +2561,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not teacher\"\n}",
+          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"attendancePercentage\": [\n    {\n      \"_Id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"percentage\": \"85.71\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\"\n}",
           "type": "json"
         }
       ]
