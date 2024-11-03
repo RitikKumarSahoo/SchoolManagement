@@ -2508,7 +2508,7 @@
     "type": "post",
     "url": "/class/students",
     "title": "Get Class Students",
-    "name": "GetClassStudentsForAttendance",
+    "name": "GetClassStudents",
     "group": "Class",
     "header": {
       "fields": {
@@ -2553,6 +2553,22 @@
             "optional": true,
             "field": "schoolId",
             "description": "<p>The ID of the school (required for super admins).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
           }
         ]
       }
@@ -2561,7 +2577,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"attendancePercentage\": [\n    {\n      \"_Id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"percentage\": \"85.71\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\"\n}",
+          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"attendancePercentage\": [\n    {\n      \"_Id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"percentage\": \"85.71\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\",\n  \"totalStudents\": 2\n}",
           "type": "json"
         }
       ]
