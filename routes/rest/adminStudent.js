@@ -828,11 +828,14 @@ module.exports = {
       const emailPromises = [];
       // Getting the Class Id:-
       const classDetails = await Class.findOne({ name: className, section, academicYear });
+      
+      
       // Validate if class exists
       if (!classDetails) {
         return res.status(404).json({ error: "Class not found." });
       }
       const school = await School.findOne({ _id:_school}).lean();
+      
       
       
       // Create a readable stream from the uploaded file buffer
@@ -846,32 +849,41 @@ module.exports = {
           // Generate a username based on the required format
           
           
-          const username = `${row.FirstName.slice(0, 3).toLowerCase()}${school.name.slice(0, 3).toLowerCase()}${row.Phone.slice(-3)}`;
+          const username = `${row.Firstname.slice(0, 3).toLowerCase()}${school.name.slice(0, 3).toLowerCase()}${row.Phone.slice(-3)}`;
           const password = generateCustomPassword(); // Assuming you have a function for generating a custom password
   
           // Student data preparation
           const studentData = {
             username,
             password, // Use your hashing method later when saving
-            firstName: row.FirstName,
-            lastName: row.LastName,
-            fullName: `${row.FirstName} ${row.LastName}`,
+            firstName: row.Firstname,
+            lastName: row.Lastname,
+            fullName: `${row.Firstname} ${row.Lastname}`,
             email: row.Email || "", // Optional email
             phone: row.Phone,
             gender: row.Gender,
             dob: row.Dob,
             guardian: {
-              fathersName: row.FathersName,
-              mothersName: row.MothersName
+              fathersName: row.Fathersname,
+              fathersOccupation: row.FathersOccupation,
+              mothersName: row.Mothersname,
+              mothersOccupation: row.MothersOccupation,
             },
-            admissionYear: row.JoinDate.split("-")[0], // Extract year as admissionYear
-            joinDate: row.JoinDate,
-            rollNo: row.RollNo,
+            address: {
+              locality: row.Locality,
+              city: row.City,
+              state: row.State,
+              pin: row.Pin,
+              country: row.Country,
+            },
+            admissionYear: row.Joindate.split("-")[0], // Extract year as admissionYear
+            joinDate: row.Joindate,
+            rollNo: row.Rollno,
             _addedBy: req.user._id,
             _class: classDetails._id,
             _school: _school, // Assuming _school is an object with an _id field
             loginType: "student",
-            currentAcademicYear: row.AcademicYear
+            currentAcademicYear: row.Academicyear
 
           }
 
@@ -961,6 +973,19 @@ module.exports = {
     }
   },
   
-  
-  
+  // Get Last Roll No of The class and section
+  async getLastRollNumber(req,res){
+    const {loginType} = req.user;
+    if(loginType!=="admin"){
+      return res.status(403).json({ message: 'Only admins can view student details' });
+    }
+    const {className,section,academicYear} = req.body;
+    const classData = await Class.findOne({name:className,section:section,academicYear:academicYear}).lean();
+    
+    if(!classData){
+      return res.status(404).json({ message: 'Class not found' });
+    }
+    const lastRollNumber = await users.find({_class:classData._id}).countDocuments();
+    return res.status(200).json({ message: 'Last Roll Number', lastRollNumber });
+  }
 }
