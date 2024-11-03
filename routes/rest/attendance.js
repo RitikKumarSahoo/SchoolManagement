@@ -9,7 +9,7 @@ const moment = require("moment");
 module.exports = {
   /**
    * @api {post} /class/students Get Class Students
-   * @apiName GetClassStudentsForAttendance
+   * @apiName GetClassStudents
    * @apiGroup Class
    *
    * @apiHeader {String} Authorization Bearer token for access.
@@ -18,6 +18,8 @@ module.exports = {
    * @apiParam {String} section The section of the class (e.g., "A").
    * @apiParam {String} academicYear The academic year of the class (e.g., "2024").
    * @apiParam {String} [schoolId] The ID of the school (required for super admins).
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -39,7 +41,8 @@ module.exports = {
    *       "percentage": "85.71"
    *     }
    *   ],
-   *   "classId": "670cf194dbb09a7c2b2af991"
+   *   "classId": "670cf194dbb09a7c2b2af991",
+   *   "totalStudents": 2
    * }
    */
 
@@ -47,6 +50,21 @@ module.exports = {
     try {
       const { classname, section, academicYear, schoolId } = req.body;
       const { loginType, isSuperAdmin } = req.user;
+      let { pageNumber, pageSize } = req.body;
+
+      if (pageNumber === undefined) {
+        pageNumber = 1;
+      } else {
+        pageNumber = Number(pageNumber);
+      }
+      // here check pagesize else set default
+      if (pageSize === undefined) {
+        pageSize = 10;
+      } else {
+        pageSize = Number(pageSize);
+      }
+
+      const skipNumber = (pageNumber - 1) * pageSize;
 
       if (
         !(
@@ -77,7 +95,16 @@ module.exports = {
         _school: isSuperAdmin === true ? schoolId : req.user._school,
       })
         .select("_id rollNo name gender phone firstName lastName email _school")
-        .lean();
+        .skip(skipNumber)
+        .limit(pageSize)
+        .exec();
+
+      //total Students
+      const totalStudents = await User.countDocuments({
+        _class: classExist._id,
+        loginType: "student",
+        _school: isSuperAdmin === true ? schoolId : req.user._school,
+      });
 
       // Attendance Percentage
       const totalClasses = classExist.totalClassTill;
@@ -130,6 +157,7 @@ module.exports = {
         students,
         attendancePercentage,
         classId: classExist._id,
+        totalStudents,
       });
     } catch (error) {
       return res.status(400).json({ error: true, reason: error.message });
