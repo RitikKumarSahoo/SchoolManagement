@@ -6,6 +6,10 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
+const { ApolloServer } = require("@apollo/server");
+const typeDefs = require("./graphql/schemas/index");
+const resolvers = require("./graphql/resolvers/index");
+const { expressMiddleware } = require("@apollo/server/express4");
 require("dotenv").config();
 
 const agenda = require("./agenda");
@@ -30,10 +34,27 @@ mongoose.Promise = global.Promise;
 
 // mongoose.createConnection(process.env.MONGODB_CONNECTION_STRING).asPromise();
 // mongoose.set('useFindAndModify', false);
-mongoose.connect(process.env.MONGODB_CONNECTION_STRING, {
-  useNewUrlParser: true,
-  // useCreateIndex: true,
-  useUnifiedTopology: true,
+mongoose
+  .connect(process.env.MONGODB_CONNECTION_STRING, {
+    useNewUrlParser: true,
+    // useCreateIndex: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected successfully"));
+
+// Create Apollo Server instance
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+
+async function startApolloServer() {
+  await server.start();
+  app.use("/graphql", express.json(), expressMiddleware(server)); // Use Apollo middleware
+}
+
+startApolloServer().catch((error) => {
+  console.error("Error starting Apollo Server:", error);
 });
 
 // view engine setup
