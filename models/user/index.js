@@ -20,7 +20,13 @@ const UserSchema = new mongoose.Schema({
   lastName: String,
 
   fullName: String,
-
+  address: {
+    locality: { type: String },
+    city: { type: String },
+    state: { type: String },
+    pin: { type: String },
+    country: { type: String },
+  },
   profileImage: String,
   email: {
     type: String,
@@ -80,7 +86,9 @@ const UserSchema = new mongoose.Schema({
 
   guardian: {
     fathersName: { type: String },
+    fathersOccupation: { type: String },
     mothersName: { type: String },
+    mothersOccupation: { type: String },
   },
 
   isActive: { type: Boolean, default: true },
@@ -124,9 +132,6 @@ const UserSchema = new mongoose.Schema({
   messagingEnabled: {
     type: Boolean,
     default: false,
-  },
-  address: {
-    type: String,
   },
   currentAcademicYear:{
     type: String,

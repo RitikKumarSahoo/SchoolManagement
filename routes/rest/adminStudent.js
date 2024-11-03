@@ -74,8 +74,17 @@ module.exports = {
  *     "gender": "Female",
  *     "guardian": {
  *       "fathersName": "Ryan David",
- *       "mothersName": "Milli David"
+ *       "fathersOccupation":"School Teacher"
+ *       "mothersName": "Milli David",
+ *        "mothersOccupation":"Housewife"
  *     },
+ *    "address":{
+ *      locality:"Godrej Waterside, Salt Lake,Kolkata, 700009",
+ *        "city":"Kolkata",
+ *        "state":"West Bengal",
+ *        "pin":"700009"
+ *        "country":"India",
+ *      },
  *     "phone": "9080264385",
  *     "admissionYear": 2024,
  *     "dob": "1990-07-02",
@@ -94,9 +103,18 @@ module.exports = {
  *     "lastName": "Doe",
  *     "gender": "Male",
  *     "guardian": {
- *       "fathersName": "Michael Doe",
- *       "mothersName": "Sarah Doe"
+ *       "fathersName": "Ryan David",
+ *       "fathersOccupation":"School Teacher"
+ *       "mothersName": "Milli David",
+ *        "mothersOccupation":"Housewife"
  *     },
+ * "address":{
+ *      "locality":"Godrej Waterside, Salt Lake,Kolkata, 700009",
+ *        "city":"Kolkata",
+ *        "state":"West Bengal",
+ *        "pin":"700009",
+ *        "country":"India",
+ *      },
  *     "phone": "9123456789",
  *     "admissionYear": 2024,
  *     "dob": "1990-08-15",
@@ -111,9 +129,10 @@ module.exports = {
 
   async createStudent(req, res) {
     try {
-      const { firstName, lastName, email, gender, guardian, phone, admissionYear, dob, classname, section, joinDate, signature, profileImage, autoAssignRoll = false } = req.body;
+      const { firstName, lastName, email, gender, guardian, phone, admissionYear, dob, classname, section,currentAcademicYear, 
+      signature, profileImage, autoAssignRoll = true, address} = req.body;
       let {
-        rollNo
+        rollNo,joinDate
       } = req.body
 
       const { loginType, id } = req.user;
@@ -123,10 +142,16 @@ module.exports = {
         return res.status(403).json({ error: true, message: "Unauthorized" });
       }
 
+      // Set joinDate to today's date if not provided
+    if (!joinDate) {
+      const today = new Date();
+      joinDate = today.toISOString().split('T')[0]; // Formats as "YYYY-MM-DD"
+    }
+
        // Validate required fields
-       if (!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !classname || !section || !dob || !joinDate) {
-        return res.status(400).json({ error: true, message: "All fields are required" });
-      }
+      //  if (!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !classname || !section || !dob || !joinDate) {
+      //   return res.status(400).json({ error: true, message: "All fields are required" });
+      // }
 
        // Admin manually inputs the roll number
        if (!rollNo && !autoAssignRoll) {
@@ -146,7 +171,7 @@ module.exports = {
       }
   
       // Fetch the class details (assuming _classId is derived based on classname and section)
-    const classDetails = await Class.findOne({ name: classname, section: section.toUpperCase(), _school:admin._school }).select("_id id").lean()
+    const classDetails = await Class.findOne({ name: classname, section: section.toUpperCase(), _school:admin._school,currentAcademicYear }).select("_id id").lean()
       if (!classDetails) {
         return res.status(404).json({ error: true, message: "Class not found!" });
       }
@@ -166,46 +191,7 @@ module.exports = {
         }
       }
 
-      // let newRollNo;
-      // if (autoAssignRoll) {
-      //   // Auto-assign roll number
-      //   newRollNo = studentCount + 1;
-      // } else {
-      //   // Admin manually inputs the roll number
-      //   if (!rollNo) {
-      //     return res.status(400).json({ error: true, message: "Roll number is required when autoAssignRoll is false" });
-      //   }
-  
-      //   // Check if rollNo is sequential
-      //   const lastRollNo = lastStudent ? parseInt(lastStudent.rollNo) : 0;
-      //   if (parseInt(rollNo) !== lastRollNo + 1) {
-      //     return res.status(400).json({
-      //       error: true,
-      //       message: `Roll number must be sequential. The last roll number is ${lastRollNo}, so the next roll should be ${lastRollNo + 1}.`
-      //     });
-      //   }
-  
-      //   newRollNo = rollNo;
-      // }
-  
-      // Check if roll number already exists for this class and section
-      // const existingStudent = await users.findOne({ _class: classDetails._id, classname, section, rollNo: newRollNo }).lean().exec();
-      // if (existingStudent) {
-      //   return res.status(400).json({
-      //     error: true,
-      //     message: `Roll number ${newRollNo} already exists for this class and section`,
-      //     existingStudent: {
-      //       id: existingStudent._id,
-      //       name: `${existingStudent.firstName} ${existingStudent.lastName}`,
-      //       rollNo: existingStudent.rollNo,
-      //       email: existingStudent.email
-      //     }
-      //   });
-      // }
-  
-      // Generate username and password for the student
-      // const schoolName = await School.findOne({ _id: admin._school }).select("name").exec();
-      // console.log(admin._school);
+      
       
       const username = firstName.slice(0, 3) + admin._school.name.slice(0, 3) + phone.slice(-3);
       const password = generateCustomPassword();
@@ -230,7 +216,9 @@ module.exports = {
         username,
         password,
         profileImage,
-        loginType: "student"
+        loginType: "student",
+        address,
+        
       });
   
       // Send email notification
