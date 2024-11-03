@@ -8,7 +8,7 @@ const checkJwt = expressJwt({
 }); // the JWT auth check middleware
 
 const users = require("./users");
-const login = require("./auth");
+const login = require("./auth/index");
 const signup = require("./auth/signup");
 const forgotpassword = require("./auth/password");
 const school = require("../rest/school");
@@ -16,6 +16,7 @@ const attendance = require("../rest/attendance");
 const classRoute = require("../rest/class");
 const message = require("../rest/message");
 const progressReportRoutes = require("../rest/progressReport");
+const settings = require("../../routes/rest/settings");
 
 // admin file
 const adminUsers = require("./adminUsers");
@@ -27,6 +28,7 @@ const adminTeacher = require("./adminTeacher");
 const adminClassRoute = require("./adminClass");
 const adminTransaction = require("./adminTransaction");
 const adminStripe = require("../../lib/stripe");
+const leave = require("./leave");
 
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
@@ -38,7 +40,9 @@ router.post("/activatedeactivate/:id", signup.Deactive);
 router.post("/admins", signup.getAllAdmin);
 router.get("/admindetails/:id", signup.get);
 router.put("/admin/update/:id", login.updateAdmin);
-router.delete("/admin/delete/:id", signup.deleteAdmin);
+router.delete("/admin/delete/:id", signup.deleteUser);
+router.post("/admin/find", signup.find);
+router.post("/createadmin/:id", login.createAdmin);
 
 //school
 router.post("/schools", school.getAllSchool);
@@ -60,11 +64,14 @@ const uplodFile = multer();
 // );
 // router.get("/progressReport/:id", progressReportRoutes.get);
 
-router.get("/attendance/getstudents", attendance.getClassStudentsForAttendance); //specific class
-router.post("/attendance/mark", attendance.markAttendance);
+router.post("/class/students", attendance.getClassStudentsForAttendance); //specific class
+router.post("/markattendance", attendance.markAttendance);
 router.get("/attendance/absent", attendance.getAbsentStudents);
-router.get("/attendance/percentage", attendance.getStudentAttendancePercentage);
-router.get("/attendance/viewattendance", attendance.viewAttendance);
+router.get(
+  "/attendance/percentage/:id",
+  attendance.getStudentAttendancePercentage
+);
+router.post("/attendance/viewattendance", attendance.viewAttendance);
 router.put("/attendance/update", attendance.updateAttendance);
 
 //checkin
@@ -99,9 +106,16 @@ router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
-router.post("/admin/students/bulk-upload",uplodFile.single("studentCSV"), adminStudentRoutes.bulkCreateFromCSV);
+router.post(
+  "/admin/students/bulk-upload",
+  uplodFile.single("studentCSV"),
+  adminStudentRoutes.bulkCreateFromCSV
+);
 router.put("/admin/student/:id", adminStudentRoutes.editStudentDetails);
-router.put("/admin/student/change-status/:id", adminStudentRoutes.changeStudentStatus);
+router.put(
+  "/admin/student/change-status/:id",
+  adminStudentRoutes.changeStudentStatus
+);
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
 router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
 router.get("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
@@ -141,8 +155,8 @@ router.post("/admin/transaction/create", adminTransaction.createTransaction);
 router.put("/admin/transaction/update", adminTransaction.updateTransaction);
 
 // teacher
-router.post("/admin/teacher/all", adminTeacher.getAllTeachers);
-router.get("/admin/teacher/find", adminTeacher.find);
+router.post("/admin/teachers", adminTeacher.getAllTeachers);
+router.post("/admin/teacher/find", adminTeacher.find);
 router.get("/admin/teacher/get/:id", adminTeacher.get);
 router.post("/admin/teacher/create", adminTeacher.createTeacher);
 router.put("/admin/teacher/update/:id", adminTeacher.updateTeacher);
@@ -153,5 +167,16 @@ router.post("/admin/class/create", adminClassRoute.Post);
 router.get("/admin/class/find", adminClassRoute.find);
 router.get("/admin/class/get/:id", adminClassRoute.get);
 router.post("/admin/class/assignclass", adminClassRoute.assignClass);
+
+//settings
+router.post("/admin/settings", settings.get);
+router.post("/admin/setsettings", settings.setSettings);
+router.put("/admin/updatesettings", settings.updateClassSettings);
+router.delete("/admin/deletesetting", settings.deleteSetting);
+
+//Leave
+router.post("/teacher/leave", leave.applyLeave);
+router.post("/leave/get", leave.getLeaves);
+router.post("/leave/find", leave.find);
 
 module.exports = router;

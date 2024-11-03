@@ -61,17 +61,276 @@ define({ "api": [
     "groupTitle": "Admin-User"
   },
   {
-    "type": "delete",
-    "url": "/admin/delete/:id",
-    "title": "Delete Admin User",
-    "name": "DeleteAdmin",
+    "type": "post",
+    "url": "/admin/students/bulk-upload",
+    "title": "Bulk Create Students from CSV",
+    "name": "BulkCreateStudents",
+    "group": "Admin",
+    "version": "1.0.0",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "File",
+            "optional": false,
+            "field": "file",
+            "description": "<p>The CSV file containing student data to be uploaded.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "className",
+            "description": "<p>The name of the class where students will be enrolled.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the enrollment.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating the outcome of the operation.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "totalCreated",
+            "description": "<p>The total number of students successfully created.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>The uploaded file is missing or not provided.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "Unauthorized",
+            "description": "<p>The user is not authorized to perform this action.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>The specified class was not found.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Some students failed to be created due to errors.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": \"No file uploaded.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized. Only admins can upload student data.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": \"Class not found.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"message\": \"Some students failed to be created.\",\n  \"totalCreated\": 5,\n  \"totalFailed\": 2,\n  \"failedRecords\": [\n    {\n      \"student\": \"John Doe\",\n      \"error\": \"Email already exists.\"\n    },\n    {\n      \"student\": \"Jane Smith\",\n      \"error\": \"Phone number is invalid.\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "post",
+    "url": "/createadmin/:id",
+    "title": "Create a new Admin",
+    "name": "CreateAdmin",
     "group": "Admin",
     "permission": [
       {
         "name": "SuperAdmin"
       }
     ],
-    "description": "<p>This endpoint allows a SuperAdmin to delete an admin user.</p>",
+    "description": "<p>This endpoint allows a super admin to create a new admin for a specific school.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the school to which the admin belongs (in URL parameter).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "firstName",
+            "description": "<p>The first name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "lastName",
+            "description": "<p>The last name of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>The phone number of the admin (must be unique).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>The email address of the admin (must be unique).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "address",
+            "description": "<p>The address of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "gender",
+            "description": "<p>The gender of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dob",
+            "description": "<p>The date of birth of the admin (format: DD/MM/YYYY).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "profileImage",
+            "description": "<p>The URL of the profile image of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "joinDate",
+            "description": "<p>The join date of the admin.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "bankDetails",
+            "description": "<p>The bank details of the admin (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "signature",
+            "description": "<p>The digital signature of the admin.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Unauthorized Access",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Email or Phone Exists",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Email already in use, please provide a unique email\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Invalid Date Format",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Invalid date of birth format. Use DD/MM/YYYY.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"An error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/index.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "delete",
+    "url": "/admin/delete/:id",
+    "title": "Delete superadmin can delete admin and admin can delete student and teacher",
+    "name": "DeleteUser",
+    "group": "Admin",
+    "permission": [
+      {
+        "name": "SuperAdmin,admin"
+      }
+    ],
+    "description": "<p>superadmin can delete admin and admin can delete student and teacher</p>",
     "header": {
       "fields": {
         "Header": [
@@ -93,7 +352,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>The ID of the admin user to delete.</p>"
+            "description": "<p>The ID of  user to delete.</p>"
           }
         ]
       }
@@ -140,6 +399,109 @@ define({ "api": [
         {
           "title": "Success Response:",
           "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Admin deleted successfully.\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/auth/signup.js",
+    "groupTitle": "Admin"
+  },
+  {
+    "type": "post",
+    "url": "/admin/find",
+    "title": "Find Admins",
+    "name": "FindAdmins",
+    "group": "Admin",
+    "description": "<p>Super admins can search all teachers details.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token  super admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "searchText",
+            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>joinDate</code>,<code>gender</code> <code>phone</code>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "UnauthorizedAccess",
+            "description": "<p>Unauthorized access (not an admin or super admin).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "NoTeachersFound",
+            "description": "<p>No teachers found matching the search criteria.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "NoTeachers-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "InternalServerError-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
           "type": "json"
         }
       ]
@@ -256,6 +618,28 @@ define({ "api": [
         ]
       }
     },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "examples": [
         {
@@ -360,7 +744,7 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>The new address of the user.</p>"
@@ -773,112 +1157,8 @@ define({ "api": [
     "groupTitle": "Attendance"
   },
   {
-    "type": "post",
-    "url": "/attendance/getstudents",
-    "title": "Get StudentsForAttendance",
-    "name": "GetClassStudentsForAttendance",
-    "group": "Attendance",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for teacher access.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "_class",
-            "description": "<p>The ID of the class for which students are being retrieved.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false for success).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object[]",
-            "optional": false,
-            "field": "students",
-            "description": "<p>Array of students in the specified class.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "students._id",
-            "description": "<p>The unique ID of the student.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "students.rollNo",
-            "description": "<p>The roll number of the student.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"60c72b2f9b1e8a3b4c3e4f6a\",\n      \"rollNo\": \"001\"\n    },\n    {\n      \"_id\": \"60c72b2f9b1e8a3b4c3e4f6b\",\n      \"rollNo\": \"002\"\n    }\n  ]\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>The reason for the error (e.g., &quot;You are not teacher&quot;, &quot;you are not assigned to this class&quot;).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not teacher\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/attendance.js",
-    "groupTitle": "Attendance"
-  },
-  {
     "type": "get",
-    "url": "/attendance/percentage",
+    "url": "/attendance/percentage/id",
     "title": "Student_Attendance_Percentage",
     "name": "GetStudentAttendancePercentage",
     "group": "Attendance",
@@ -1094,7 +1374,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/attendance/mark",
+    "url": "/markattendance",
     "title": "Mark Student Attendance",
     "name": "MarkAttendance",
     "group": "Attendance",
@@ -1124,9 +1404,9 @@ define({ "api": [
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
-            "field": "studentId",
-            "description": "<p>The ID of the student whose attendance is being marked.</p>"
+            "optional": true,
+            "field": "studentIds",
+            "description": "<p>The ID of the students:array format(presentIds)</p>"
           }
         ]
       }
@@ -1135,34 +1415,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendance\": {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"_class\": \"60c72b2f9b1e8a3b4c3e4f6a\",\n    \"date\": \"2024-10-04T00:00:00.000Z\",\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\"]\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (true).</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>The reason for the error (e.g., &quot;You are not a teacher&quot;, &quot;You are not assigned to this class&quot;, &quot;Student is not assigned to this class&quot;).</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not a teacher\"\n}",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendanceRecord\":[\n  {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"rollNo\":\"1\",\n    \"isPresent\": true,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\",]\n  },\n {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4fcd\",\n    \"rollNo\":\"2\",\n    \"isPresent\": false,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\"]\n  }\n  ]\n\"date\": \"2024-10-26T18:30:00.000Z\"\n}",
           "type": "json"
         }
       ]
@@ -1313,7 +1566,7 @@ define({ "api": [
     "groupTitle": "Attendance"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/attendance/viewattendance",
     "title": "View Attendance Records",
     "name": "ViewAttendance",
@@ -1335,7 +1588,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"attendanceStatus\": [\n    {\n      \"date\": \"2024-10-01T00:00:00.000Z\",\n      \"isPresent\": true\n    },\n    {\n      \"date\": \"2024-10-02T00:00:00.000Z\",\n      \"isPresent\": false\n    }\n  ]\n}",
+          "content": "{\n  \"error\": false,\n  \"attendanceStatus\": [\n    {\n      \"_id\":\"attendanceId\"\n      \"date\": \"2024-10-01T00:00:00.000Z\",\n      \"isPresent\": true\n    },\n    {\n      \"_id\":\"attendanceId\"\n      \"date\": \"2024-10-02T00:00:00.000Z\",\n      \"isPresent\": false\n    }\n  ]\n}",
           "type": "json"
         }
       ]
@@ -2250,6 +2503,331 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "routes/rest/adminClass.js",
     "groupTitle": "Class"
+  },
+  {
+    "type": "post",
+    "url": "/class/students",
+    "title": "Get Class Students",
+    "name": "GetClassStudentsForAttendance",
+    "group": "Class",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "classname",
+            "description": "<p>The name of the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section of the class (e.g., &quot;A&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year of the class (e.g., &quot;2024&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>The ID of the school (required for super admins).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"firstName\": \"Pratik\",\n      \"lastName\": \"Sahu\",\n      \"email\": \"pk2181121@gmail.com\",\n      \"phone\": \"09981240192\",\n      \"gender\": \"Male\",\n      \"currentYear\": \"2024\"\n    }\n  ],\n  \"attendancePercentage\": [\n    {\n      \"_Id\": \"670cf6badbb09a7c2b2af9b2\",\n      \"percentage\": \"85.71\"\n    }\n  ],\n  \"classId\": \"670cf194dbb09a7c2b2af991\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/attendance.js",
+    "groupTitle": "Class"
+  },
+  {
+    "type": "post",
+    "url": "/leave/find",
+    "title": "Find Teacher Leaves",
+    "name": "FindTeacherLeaves",
+    "group": "Leaves",
+    "permission": [
+      {
+        "name": "Teacher"
+      }
+    ],
+    "description": "<p>This endpoint allows teachers to retrieve their leave requests with optional filtering by leave type, reason, or status.</p>",
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "searchText",
+        "description": "<p>Optional search text to filter leaves based on leave type, reason, or status.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageNumber",
+        "defaultValue": "1",
+        "description": "<p>The page number for pagination.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageSize",
+        "defaultValue": "10",
+        "description": "<p>The number of records per page for pagination.</p>"
+      }
+    ],
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if there was an error).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The reason for the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access. Only teachers can view this data.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "No Leaves Found",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No leaves found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves"
+  },
+  {
+    "type": "post",
+    "url": "/leave/get",
+    "title": "Get Leaves",
+    "description": "<p>Fetches leave applications for teachers or all teachers by admin. Teachers can filter their leaves based on leave type and status, while admins can view leaves for specific teachers or filter by leave type and status.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "leaveType",
+            "description": "<p>Filter leaves by leave type (e.g., CL, SL, PL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "status",
+            "description": "<p>Filter leaves by status (e.g., pending, approved, etc.).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "teacherId",
+            "description": "<p>Filter by a specific teacher's ID (Admin Only).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isHalfDay",
+            "description": "<p>Filter by HalfDay</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leaves\": [\n    {\n      \"_id\": \"leaveId\",\n      \"_school\": \"schoolId\",\n      \"_teacher\": \"teacherId\",\n      \"leaveType\": \"CL\",\n      \"startDate\": \"2024-11-01T00:00:00Z\",\n      \"endDate\": \"2024-11-05T00:00:00Z\",\n      \"reason\": \"Family function\",\n      \"status\": \"approved\",\n      \"appliedDate\": \"2024-10-25T00:00:00Z\",\n      \"approvedBy\": \"approverId\"\n    }\n    // More leave objects...\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostLeaveGet"
+  },
+  {
+    "type": "post",
+    "url": "/teacher/leave",
+    "title": "Apply Leave",
+    "description": "<p>Allows teachers to apply for leave by providing the necessary details.</p>",
+    "version": "1.0.0",
+    "group": "Leaves",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "leaveType",
+            "description": "<p>Type of leave (CL, PL, SL).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "startDate",
+            "description": "<p>Start date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Date",
+            "optional": false,
+            "field": "endDate",
+            "description": "<p>End date of the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the leave (required).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isHalfDay",
+            "description": "<p>Indicates if the leave is a half day.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 201 Created\n{\n  \"error\": false,\n  \"message\": \"Leave applied successfully\",\n  \"leave\": {\n    \"_id\": \"leaveId\",\n    \"_school\": \"schoolId\",\n    \"_teacher\": \"teacherId\",\n    \"leaveType\": \"CL\",\n    \"startDate\": \"2024-11-01T00:00:00Z\",\n    \"endDate\": \"2024-11-05T00:00:00Z\",\n    \"reason\": \"Family function\",\n    \"isHalfDay\": false,\n    \"appliedDate\": \"2024-10-25T00:00:00Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Bad Request Response (Missing startDate):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"startDate is required\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Bad Request Response (Invalid leaveType):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Invalid leave type. Must be one of CL, PL, or SL\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error message describing the problem\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "POST /api/leaves/apply\nAuthorization: Bearer <token>\n{\n  \"leaveType\": \"CL\",\n  \"startDate\": \"2024-11-01\",\n  \"endDate\": \"2024-11-05\",\n  \"reason\": \"Family function\",\n  \"isHalfDay\": false\n}",
+        "type": "http"
+      }
+    ],
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leaves",
+    "name": "PostTeacherLeave"
   },
   {
     "type": "post",
@@ -6673,6 +7251,377 @@ define({ "api": [
     "groupTitle": "School"
   },
   {
+    "type": "delete",
+    "url": "/admin/deletesetting",
+    "title": "Delete Setting",
+    "name": "DeleteSetting",
+    "group": "Settings",
+    "permission": [
+      {
+        "name": "admin superadmin"
+      }
+    ],
+    "description": "<p>Deletes a specific setting for a given academic year and school.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": false,
+        "field": "academicYear",
+        "description": "<p>The academic year for the setting to be deleted (e.g., &quot;2024-2025&quot;).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "schoolId",
+        "description": "<p>School ID to specify if the user is a superadmin. Admins delete settings only for their school.</p>"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (false on success).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message confirming deletion.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"deleted\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Permission Error:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Not-Found Error:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"setting not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Error message\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if a server error occurred.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "Error",
+            "description": "<p>Server error message.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "post",
+    "url": "admin/settings",
+    "title": "Get Class Settings",
+    "name": "GetSettings",
+    "group": "Settings",
+    "permission": [
+      {
+        "name": "admin superadmin"
+      }
+    ],
+    "description": "<p>Retrieve class settings for a specific school with optional filtering by academic year and active status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "query": [
+      {
+        "group": "Query",
+        "type": "String",
+        "optional": true,
+        "field": "schoolId",
+        "description": "<p>The ID of the school. (Super Admins only)</p>"
+      }
+    ],
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "academicYear",
+        "description": "<p>Optional filter by academic year (e.g., &quot;2024-2025&quot;).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Boolean",
+        "optional": true,
+        "field": "isActive",
+        "description": "<p>Optional filter to return active/inactive settings.</p>"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"settings\": [\n    {\n      \"_id\": \"60f7f15d9b1e8b001c3a8b8c\",\n      \"_school\": \"60f7f12e9b1e8b001c3a8b8b\",\n      \"academicYear\": \"2024-2025\",\n      \"availableClasses\": [\n        {\n          \"grade\": \"5\",\n          \"section\": [\"A\", \"B\", \"C\"],\n          \"monthlyFee\": 1500,\n          \"salary\": 2000\n        }\n      ],\n      \"busFee\": {\n        \"morning\": 500,\n        \"evening\": 500\n      },\n      \"isActive\": true\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "post",
+    "url": "/admin/setsettings",
+    "title": "Set Settings",
+    "name": "SetSettings",
+    "group": "Settings",
+    "description": "<p>This endpoint is used to set the school settings, including available classes, academic year, bus fees, and more.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin or super admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "availableClasses",
+            "description": "<p>List of classes with their details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the settings.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "busFee",
+            "description": "<p>The bus fee structure (e.g., { &quot;0-5&quot;: 600, &quot;6-10&quot;: 800 }).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>Optional school ID for super admins to set settings for a specific school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"availableClasses\": [\n    {\n      \"grade\": \"1\",\n      \"monthlyFee\": 500,\n      \"salary\": 2000\n    },\n    {\n      \"grade\": \"2\",\n      \"monthlyFee\": 600,\n      \"salary\": 2200\n    }\n  ],\n  \"academicYear\": \"2024-2025\",\n  \"busFee\": {\n    \"0-5\": 600,\n    \"6-10\": 800\n  },\n  \"schoolId\": \"60c72b2f5f1b2c001c4f8b3e\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Settings updated successfully\",\n  \"settingsClass\": {\n    \"_school\": \"60c72b2f5f1b2c001c4f8b3e\",\n    \"academicYear\": \"2024-2025\",\n    \"availableClasses\": [\n      {\n        \"grade\": \"1\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 500,\n        \"salary\": 2000\n      },\n      {\n        \"grade\": \"2\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 600,\n        \"salary\": 2200\n      }\n    ],\n    \"busFee\": {\n      \"0-5\": 600,\n      \"6-10\": 800\n    },\n    \"isActive\": true\n  },\n  \"AllClass\": [\n    {\n      \"_id\": \"60c72b2f5f1b2c001c4f8b4f\",\n      \"name\": \"1\",\n      \"section\": \"A\",\n      \"academicYear\": \"2024-2025\",\n      \"_school\": \"60c72b2f5f1b2c001c4f8b3e\"\n    },\n    {\n      \"_id\": \"60c72b2f5f1b2c001c4f8b50\",\n      \"name\": \"2\",\n      \"section\": \"A\",\n      \"academicYear\": \"2024-2025\",\n      \"_school\": \"60c72b2f5f1b2c001c4f8b3e\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Settings not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Permission-Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "put",
+    "url": "/admin/updatesettings",
+    "title": "Update Settings",
+    "name": "UpdateClassSettings",
+    "group": "Settings",
+    "description": "<p>This endpoint updates the class settings, including available classes, bus fees, and the active status.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin or super admin access.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "availableClasses",
+            "description": "<p>List of available classes with details.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "busFee",
+            "description": "<p>The updated bus fee structure (e.g., { &quot;0-5&quot;: 600, &quot;6-10&quot;: 800 }).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "isActive",
+            "description": "<p>Indicates if the settings should be active or not.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "academicYear",
+            "description": "<p>&quot;2024-2025&quot;</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "salary",
+            "description": "<p>salary of teacher</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n  \"availableClasses\": [\n    {\n      \"grade\": \"1\",\n      \"section\": [\"A\", \"B\"],\n      \"monthlyFee\": 500,\n      \"salary\": 2000\n    },\n    {\n      \"grade\": \"2\",\n      \"monthlyFee\": 600,\n      \"salary\": 2200\n    }\n  ],\n  \"busFee\": {\n    \"0-5\": 600,\n    \"6-10\": 800\n  },\n  \"isActive\": true\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Class settings updated successfully\",\n  \"updatedSettings\": {\n    \"_school\": \"60c72b2f5f1b2c001c4f8b3e\",\n    \"academicYear\": \"2024-2025\",\n    \"availableClasses\": [\n      {\n        \"grade\": \"1\",\n        \"section\": [\"A\", \"B\"],\n        \"monthlyFee\": 500,\n        \"salary\": 2000\n      },\n      {\n        \"grade\": \"2\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 600,\n        \"salary\": 2200\n      }\n    ],\n    \"busFee\": {\n      \"0-5\": 600,\n      \"6-10\": 800\n    },\n    \"isActive\": true\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Settings not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Permission-Error-Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
     "type": "post",
     "url": "/admin/student/createstudent",
     "title": "Create Student",
@@ -7136,10 +8085,15 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/teacher/create",
+    "url": "admin/teacher/create",
     "title": "Create Teacher",
     "name": "CreateTeacher",
     "group": "Teacher",
+    "permission": [
+      {
+        "name": "admin,superAdmin"
+      }
+    ],
     "header": {
       "fields": {
         "Header": [
@@ -7148,7 +8102,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token access.</p>"
           }
         ]
       }
@@ -7214,10 +8168,24 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>image url of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>school id(only use when superadmin will create )</p>"
           }
         ]
       }
@@ -7244,7 +8212,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\"\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\",\n    \"address\":{\n       \"locality\":\"\",\n       \"city\":\"\",\n       \"state\":\"\",\n       \"pin\":\"\",\n       \"country\":\"\"\n     }\n  }\n}",
           "type": "json"
         }
       ]
@@ -7328,11 +8296,63 @@ define({ "api": [
     "groupTitle": "Teacher"
   },
   {
-    "type": "get",
-    "url": "/teacher/find",
+    "type": "delete",
+    "url": "/admin/teacher/delete/:id",
+    "title": "Delete Teacher by admin or superadmin",
+    "name": "DeleteTeacher",
+    "group": "Teacher",
+    "permission": [
+      {
+        "name": "Admin or SuperAdmin"
+      }
+    ],
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The ID of the teacher to be deleted (as URL parameter).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"reason\": \"user deleted\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response (No Permission):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete teacher\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response (Teacher Not Found):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"teacher not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTeacher.js",
+    "groupTitle": "Teacher"
+  },
+  {
+    "type": "post",
+    "url": "/admin/teacher/find",
     "title": "Find Teachers",
     "name": "FindTeachers",
     "group": "Teacher",
+    "description": "<p>Allows super admins and admins to search for teachers. Super admins can search all teachers, while admins can only search teachers in their assigned school.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -7341,7 +8361,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin or super admin access.</p>"
           }
         ]
       }
@@ -7352,43 +8372,34 @@ define({ "api": [
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
+            "optional": true,
             "field": "searchText",
-            "description": "<p>Optional search text to filter teachers by first name, last name, email, or phone.</p>"
+            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>joinDate</code>,<code>gender</code> <code>phone</code>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
           }
         ]
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object[]",
-            "optional": false,
-            "field": "users",
-            "description": "<p>List of teachers matching the search criteria.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Number",
-            "optional": false,
-            "field": "usersCount",
-            "description": "<p>Total number of teachers matching the search criteria.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
           "type": "json"
         }
       ]
@@ -7399,8 +8410,8 @@ define({ "api": [
           {
             "group": "Error 4xx",
             "optional": false,
-            "field": "NotAdmin",
-            "description": "<p>You are not an admin.</p>"
+            "field": "UnauthorizedAccess",
+            "description": "<p>Unauthorized access (not an admin or super admin).</p>"
           },
           {
             "group": "Error 4xx",
@@ -7418,18 +8429,18 @@ define({ "api": [
       },
       "examples": [
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"You are not Admin\"\n}",
+          "title": "Unauthorized-Response:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
+          "title": "NoTeachers-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
+          "title": "InternalServerError-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
           "type": "json"
         }
       ]
@@ -7439,8 +8450,8 @@ define({ "api": [
     "groupTitle": "Teacher"
   },
   {
-    "type": "get",
-    "url": "/teachers",
+    "type": "post",
+    "url": "/admin/teachers",
     "title": "Get All Teachers",
     "name": "GetAllTeachers",
     "group": "Teacher",
@@ -7455,6 +8466,28 @@ define({ "api": [
             "optional": false,
             "field": "Authorization",
             "description": "<p>Bearer token for admin authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>page number (start with 1) send within the params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>number of data send within the params</p>"
           }
         ]
       }
@@ -7505,7 +8538,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/teacher/get/:id",
+    "url": "/admin/teacher/get/:id",
     "title": "Get Teacher Details",
     "name": "GetTeacherDetails",
     "group": "Teacher",
@@ -7517,7 +8550,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin or superadmin access.</p>"
           }
         ]
       }
@@ -7665,10 +8698,15 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "/teacher/update/:id",
+    "url": "admin/teacher/update/:id",
     "title": "Update Teacher Details",
     "name": "UpdateTeacher",
     "group": "Teacher",
+    "permission": [
+      {
+        "name": "admin,superadmin"
+      }
+    ],
     "header": {
       "fields": {
         "Header": [
@@ -7677,7 +8715,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin,superadmin access.</p>"
           }
         ]
       }
@@ -7736,10 +8774,24 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "String",
+            "type": "Object",
             "optional": true,
             "field": "address",
             "description": "<p>address of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>image url of the teacher</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "_school",
+            "description": "<p>school id</p>"
           }
         ]
       }
@@ -7748,7 +8800,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n},\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -8296,7 +9348,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>The ID of the user to deactivate.</p>"
+            "description": "<p>The ID of the user</p>"
           },
           {
             "group": "Parameter",

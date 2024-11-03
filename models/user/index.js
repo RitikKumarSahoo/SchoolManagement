@@ -93,9 +93,9 @@ const UserSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: true },
 
-  isAdmin: { type: Boolean, defaul:false },
+  isAdmin: { type: Boolean, defaul: false },
 
-  isSuperAdmin: { type: Boolean, default:false },
+  isSuperAdmin: { type: Boolean, default: false },
 
   joinDate: { type: String },
 
@@ -133,9 +133,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  currentAcademicYear:{
+  address: {
+    locality: { type: String },
+    city: { type: String },
+    state: { type: String },
+    pin: { type: String },
+    country: { type: String },
+  },
+  currentAcademicYear: {
     type: String,
-  }
+  },
 });
 
 // UserSchema.pre("validate", function (next) {
@@ -157,14 +164,17 @@ UserSchema.pre("save", async function (next) {
         user.password,
         +process.env.SALT_ROUNDS || 10
       );
-      
     } catch (error) {
       return next(error);
     }
   }
 
-  if (this.isNew || this.isModified("firstName") || this.isModified("lastName")) {
-    this.fullName = `${this.firstName} ${this.lastName}`
+  if (
+    this.isNew ||
+    this.isModified("firstName") ||
+    this.isModified("lastName")
+  ) {
+    this.fullName = `${this.firstName} ${this.lastName}`;
   }
   return next();
 });

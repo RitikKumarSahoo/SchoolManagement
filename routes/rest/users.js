@@ -79,7 +79,7 @@ module.exports = {
    * @apiDescription Allows a user (teacher, admin, or student) to update their profile information.
    *
    * @apiHeader {String} Authorization User's unique access token (JWT).
-   * 
+   *
    * @apiSuccess {String} message Success message indicating that the user details were updated.
    *
    * @apiError (Error 404) UserNotFound The user was not found.
@@ -130,20 +130,31 @@ module.exports = {
   async editData(req, res) {
     try {
       const { loginType, id } = req.user; // loginType can be either "student", "teacher", or "admin"
-  
+
       // Find the user by ID
       const user = await User.findOne({ _id: id });
       if (user === null) {
         return res.status(404).json({ message: "User not found" });
       }
-  
+
       // Check loginType and validate fields
-      if (loginType === "teacher" || loginType === "admin" || loginType === "student") {
+      if (
+        loginType === "teacher" ||
+        loginType === "admin" ||
+        loginType === "student"
+      ) {
         const {
-          firstName, lastName, phone, dob, signature, profileImage, email, 
-          guardian: { fathersName, mothersName } = {}, address 
+          firstName,
+          lastName,
+          phone,
+          dob,
+          signature,
+          profileImage,
+          email,
+          guardian: { fathersName, mothersName } = {},
+          address,
         } = req.body;
-  
+
         // Update only if the fields are provided
         if (firstName !== undefined) user.firstName = firstName;
         if (lastName !== undefined) user.lastName = lastName;
@@ -152,20 +163,31 @@ module.exports = {
         if (signature !== undefined) user.signature = signature;
         if (profileImage !== undefined) user.profileImage = profileImage;
         if (email !== undefined) user.email = email;
-  
+
         // Update guardian details if provided
         if (fathersName !== undefined) user.guardian.fathersName = fathersName;
         if (mothersName !== undefined) user.guardian.mothersName = mothersName;
-  
+
         // Update address if provided
-        if (address !== undefined) user.address = address;
+        if (address !== undefined) {
+          if (locality !== undefined) user.address.locality = locality;
+          if (city !== undefined) user.address.city = city;
+          if (state !== undefined) user.address.state = state;
+          if (pin !== undefined) user.address.pin = pin;
+          if (country !== undefined) user.address.country = country;
+        }
       } else {
-        return res.status(400).json({ error: true, reason: "User must be Admin, Teacher or Student" });
+        return res
+          .status(400)
+          .json({
+            error: true,
+            reason: "User must be Admin, Teacher or Student",
+          });
       }
-  
+
       // Save the updated user to the database
       await user.save();
-  
+
       // Send the response with updated user data
       return res.status(200).json({
         message: "User details updated successfully",
@@ -174,6 +196,5 @@ module.exports = {
       console.error(error);
       return res.status(500).json({ message: "Server error" });
     }
-  }
-  ,
+  },
 };

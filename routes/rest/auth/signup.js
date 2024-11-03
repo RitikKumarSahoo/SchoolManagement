@@ -8,6 +8,115 @@ const stripe = require("stripe")(
 
 module.exports = {
   /**
+   * @api {post} /admin/find Find Admins
+   * @apiName FindAdmins
+   * @apiGroup Admin
+   * @apiDescription Super admins can search all teachers details.
+   *
+   * @apiHeader {String} Authorization Bearer token  super admin access.
+   *
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, `joinDate`,`gender` `phone`.
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "users": [
+   *     {
+   *       "_id": "60d5f60c9b4d7635e8aebaf7",
+   *       "firstName": "John",
+   *       "lastName": "Doe",
+   *       "email": "john.doe@example.com",
+   *       "phone": "1234567890",
+   *       "isActive": true,
+   *       "loginType": "teacher"
+   *     }
+   *   ],
+   *   "usersCount": 1
+   * }
+   *
+   * @apiError UnauthorizedAccess Unauthorized access (not an admin or super admin).
+   * @apiErrorExample {json} Unauthorized-Response:
+   * HTTP/1.1 403 Forbidden
+   * {
+   *   "error": true,
+   *   "reason": "Unauthorized access"
+   * }
+   *
+   * @apiError NoTeachersFound No teachers found matching the search criteria.
+   * @apiErrorExample {json} NoTeachers-Response:
+   * HTTP/1.1 404 Not Found
+   * {
+   *   "error": true,
+   *   "reason": "No teacher found"
+   * }
+   *
+   * @apiError InternalServerError Internal server error.
+   * @apiErrorExample {json} InternalServerError-Response:
+   * HTTP/1.1 500 Internal Server Error
+   * {
+   *   "error": true,
+   *   "reason": "Internal server error"
+   * }
+   */
+  async find(req, res) {
+    try {
+      const { isSuperAdmin } = req.user;
+      let { searchText, pageNumber = 1, pageSize = 10, schoolId } = req.body;
+
+      // Error if the user is not a super admin or admin
+      if (isSuperAdmin !== true) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not superadmin" });
+      }
+
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      let query = {
+        loginType: "admin",
+        isActive: true,
+        isSuperAdmin: false,
+      };
+
+      if (schoolId) {
+        query._school = schoolId;
+      }
+      if (searchText) {
+        const searchRegex = new RegExp(searchText.trim(), "i");
+        query.$or = [
+          { firstName: { $regex: searchRegex } },
+          { lastName: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+          { phone: { $regex: searchRegex } },
+          { gender: { $regex: searchText } },
+          { joinDate: { $regex: searchText } },
+        ];
+      }
+
+      const [users, usersCount] = await Promise.all([
+        User.find(query)
+          .select("-password -bankDetails -forgotpassword")
+          .skip(skipNumber)
+          .limit(Number(pageSize))
+          .exec(),
+        User.countDocuments(query),
+      ]);
+
+      if (users.length === 0) {
+        return res
+          .status(404)
+          .json({ error: true, reason: "No teacher found" });
+      }
+
+      return res.status(200).json({ error: false, users, usersCount });
+    } catch (error) {
+      return res.status(500).json({ error: true, reason: error.message });
+    }
+  },
+  /**
    * @api {post} /admins  Get all admins
    * @apiName GetAllAdmins
    * @apiGroup Admin
@@ -16,6 +125,8 @@ module.exports = {
    * @apiDescription Fetch all admin users
    *
    * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
    *
    * @apiSuccessExample {json} Success Response:
    *     HTTP/1.1 200 OK
@@ -62,6 +173,7 @@ module.exports = {
   async getAllAdmin(req, res) {
     try {
       const { isSuperAdmin } = req.user;
+      let { pageNumber = 1, pageSize = 10 } = req.body;
 
       if (isSuperAdmin !== true) {
         return res
@@ -69,10 +181,15 @@ module.exports = {
           .json({ error: true, reason: "You are not superAdmin" });
       }
 
+      const skipNumber = (pageNumber - 1) * pageSize;
       const admins = await User.find({
         loginType: "admin",
         isSuperAdmin: false,
-      }).select("-password -forgotpassword -isSuperAdmin");
+      })
+        .select("-password -forgotpassword -isSuperAdmin")
+        .skip(skipNumber)
+        .limit(Number(pageSize))
+        .exec();
 
       const totalAdmins = await User.countDocuments({
         loginType: "admin",
@@ -157,16 +274,17 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/delete/:id Delete Admin User
+   * @api {delete} /admin/delete/:id  Delete superadmin can delete admin and admin can delete student and teacher
    * @apiName DeleteAdmin
    * @apiGroup Admin
-   * @apiPermission SuperAdmin
+   * @apiPermission SuperAdmin,admin
    *
-   * @apiDescription This endpoint allows a SuperAdmin to delete an admin user.
+   * @apiDescription superadmin can delete admin and admin can delete student and teacher
+   * @apiName DeleteUser
    *
    * @apiHeader {String} Authorization Bearer token for authentication.
    *
-   * @apiParam {String} id The ID of the admin user to delete.
+   * @apiParam {String} id The ID of  user to delete.
    *
    * @apiError {Boolean} error Indicates if there was an error (true if an error occurred).
    * @apiError {String} reason Explanation of the error.
@@ -200,32 +318,41 @@ module.exports = {
    *    }
    */
 
-  async deleteAdmin(req, res) {
+  async deleteUser(req, res) {
     try {
-      const { isSuperAdmin } = req.user;
+      const { isSuperAdmin, loginType, _school } = req.user;
+      const user = await User.findOne({ _id: req.params.id });
+
+      if (user === null) {
+        return res.status(400).json({ error: true, reason: "User not found" });
+      }
 
       // Check if the user is a superadmin
-      if (isSuperAdmin === false) {
-        return res.status(403).json({
-          error: true,
-          reason: "You are not authorized to delete an admin",
+      if (isSuperAdmin === true) {
+        await user.deleteOne({ _id: req.params.id });
+        return res.status(200).json({
+          error: false,
+          message: "Admin deleted",
         });
       }
 
-      const admin = await User.findOne({
-        _id: req.params.id,
-        loginType: "admin",
-      });
+      // admin can delete only teacher and student
+      if (loginType === "admin") {
+        if (user.loginType === "student" || user.loginType === "teacher") {
+          if (user._school.toString() !== _school.toString()) {
+            return res
+              .status(400)
+              .json({ error: false, reason: "not in same school" });
+          }
 
-      if (admin === null) {
-        return res.status(404).json({ error: true, reason: "Admin not found" });
+          user.isActive = flag;
+          await user.save();
+          return res.status(200).json({ error: false });
+        }
       }
-
-      await admin.deleteOne({ _id: req.params.id });
-
-      return res.status(200).json({
-        error: false,
-        message: "Admin deleted successfully.",
+      return res.status(400).json({
+        error: true,
+        reason: "You are not authorized to delete user",
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
@@ -238,7 +365,7 @@ module.exports = {
    * @apiGroup User
    * @apiPermission Admin,superAdmin
    *
-   * @apiParam {String} id The ID of the user to deactivate.
+   * @apiParam {String} id The ID of the user
    * @apiParam {Boolean} flag true or false
    *
    * @apiError {Boolean} error Indicates whether an error occurred (true when an error occurred).
