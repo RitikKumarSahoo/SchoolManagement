@@ -71,7 +71,7 @@ router.get(
   "/attendance/percentage/:id",
   attendance.getStudentAttendancePercentage
 );
-router.get("/attendance/viewattendance", attendance.viewAttendance);
+router.post("/attendance/viewattendance", attendance.viewAttendance);
 router.put("/attendance/update", attendance.updateAttendance);
 
 //checkin

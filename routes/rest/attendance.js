@@ -9,14 +9,15 @@ const moment = require("moment");
 module.exports = {
   /**
    * @api {post} /class/students Get Class Students
-   * @apiName Get Class Students
+   * @apiName GetClassStudentsForAttendance
    * @apiGroup Class
    *
    * @apiHeader {String} Authorization Bearer token for access.
    *
    * @apiParam {String} classname The name of the class.
-   * @apiParam {String} section The section of the class. Example: "A".
-   * @apiParam {String} academicYear The academic year for the class. Example: "2024".
+   * @apiParam {String} section The section of the class (e.g., "A").
+   * @apiParam {String} academicYear The academic year of the class (e.g., "2024").
+   * @apiParam {String} [schoolId] The ID of the school (required for super admins).
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -32,13 +33,13 @@ module.exports = {
    *       "currentYear": "2024"
    *     }
    *   ],
+   *   "attendancePercentage": [
+   *     {
+   *       "_Id": "670cf6badbb09a7c2b2af9b2",
+   *       "percentage": "85.71"
+   *     }
+   *   ],
    *   "classId": "670cf194dbb09a7c2b2af991"
-   * }
-   *
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "reason": "You are not teacher"
    * }
    */
 
@@ -75,12 +76,11 @@ module.exports = {
         loginType: "student",
         _school: isSuperAdmin === true ? schoolId : req.user._school,
       })
-        .select("_id RollNo name gender phone firstName lastName email")
+        .select("_id rollNo name gender phone firstName lastName email _school")
         .lean();
 
       // Attendance Percentage
       const totalClasses = classExist.totalClassTill;
-      console.log(totalClasses);
 
       const attendancePercentage = await Promise.all(
         students.map(async (student) => {
@@ -91,45 +91,44 @@ module.exports = {
           });
 
           return {
-            stuId: student._id,
+            _Id: student._id,
             percentage: ((attendedClasses / totalClasses) * 100).toFixed(2),
           };
         })
       );
 
       //last week attendance
-      const lastWeek = new Date();
-      lastWeek.setDate(lastWeek.getDate() - 7);
+      // const lastWeek = new Date();
+      // lastWeek.setDate(lastWeek.getDate() - 7);
 
-      const lastWeekAttendance = await Promise.all(
-        students.map(async (student) => {
-          const attendanceRecords = await Attendance.find({
-            date: { $gte: lastWeek, $lte: new Date() },
-            _class: classExist._id,
-            _school: req.user._school,
-          })
-            .select("date presentIds")
-            .lean();
+      // const lastWeekAttendance = await Promise.all(
+      //   students.map(async (student) => {
+      //     const attendanceRecords = await Attendance.find({
+      //       date: { $gte: lastWeek, $lte: new Date() },
+      //       _class: classExist._id,
+      //       _school: req.user._school,
+      //     })
+      //       .select("date presentIds")
+      //       .lean();
 
-          const weeklyAttendance = attendanceRecords
-            .filter((record) => record.date.getDay() !== 0) // Exclude Sundays
-            .map((record) => ({
-              date: record.date,
-              isPresent: record.presentIds.includes(student._id),
-            }));
+      //     const weeklyAttendance = attendanceRecords
+      //       .filter((record) => record.date.getDay() !== 0) // Exclude Sundays
+      //       .map((record) => ({
+      //         date: record.date,
+      //         isPresent: record.presentIds.includes(student._id),
+      //       }));
 
-          return {
-            stuId: student._id,
-            weeklyAttendance,
-          };
-        })
-      );
+      //     return {
+      //       stuId: student._id,
+      //       weeklyAttendance,
+      //     };
+      //   })
+      // );
 
       return res.status(200).json({
         error: false,
         students,
         attendancePercentage,
-        lastWeekAttendance,
         classId: classExist._id,
       });
     } catch (error) {
@@ -437,7 +436,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /attendance/viewattendance View Attendance Records
+   * @api {post} /attendance/viewattendance View Attendance Records
    * @apiName ViewAttendance
    * @apiGroup Attendance
    *
@@ -448,10 +447,12 @@ module.exports = {
    *   "error": false,
    *   "attendanceStatus": [
    *     {
+   *       "_id":"attendanceId"
    *       "date": "2024-10-01T00:00:00.000Z",
    *       "isPresent": true
    *     },
    *     {
+   *       "_id":"attendanceId"
    *       "date": "2024-10-02T00:00:00.000Z",
    *       "isPresent": false
    *     }
@@ -513,8 +514,9 @@ module.exports = {
       const attendanceStatus = attendanceRecords.map((record) => {
         const isPresent = record.presentIds.includes(student._id);
         return {
-          date: record.date,
+          _id: record._id,
           isPresent,
+          date: record.date,
         };
       });
 
