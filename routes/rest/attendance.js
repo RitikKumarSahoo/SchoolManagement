@@ -78,9 +78,58 @@ module.exports = {
         .select("_id RollNo name gender phone firstName lastName email")
         .lean();
 
+      // Attendance Percentage
+      const totalClasses = classExist.totalClassTill;
+      console.log(totalClasses);
+
+      const attendancePercentage = await Promise.all(
+        students.map(async (student) => {
+          const attendedClasses = await Attendance.countDocuments({
+            presentIds: student._id,
+            _class: classExist._id,
+            _school: req.user._school,
+          });
+
+          return {
+            stuId: student._id,
+            percentage: ((attendedClasses / totalClasses) * 100).toFixed(2),
+          };
+        })
+      );
+
+      //last week attendance
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+
+      const lastWeekAttendance = await Promise.all(
+        students.map(async (student) => {
+          const attendanceRecords = await Attendance.find({
+            date: { $gte: lastWeek, $lte: new Date() },
+            _class: classExist._id,
+            _school: req.user._school,
+          })
+            .select("date presentIds")
+            .lean();
+
+          const weeklyAttendance = attendanceRecords
+            .filter((record) => record.date.getDay() !== 0) // Exclude Sundays
+            .map((record) => ({
+              date: record.date,
+              isPresent: record.presentIds.includes(student._id),
+            }));
+
+          return {
+            stuId: student._id,
+            weeklyAttendance,
+          };
+        })
+      );
+
       return res.status(200).json({
         error: false,
         students,
+        attendancePercentage,
+        lastWeekAttendance,
         classId: classExist._id,
       });
     } catch (error) {
@@ -133,7 +182,10 @@ module.exports = {
           reason: "you do not have permission to take attendance",
         });
       }
-      const classExist = await Class.findOne({ _id: _class });
+      const classExist = await Class.findOne({
+        _id: _class,
+        _school: req.user._school,
+      });
       if (classExist === null) {
         return res.status(400).json({ error: true, reason: "class not found" });
       }
@@ -146,6 +198,7 @@ module.exports = {
           $gte: today.toDate(),
           $lte: moment(today).endOf("day").toDate(),
         },
+        _school: req.user._school,
       });
 
       const classStudents = await User.find({ _class }).select("_id rollNo");
