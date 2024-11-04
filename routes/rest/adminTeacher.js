@@ -4,6 +4,8 @@ const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 const moment = require("moment");
 const { request } = require("express");
+const { Readable } = require("stream");
+const csv = require("csv-parser");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
@@ -178,7 +180,7 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token for admin or super admin access.
    *
-   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, `joinDate`,`gender` `phone`.
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`,`gender` `phone`.
    * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
    * @apiParam  {Number} pageSize="10" number of data send within the params
    *
@@ -242,11 +244,8 @@ module.exports = {
       let query = {
         loginType: "teacher",
         isActive: true,
+        _school,
       };
-
-      if (!isSuperAdmin) {
-        query._school = _school;
-      }
 
       if (searchText) {
         const searchRegex = new RegExp(searchText.trim(), "i");
@@ -255,8 +254,7 @@ module.exports = {
           { lastName: { $regex: searchRegex } },
           { email: { $regex: searchRegex } },
           { phone: { $regex: searchRegex } },
-          { gender: { $regex: searchText } },
-          { joinDate: { $regex: searchText } },
+          { gender: { $regex: searchRegex } },
         ];
       }
 
@@ -798,6 +796,262 @@ module.exports = {
       });
     } catch (error) {
       return res.status(400).json({ error: true, Error: error.message });
+    }
+  },
+
+  /**
+   * @api {post} /bulkCreateTeachers Bulk Create Teachers
+   * @apiName BulkCreateTeachers
+   * @apiGroup Teacher
+   * @apiPermission SuperAdmin, Admin
+   *
+   * @apiDescription Creates multiple teacher records from a CSV file. The request requires a CSV file with each row containing teacher details.
+   *
+   * @apiHeader {String} Authorization Bearer token for authentication.
+   *
+   * @apiParam {teacherCSV} file CSV file containing teacher data. Required fields: `firstName`, `lastName`, `gender`, `phone`. Optional fields include `email`, `dob`, `joinDate`, `profileImage`, `signature`, `bankDetails`, `address`, `schoolId`, and `subject`.
+   *
+   * @apiSuccess {String} message Success message showing the count of created teachers.
+   * @apiSuccess {Object[]} results List of successfully created teachers.
+   * @apiSuccess {Boolean} results.error Indicates if the teacher creation was successful (false).
+   * @apiSuccess {Object} results.user Created teacher's data.
+   * @apiSuccess {String} results.user.firstName Teacher's first name.
+   * @apiSuccess {String} results.user.lastName Teacher's last name.
+   * @apiSuccess {String} results.user.email Teacher's email address.
+   * @apiSuccess {String} results.user.phone Teacher's phone number.
+   * @apiSuccess {Date} results.user.dob Teacher's date of birth.
+   * @apiSuccess {String} results.user.username Generated username for the teacher.
+   * @apiSuccess {Object[]} errors List of errors encountered during creation.
+   * @apiSuccess {Object} errors.teacherData Data from the CSV row that caused the error.
+   * @apiSuccess {String} errors.error Description of the error.
+   *
+   * @apiSuccessExample {json} Success Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "message": "3 teachers created",
+   *       "results": [
+   *         {
+   *           "error": false,
+   *           "user": {
+   *             "firstName": "John",
+   *             "lastName": "Doe",
+   *             "email": "john@school.com",
+   *             "phone": "1234567890",
+   *             "dob": "06/04/2001",
+   *             "username": "Johsch890"
+   *           }
+   *         },
+   *         {
+   *           "error": false,
+   *           "user": {
+   *             "firstName": "Jane",
+   *             "lastName": "Smith",
+   *             "email": "jane@school.com",
+   *             "phone": "0987654321",
+   *             "dob": "02/02/1999",
+   *             "username": "Jansch321"
+   *           }
+   *         },
+   *         {
+   *           "error": false,
+   *           "user": {
+   *             "firstName": "Asit",
+   *             "lastName": "Raj",
+   *             "email": "asit@school.com",
+   *             "phone": "98223682221",
+   *             "dob": "01/11/2001",
+   *             "username": "Asisch221"
+   *           }
+   *         }
+   *       ],
+   *       "errors": [
+   *         {
+   *           "teacherData": {
+   *             "firstName": "Jane",
+   *             "lastName": "Smith",
+   *             "gender": "Female",
+   *             "email": "tim@school.com",
+   *             "phone": "0987654376",
+   *             "dob": "02/02/1999",
+   *             "subject": "['Math'",
+   *             "_7": "'English']"
+   *           },
+   *           "error": "Email already in use. Provide a unique email."
+   *         }
+   *       ]
+   *     }
+   *
+   * @apiError {Boolean} error Status of the request (true if an error occurred).
+   * @apiError {String} message Error message if the request fails.
+   *
+   * @apiErrorExample {json} Unauthorized Access:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "You do not have permission to create teachers"
+   *     }
+   *
+   * @apiErrorExample {json} File Missing:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "CSV file is required"
+   *     }
+   *
+   * @apiErrorExample {json} Internal Server Error:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": true,
+   *       "message": "An error message explaining the failure"
+   *     }
+   */
+
+  async bulkCreateTeachers(req, res) {
+    try {
+      const { isSuperAdmin, loginType, _school } = req.user;
+
+      if (!(isSuperAdmin || loginType === "admin")) {
+        return res.status(400).json({
+          error: true,
+          reason: "You do not have permission to create teachers",
+        });
+      }
+
+      const teachers = [];
+      const errors = [];
+
+      if (!req.file || !req.file.buffer) {
+        return res
+          .status(400)
+          .json({ error: true, message: "CSV file is required" });
+      }
+
+      const readableStream = new Readable();
+      readableStream.push(req.file.buffer);
+      readableStream.push(null);
+
+      readableStream
+        .pipe(csv())
+        .on("data", (row) => {
+          teachers.push(row);
+        })
+        .on("end", async () => {
+          const results = [];
+          for (const teacherData of teachers) {
+            try {
+              const {
+                firstName,
+                lastName,
+                gender,
+                email,
+                phone,
+                dob,
+                joinDate,
+                profileImage,
+                signature,
+                bankDetails,
+                address,
+                schoolId,
+                subject,
+              } = teacherData;
+
+              if (!firstName || !lastName || !gender || !phone) {
+                throw new Error("Missing required fields");
+              }
+
+              const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+              if (!dateOfBirth.isValid()) {
+                throw new Error(
+                  "Invalid date of birth format. Use DD/MM/YYYY."
+                );
+              }
+
+              // Check for duplicate email or phone
+              const existingUser = await User.findOne({
+                $or: [{ email }, { phone }],
+              })
+                .select("email phone")
+                .exec();
+
+              if (existingUser) {
+                if (existingUser.email === email) {
+                  throw new Error(
+                    "Email already in use. Provide a unique email."
+                  );
+                }
+                if (existingUser.phone === phone) {
+                  throw new Error(
+                    "Phone number already in use. Provide a unique phone number."
+                  );
+                }
+              }
+
+              const school = await School.findOne({
+                _id: isSuperAdmin ? req.body.schoolId : _school,
+              })
+                .select("_id name")
+                .exec();
+
+              if (!school) {
+                throw new Error("School not found");
+              }
+
+              const username = `${firstName.slice(0, 3)}${school.name.slice(
+                0,
+                3
+              )}${phone.slice(-3)}`;
+              const password = generateCustomPassword();
+
+              const user = await User.create({
+                firstName,
+                lastName,
+                gender,
+                email,
+                dob: dateOfBirth.toDate(),
+                _school: isSuperAdmin ? schoolId : _school,
+                _addedBy: req.user.id,
+                joinDate,
+                signature,
+                username,
+                phone,
+                password,
+                loginType: "teacher",
+                bankDetails,
+                bankAdded: !!bankDetails,
+                isActive: true,
+                address,
+                subject,
+                profileImage,
+              });
+
+              results.push({
+                error: false,
+                user: {
+                  firstName,
+                  lastName,
+                  email,
+                  phone,
+                  dob,
+                  phone,
+                  username,
+                },
+              });
+            } catch (error) {
+              errors.push({
+                teacherData,
+                error: error.message,
+              });
+            }
+          }
+
+          return res.status(200).json({
+            message: `${results.length} teachers created`,
+            results,
+            errors,
+          });
+        });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 };
