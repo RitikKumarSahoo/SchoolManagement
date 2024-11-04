@@ -1415,7 +1415,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendanceRecord\":[\n  {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"rollNo\":\"1\",\n    \"isPresent\": true,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\",]\n  },\n {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4fcd\",\n    \"rollNo\":\"2\",\n    \"isPresent\": false,\n    \"presentIds\": [\"60c72b2f9b1e8a3b4c3e4f6b\"]\n  }\n  ]\n\"date\": \"2024-10-26T18:30:00.000Z\"\n}",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Student has been marked present\",\n  \"attendanceRecord\":[\n  {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4f6c\",\n    \"rollNo\":\"1\",\n    \"isPresent\": true,\n  },\n {\n    \"_id\": \"60c72b2f9b1e8a3b4c3e4fcd\",\n    \"rollNo\":\"2\",\n    \"isPresent\": false,\n  }\n  ]\n\"date\": \"2024-10-26T18:30:00.000Z\"\n}",
           "type": "json"
         }
       ]
@@ -8202,6 +8202,13 @@ define({ "api": [
             "optional": true,
             "field": "schoolId",
             "description": "<p>school id(only use when superadmin will create )</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "subject",
+            "description": "<p>array of string ['Math',&quot;English&quot;]</p>"
           }
         ]
       }
@@ -8808,6 +8815,13 @@ define({ "api": [
             "optional": true,
             "field": "_school",
             "description": "<p>school id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": true,
+            "field": "subject",
+            "description": "<p>array of string subject:[&quot;Math&quot;]</p>"
           }
         ]
       }
