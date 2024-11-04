@@ -3391,15 +3391,11 @@
   },
   {
     "type": "post",
-    "url": "/notice",
-    "title": "3.0 Create a new Notice",
-    "name": "createNotice",
+    "url": "/admin/notice/createnotice",
+    "title": "Create Notice",
+    "name": "CreateNotice",
     "group": "Notice",
-    "permission": [
-      {
-        "name": "Admin/Teacher"
-      }
-    ],
+    "description": "<p>This route allows an admin or a teacher to create a notice. Teachers can only post notices for students.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -3408,111 +3404,105 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+            "description": "<p>User's access token.</p>"
           }
         ]
       }
     },
     "parameter": {
       "fields": {
-        "Parameter": [
+        "Request body": [
           {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "String",
-            "optional": true,
+            "optional": false,
             "field": "title",
-            "description": "<p>Notice title</p>"
+            "description": "<p>The title of the notice.</p>"
           },
           {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "String",
-            "optional": true,
+            "optional": false,
             "field": "description",
-            "description": "<p>Notice description</p>"
+            "description": "<p>The description or content of the notice.</p>"
           },
           {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "String",
-            "optional": true,
+            "allowedValues": [
+              "\"student\"",
+              "\"teacher\"",
+              "\"general\""
+            ],
+            "optional": false,
             "field": "noticeType",
-            "description": "<p>Notice noticeType <code>enum=[&quot;student&quot;, &quot;teacher&quot;, &quot;general&quot;]</code></p>"
+            "description": "<p>The type of the notice. Teachers can only create student notices.</p>"
           },
           {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "Boolean",
             "optional": true,
             "field": "isUrgent",
-            "defaultValue": "false",
-            "description": "<p>Notice isUrgent</p>"
+            "description": "<p>Indicates if the notice is urgent.</p>"
           },
           {
-            "group": "Parameter",
-            "type": "ObjectID",
-            "optional": true,
-            "field": "postedBy",
-            "description": "<p>Notice postedBy</p>"
-          },
-          {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "Date",
             "optional": true,
             "field": "expireDate",
-            "description": "<p>Notice expireDate</p>"
+            "description": "<p>The expiration date of the notice.</p>"
           },
           {
-            "group": "Parameter",
-            "type": "Object",
+            "group": "Request body",
+            "type": "Array",
             "optional": true,
             "field": "attachments",
-            "description": "<p>Notice attachments</p>"
+            "description": "<p>Array of attachment objects, each containing:</p> <ul> <li><code>createdAt</code> (Date): Date when the attachment was added (optional, defaults to current date if not provided).</li> <li><code>doctype</code> (String): Type of the document (e.g., PDF, image).</li> <li><code>filename</code> (String): Name of the attachment file.</li> <li><code>url</code> (String): URL where the attachment is stored.</li> </ul>"
           },
           {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "attachments.url",
-            "description": "<p>Notice attachments.url</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "attachments.fileName",
-            "description": "<p>Notice attachments.fileName</p>"
-          },
-          {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "Boolean",
             "optional": true,
             "field": "isActive",
             "defaultValue": "true",
-            "description": "<p>Notice isActive</p>"
+            "description": "<p>Indicates if the notice is currently active.</p>"
           },
           {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": true,
-            "field": "postedDate",
-            "description": "<p>Notice postedDate</p>"
-          },
-          {
-            "group": "Parameter",
+            "group": "Request body",
             "type": "String",
             "optional": true,
             "field": "signatureOfTeacherUrl",
-            "description": "<p>Notice signatureOfTeacherUrl</p>"
+            "description": "<p>URL to the teacher's signature (required if posted by a teacher).</p>"
           }
         ]
       }
     },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    notice: {}\n}",
-          "type": "type"
-        }
-      ]
+    "examples": [
+      {
+        "title": "Request-Example:",
+        "content": "{\n  \"title\": \"School Assembly\",\n  \"description\": \"Mandatory attendance for all students.\",\n  \"noticeType\": \"student\",\n  \"isUrgent\": true,\n  \"expireDate\": \"2024-11-30T00:00:00Z\",\n  \"attachments\": [\n    {\n      \"createdAt\": \"2024-11-04T10:30:00Z\",\n      \"doctype\": \"pdf\",\n      \"filename\": \"assembly_schedule.pdf\",\n      \"url\": \"https://example.com/assembly_schedule.pdf\"\n    }\n  ],\n  \"isActive\": true,\n  \"signatureOfTeacherUrl\": \"https://example.com/signature.png\"\n}",
+        "type": "json"
+      }
+    ],
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "403",
+            "description": "<p>Unauthorized Only admins or teachers can create notices.</p>"
+          }
+        ],
+        "Error 5xx": [
+          {
+            "group": "Error 5xx",
+            "optional": false,
+            "field": "500",
+            "description": "<p>Internal Server Error.</p>"
+          }
+        ]
+      }
     },
     "version": "0.0.0",
     "filename": "routes/rest/adminNotices.js",
@@ -3520,28 +3510,11 @@
   },
   {
     "type": "delete",
-    "url": "/notice/:id",
-    "title": "5.0 Delete a Notice by _id",
-    "name": "deleteNotice",
+    "url": "/admin/notice/deletenotice/:id",
+    "title": "Delete Notice",
+    "name": "DeleteNotice",
     "group": "Notice",
-    "permission": [
-      {
-        "name": "Admin/Teacher"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>Deletes a specific notice. Only accessible by admin or the teacher who posted the notice.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -3550,7 +3523,20 @@
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p><code>URL Param</code> The _id of the Notice to delete</p>"
+            "description": "<p>The ID of the notice to be deleted.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
           }
         ]
       }
@@ -3559,144 +3545,53 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n    error : false,\n}",
-          "type": "type"
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Notice deleted successfully\",\n  \"noticeId\": \"609e127e60b5f5095c4d2f14\"\n}",
+          "type": "json"
         }
       ]
     },
-    "version": "0.0.0",
-    "filename": "routes/rest/adminNotices.js",
-    "groupTitle": "Notice"
-  },
-  {
-    "type": "put",
-    "url": "/notice/:id",
-    "title": "4.0 Edit a Notice by _id",
-    "name": "editNotice",
-    "group": "Notice",
-    "permission": [
-      {
-        "name": "Admin/Teacher"
-      }
-    ],
-    "header": {
+    "error": {
       "fields": {
-        "Header": [
+        "400": [
           {
-            "group": "Header",
-            "type": "String",
+            "group": "400",
             "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+            "field": "BadRequest",
+            "description": "<p>If the notice with the specified ID does not exist.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "Unauthorized",
+            "description": "<p>If the user is not an admin or the original posting teacher.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>If an unexpected error occurs during deletion.</p>"
           }
         ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p><code>URL Param</code> The _id of the Notice to edit</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "title",
-            "description": "<p>Notice title</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "description",
-            "description": "<p>Notice description</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "noticeType",
-            "description": "<p>Notice noticeType <code>enum=[&quot;student&quot;, &quot;teacher&quot;, &quot;general&quot;]</code></p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "isUrgent",
-            "defaultValue": "false",
-            "description": "<p>Notice isUrgent</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "ObjectID",
-            "optional": true,
-            "field": "postedBy",
-            "description": "<p>Notice postedBy</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": true,
-            "field": "expireDate",
-            "description": "<p>Notice expireDate</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": true,
-            "field": "attachments",
-            "description": "<p>Notice attachments</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "attachments.url",
-            "description": "<p>Notice attachments.url</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "attachments.fileName",
-            "description": "<p>Notice attachments.fileName</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "isActive",
-            "defaultValue": "true",
-            "description": "<p>Notice isActive</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Date",
-            "optional": true,
-            "field": "postedDate",
-            "description": "<p>Notice postedDate</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "signatureOfTeacherUrl",
-            "description": "<p>Notice signatureOfTeacherUrl</p>"
-          }
-        ]
-      }
-    },
-    "success": {
+      },
       "examples": [
         {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    notice: {}\n}",
-          "type": "type"
+          "title": "Unauthorized:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "NoNoticeFound:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"No such Notice!\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "InternalServerError:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"An error message explaining the issue\"\n}",
+          "type": "json"
         }
       ]
     },
@@ -3706,6 +3601,342 @@
   },
   {
     "type": "get",
+    "url": "/admin/notice/getNotice/:id",
+    "title": "Get a specific notice by ID",
+    "name": "GetNotice",
+    "group": "Notice",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>User's unique access token.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Notice's unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>This endpoint retrieves a specific notice by its ID. Access is restricted based on the user's role:</p> <ul> <li>Admins can view all types of notices.</li> <li>Teachers can view notices of type &quot;teacher&quot; and &quot;general&quot;.</li> <li>Students can view notices of type &quot;student&quot; and &quot;general&quot;.</li> </ul>",
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"notice\": {\n    \"_id\": \"12345\",\n    \"title\": \"Important Update\",\n    \"description\": \"This is an important notice\",\n    \"noticeType\": \"general\",\n    \"isUrgent\": true,\n    \"postedBy\": \"67890\",\n    \"expireDate\": \"2024-12-31T23:59:59.999Z\",\n    \"attachments\": [],\n    \"isActive\": true,\n    \"postedDate\": \"2024-11-04T10:00:00.000Z\",\n    \"signatureOfTeacherUrl\": \"\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that an error occurred.</p>"
+          },
+          {
+            "group": "Error 400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the failure, such as &quot;No such Notice!&quot;.</p>"
+          }
+        ],
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that an error occurred.</p>"
+          },
+          {
+            "group": "Error 403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>&quot;Unauthorized&quot; - The user does not have permission to view the requested notice.</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that an error occurred.</p>"
+          },
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"No such Notice!\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminNotices.js",
+    "groupTitle": "Notice"
+  },
+  {
+    "type": "put",
+    "url": "/admin/notice/editnotice/:id",
+    "title": "Update Notice",
+    "name": "UpdateNotice",
+    "group": "Notice",
+    "permission": [
+      {
+        "name": "admin, teacher"
+      }
+    ],
+    "description": "<p>Updates an existing notice. Only the admin or the teacher who posted the notice can make changes. If the expiration date (<code>expireDate</code>) is modified, the associated scheduled agenda job will be rescheduled accordingly.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Notice unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "title",
+        "description": "<p>The title of the notice.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "description",
+        "description": "<p>Detailed description of the notice.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "allowedValues": [
+          "\"student\"",
+          "\"teacher\"",
+          "\"general\""
+        ],
+        "optional": true,
+        "field": "noticeType",
+        "description": "<p>Type of the notice (student, teacher, or general).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Boolean",
+        "optional": true,
+        "field": "isUrgent",
+        "description": "<p>Indicates if the notice is urgent.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "postedBy",
+        "description": "<p>The ID of the user who posted the notice.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Date",
+        "optional": true,
+        "field": "expireDate",
+        "description": "<p>Expiration date of the notice.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Object",
+        "optional": true,
+        "field": "attachments",
+        "description": "<p>Attachments associated with the notice.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "attachments.url",
+        "description": "<p>URL of the attachment.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "attachments.fileName",
+        "description": "<p>File name of the attachment.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Boolean",
+        "optional": true,
+        "field": "isActive",
+        "description": "<p>Indicates if the notice is active.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Date",
+        "optional": true,
+        "field": "postedDate",
+        "description": "<p>The date the notice was posted.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "signatureOfTeacherUrl",
+        "description": "<p>URL of the teacher's signature if provided.</p>"
+      }
+    ],
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "notice",
+            "description": "<p>Updated notice object.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"notice\": {\n    \"_id\": \"123456789\",\n    \"title\": \"Updated Notice Title\",\n    \"description\": \"This is an updated description for the notice.\",\n    \"expireDate\": \"2024-12-31T23:59:59Z\",\n    \"isUrgent\": true,\n    \"attachments\": {\n      \"url\": \"https://example.com/attachment.pdf\",\n      \"fileName\": \"attachment.pdf\"\n    },\n    \"isActive\": true,\n    \"postedDate\": \"2024-11-04T12:00:00Z\",\n    \"postedBy\": \"987654321\",\n    \"noticeType\": \"student\",\n    \"signatureOfTeacherUrl\": \"https://example.com/signature.png\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error (e.g., &quot;No such Notice!&quot; if the notice does not exist).</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error (e.g., &quot;Unauthorized&quot; if the user does not have permission to edit the notice).</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was a server error.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response (No Notice Found):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"No such Notice!\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Unauthorized):",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "PUT /admin/notice/editnotice/123456789\n{\n  \"title\": \"Updated Notice Title\",\n  \"description\": \"This is an updated description for the notice.\",\n  \"expireDate\": \"2024-12-31T23:59:59Z\",\n  \"isUrgent\": true,\n  \"attachments\": {\n    \"url\": \"https://example.com/attachment.pdf\",\n    \"fileName\": \"attachment.pdf\"\n  },\n  \"isActive\": true\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminNotices.js",
+    "groupTitle": "Notice"
+  },
+  {
+    "type": "post",
     "url": "/notices",
     "title": "1.0 Fetch all the Notices",
     "name": "fetchNotices",
@@ -3733,56 +3964,6 @@
         {
           "title": "Success-Response: 200 OK",
           "content": "{\n    error : false,\n    notices: [{}]\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/adminNotices.js",
-    "groupTitle": "Notice"
-  },
-  {
-    "type": "get",
-    "url": "/notice/:id",
-    "title": "2.0 Find a Notice by _id",
-    "name": "getNotice",
-    "group": "Notice",
-    "permission": [
-      {
-        "name": "Public"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p><code>URL Param</code> The _id of the Notice to find</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    notice: {}\n}",
           "type": "type"
         }
       ]
