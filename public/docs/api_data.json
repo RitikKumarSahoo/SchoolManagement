@@ -8161,7 +8161,7 @@
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "teacherCSV",
+            "type": "File",
             "optional": false,
             "field": "file",
             "description": "<p>CSV file containing teacher data. Required fields: <code>firstName</code>, <code>lastName</code>, <code>gender</code>, <code>phone</code>. Optional fields include <code>email</code>, <code>dob</code>, <code>joinDate</code>, <code>profileImage</code>, <code>signature</code>, <code>bankDetails</code>, <code>address</code>, <code>schoolId</code>, and <code>subject</code>.</p>"
