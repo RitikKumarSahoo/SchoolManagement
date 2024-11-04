@@ -431,20 +431,6 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
    *
-   * @apiSuccess {Boolean} error Indicates if there was an error (false if successful).
-   * @apiSuccess {Object[]} school List of schools.
-   * @apiSuccess {String} school._id Unique ID of the school.
-   * @apiSuccess {String} school.name Name of the school.
-   * @apiSuccess {String} school.registrationNumber Registration number of the school.
-   * @apiSuccess {Object} school.address Address details of the school (city, state, country, pinCode).
-   * @apiSuccess {Object} school.contact Contact details of the school (phoneNo, email, website).
-   * @apiSuccess {String} school.principalName Name of the school principal.
-   * @apiSuccess {Number} school.establishYear Year the school was established.
-   * @apiSuccess {String} school.schoolType Type of the school (primary, secondary, highSchool).
-   * @apiSuccess {Number} school.totalStudents Total number of students.
-   * @apiSuccess {Number} school.totalClasses Total number of classes.
-   * @apiSuccess {Boolean} school.isActive Indicates if the school is currently active.
-   *
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
    *  {
@@ -471,6 +457,7 @@ module.exports = {
    *        "totalStudents": 1200,
    *        "totalClasses": 40,
    *        "isActive": true
+   *        "imageUrl":""
    *      },
    *      {
    *        "_id": "603ddf15e245ae19f85ce110",
@@ -492,7 +479,8 @@ module.exports = {
    *        "schoolType": "primary",
    *        "totalStudents": 800,
    *        "totalClasses": 20,
-   *        "isActive": true
+   *        "isActive": true,
+   *        "imageUrl":""
    *      }
    *    ]
    *  }

@@ -296,7 +296,7 @@ module.exports = {
   },
 
   /**
-   * @api {post} /createadmin/:id Create a new Admin
+   * @api {post} /createadmin/:id Create a new Admin   (id of school)
    * @apiName CreateAdmin
    * @apiGroup Admin
    * @apiPermission SuperAdmin
@@ -442,7 +442,7 @@ module.exports = {
         dob: dateOfBirth,
         _school: existSchool._id,
         _addedBy: req.user.id,
-        joinDate,
+        joinDate: joinDate !== undefined ? joinDate : Date.now(),
         signature,
         username,
         phone,
@@ -456,23 +456,23 @@ module.exports = {
         profileImage,
       });
 
-      if (user.email !== undefined) {
-        try {
-          await mail("admin-welcome", {
-            to: user.email,
-            subject: `Welcome to ${existSchool.name}`,
-            locals: {
-              username,
-              firstName,
-              password,
-              schoolName: existSchool.name,
-            },
-          });
-        } catch (error) {
-          console.error(error).message;
-          return res.status(400).json({ error: true, Error: error.message });
-        }
-      }
+      // if (user.email !== undefined) {
+      //   try {
+      //     await mail("admin-welcome", {
+      //       to: user.email,
+      //       subject: `Welcome to ${existSchool.name}`,
+      //       locals: {
+      //         username,
+      //         firstName,
+      //         password,
+      //         schoolName: existSchool.name,
+      //       },
+      //     });
+      //   } catch (error) {
+      //     console.error(error).message;
+      //     return res.status(400).json({ error: true, Error: error.message });
+      //   }
+      // }
 
       const response = await User.findOne({ email: user.email }).select(
         "-forgotpassword -password -bankDetails"
