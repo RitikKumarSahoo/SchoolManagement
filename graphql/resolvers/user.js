@@ -6,7 +6,6 @@ const userResolver = {
     getUser: async (parent, { id }) => {
       try {
         console.log(parent, id);
-
         console.log("Hello");
 
         const response = await User.findOne({ _id: id });
