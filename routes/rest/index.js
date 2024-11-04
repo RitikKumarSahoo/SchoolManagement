@@ -118,14 +118,14 @@ router.put(
 );
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
 router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
-router.get("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
+router.post("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
 
 // Noice board Rute
-router.get("/admin/notices/find-all-notices", adminNoticeRoutes.findAllNotices); // Fetch all notices
+router.post("/admin/notices/allnotices", adminNoticeRoutes.findAllNotices); // Fetch all notices
 router.get("/admin/notice/getNotice/:id", adminNoticeRoutes.get); // Get a notice by ID
-router.post("/admin/notice/createNotice", adminNoticeRoutes.post); // Create a new notice
-router.put("/admin/notice/edit-notice/:id", adminNoticeRoutes.put); // Edit a notice by ID
-router.delete("/admin/notice/delete-notice/:id", adminNoticeRoutes.delete); // Delete a notice by ID
+router.post("/admin/notice/createnotice", adminNoticeRoutes.post); // Create a new notice
+router.put("/admin/notice/editnotice/:id", adminNoticeRoutes.put); // Edit a notice by ID
+router.post("/admin/notice/deletenotice/:id", adminNoticeRoutes.delete); // Delete a notice by ID
 
 //Schedule Route
 router.get("/admin/schedules/find-all-schedules", adminScheduleRoutes.find); // Fetch all schedules

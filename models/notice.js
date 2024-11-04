@@ -26,10 +26,23 @@ const NoticeSchema = new mongoose.Schema({
   expireDate: {
     type: Date,
   },
-  attachments: {
-    url: { type: String },
-    fileName: { type: String },
-  },
+  attachments: [
+    {
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+      doctype: {
+        type: String,
+      },
+      filename: {
+        type: String,
+      },
+      url: {
+        type: String,
+      },
+    },
+  ],
   isActive:{
     type:Boolean,
     default:true

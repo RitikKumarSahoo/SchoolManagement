@@ -6,7 +6,6 @@ const mail = require("../../lib/mail");
 const randomstring = require("randomstring");
 const { Readable } = require("stream");
 const csv = require("csv-parser");
-const _class = require("./class");
 
 function generateCustomPassword() {
   const upperCaseLetter = randomstring.generate({
