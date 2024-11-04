@@ -4,20 +4,59 @@ const agenda = require("../../agenda/index.js");
 
 module.exports = {
   /**
-   * Fetch all the Notices
-   * @api {post} /notices 1.0 Fetch all the Notices
-   * @apiName fetchNotices
-   * @apiGroup Notice
-   * @apiPermission Public
-   *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiSuccessExample {type} Success-Response: 200 OK
-   * {
-   *     error : false,
-   *     notices: [{}]
-   * }
-   */
+ * @api {post} /admin/notices/allnotices Fetch all notices
+ * @apiName FetchNotices
+ * @apiGroup Notices
+ * @apiDescription Retrieve a list of notices based on the user's role and optional filters. Only active notices are returned.
+ * 
+ * @apiHeader {String} Authorization User's access token.
+ * 
+ * @apiParam {String} [type] (Admin only) Filter notices by type ("student", "teacher", or "general").
+ * 
+ * @apiSuccess {Boolean} error Indicates if there was an error.
+ * @apiSuccess {Number} count The total number of notices matching the criteria.
+ * @apiSuccess {Object[]} notices List of notice objects.
+ * 
+ * @apiError {Boolean} error Indicates if there was an error.
+ * @apiError {String} reason The reason for the error.
+ * 
+ * @apiPermission admin
+ * @apiPermission teacher
+ * @apiPermission student
+ *
+ * @apiExample {json} Request Example (Admin):
+ *     {
+ *       "type": "teacher"
+ *     }
+ * 
+ * @apiExample {json} Response Example:
+ *     {
+ *       "error": false,
+ *       "count": 5,
+ *       "notices": [
+ *         {
+ *           "_id": "634d2c347f5b9c23388b5c61",
+ *           "title": "Upcoming Exam",
+ *           "description": "Exam details for students",
+ *           "noticeType": "student",
+ *           "isActive": true,
+ *           "postedBy": "634b2c238f9a24388b5a1c51",
+ *           "expireDate": "2024-12-31T00:00:00.000Z",
+ *           "attachments": [],
+ *           "postedDate": "2024-10-01T10:30:00.000Z",
+ *           "signatureOfTeacherUrl": "https://example.com/signature.png"
+ *         },
+ *         ...
+ *       ]
+ *     }
+ *
+ * @apiErrorExample {json} Error Response (Unauthorized):
+ *     {
+ *       "error": true,
+ *       "reason": "Unauthorized"
+ *     }
+ */
+
   async findAllNotices(req, res) {
     try {
       const role = req.user.loginType;
