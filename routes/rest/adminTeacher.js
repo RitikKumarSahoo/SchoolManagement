@@ -809,7 +809,7 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token for authentication.
    *
-   * @apiParam {teacherCSV} file CSV file containing teacher data. Required fields: `firstName`, `lastName`, `gender`, `phone`. Optional fields include `email`, `dob`, `joinDate`, `profileImage`, `signature`, `bankDetails`, `address`, `schoolId`, and `subject`.
+   * @apiParam {File} file CSV file containing teacher data. Required fields: `firstName`, `lastName`, `gender`, `phone`. Optional fields include `email`, `dob`, `joinDate`, `profileImage`, `signature`, `bankDetails`, `address`, `schoolId`, and `subject`.
    *
    * @apiSuccess {String} message Success message showing the count of created teachers.
    * @apiSuccess {Object[]} results List of successfully created teachers.
