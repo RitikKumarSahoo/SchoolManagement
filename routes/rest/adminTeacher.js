@@ -180,7 +180,7 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token for admin or super admin access.
    *
-   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`, `joinDate`,`gender` `phone`.
+   * @apiParam {String} [searchText] Optional search text to filter teachers by `firstName`, `lastName`, `email`,`gender` `phone`.
    * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
    * @apiParam  {Number} pageSize="10" number of data send within the params
    *
@@ -244,11 +244,8 @@ module.exports = {
       let query = {
         loginType: "teacher",
         isActive: true,
+        _school,
       };
-
-      if (!isSuperAdmin) {
-        query._school = _school;
-      }
 
       if (searchText) {
         const searchRegex = new RegExp(searchText.trim(), "i");
@@ -257,8 +254,7 @@ module.exports = {
           { lastName: { $regex: searchRegex } },
           { email: { $regex: searchRegex } },
           { phone: { $regex: searchRegex } },
-          { gender: { $regex: searchText } },
-          { joinDate: { $regex: searchText } },
+          { gender: { $regex: searchRegex } },
         ];
       }
 

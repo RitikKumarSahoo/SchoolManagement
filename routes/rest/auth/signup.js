@@ -11,7 +11,7 @@ module.exports = {
    * @api {post} /admin/find Find Admins
    * @apiName FindAdmins
    * @apiGroup Admin
-   * @apiDescription Super admins can search all teachers details.
+   * @apiDescription SuperAdmin can search all admin details.
    *
    * @apiHeader {String} Authorization Bearer token  super admin access.
    *
@@ -31,26 +31,17 @@ module.exports = {
    *       "email": "john.doe@example.com",
    *       "phone": "1234567890",
    *       "isActive": true,
-   *       "loginType": "teacher"
+   *       "loginType": "admin"
    *     }
    *   ],
    *   "usersCount": 1
    * }
    *
-   * @apiError UnauthorizedAccess Unauthorized access (not an admin or super admin).
-   * @apiErrorExample {json} Unauthorized-Response:
-   * HTTP/1.1 403 Forbidden
-   * {
-   *   "error": true,
-   *   "reason": "Unauthorized access"
-   * }
-   *
-   * @apiError NoTeachersFound No teachers found matching the search criteria.
-   * @apiErrorExample {json} NoTeachers-Response:
+   * @apiErrorExample {json} NoAdmins-Response:
    * HTTP/1.1 404 Not Found
    * {
    *   "error": true,
-   *   "reason": "No teacher found"
+   *   "reason": "No admin found"
    * }
    *
    * @apiError InternalServerError Internal server error.
@@ -66,7 +57,6 @@ module.exports = {
       const { isSuperAdmin } = req.user;
       let { searchText, pageNumber = 1, pageSize = 10, schoolId } = req.body;
 
-      // Error if the user is not a super admin or admin
       if (isSuperAdmin !== true) {
         return res
           .status(400)
@@ -91,8 +81,8 @@ module.exports = {
           { lastName: { $regex: searchRegex } },
           { email: { $regex: searchRegex } },
           { phone: { $regex: searchRegex } },
-          { gender: { $regex: searchText } },
-          { joinDate: { $regex: searchText } },
+          { gender: { $regex: searchRegex } },
+          { joinDate: { $regex: searchRegex } },
         ];
       }
 
@@ -106,9 +96,7 @@ module.exports = {
       ]);
 
       if (users.length === 0) {
-        return res
-          .status(404)
-          .json({ error: true, reason: "No teacher found" });
+        return res.status(404).json({ error: true, reason: "No admin found" });
       }
 
       return res.status(200).json({ error: false, users, usersCount });
@@ -208,7 +196,7 @@ module.exports = {
    * @apiGroup Admin
    * @apiPermission SuperAdmin
    *
-   * @apiDescription Fetch a specific admin's details by their ID
+   * @apiDescription Fetch a specific admin's details by their ID.
    *
    * @apiHeader {String} Authorization Bearer token of SuperAdmin for authentication.
    *
@@ -219,12 +207,36 @@ module.exports = {
    *     {
    *       "error": false,
    *       "admin": {
-   *         "_id": "61234abcd5678ef901234567",
-   *         "name": "John Doe",
-   *         "email": "john.doe@example.com",
+   *         "address": {
+   *           "city": "New York",
+   *           "country": "USA",
+   *           "locality": "Greenwood Avenue",
+   *           "pin": "10001",
+   *           "state": "NY"
+   *         },
+   *         "subject": [],
+   *         "_id": "6721d1c8d3ba636fe8102e4a",
+   *         "username": "Sumxyz686",
+   *         "firstName": "Suman",
+   *         "lastName": "Rana",
+   *         "email": "199921212sumanrana@gmail.com",
+   *         "accountType": "email",
+   *         "phone": "8371887686",
+   *         "gender": "Male",
+   *         "dob": "2018-02-28",
    *         "loginType": "admin",
-   *         "createdAt": "2024-09-30T12:30:45.123Z",
-   *         "updatedAt": "2024-10-01T14:22:05.456Z"
+   *         "isActive": true,
+   *         "isAdmin": true,
+   *         "joinDate": "Wed Oct 30 2024 06:27:20 GMT+0000 (Coordinated Universal Time)",
+   *         "bankAdded": false,
+   *         "_school": "6721d1c8d3ba636fe8102e48",
+   *         "isPaid": false,
+   *         "messagingEnabled": false,
+   *         "fullName": "Suman Rana",
+   *         "createdAt": "2024-10-30T06:27:20.850Z",
+   *         "updatedAt": "2024-10-30T06:27:20.850Z",
+   *         "__v": 0,
+   *         "id": "6721d1c8d3ba636fe8102e4a"
    *       }
    *     }
    *
@@ -259,7 +271,7 @@ module.exports = {
       const admin = await User.findOne({
         _id: req.params.id,
         loginType: "admin",
-      }).select("-password -isSuperAdmin -forgotpassword");
+      }).select("-password -isSuperAdmin -forgotpassword -subject ");
 
       if (admin === null) {
         return res
@@ -365,6 +377,8 @@ module.exports = {
    * @apiGroup User
    * @apiPermission Admin,superAdmin
    *
+   * @apiDescription   superAdmin can active deactivate any user and admin can only activate deactivate teacher and student
+   *
    * @apiParam {String} id The ID of the user
    * @apiParam {Boolean} flag true or false
    *
@@ -408,7 +422,7 @@ module.exports = {
 
       return res.status(400).json({
         error: true,
-        reason: "You are not authorized to activate deactivate this user",
+        reason: "You do not have permission to activate-deactivate user",
       });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
