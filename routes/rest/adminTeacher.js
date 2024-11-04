@@ -391,6 +391,7 @@ module.exports = {
    * @apiParam {Object} [address] address of the teacher
    * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [schoolId] school id(only use when superadmin will create )
+   * @apiParam {Array}  [subject]  array of string ['Math',"English"]
    *
    * @apiSuccess {Boolean} error Indicates whether there was an error (false).
    * @apiSuccess {Object} user The newly created teacher object.
@@ -476,6 +477,7 @@ module.exports = {
         bankDetails, // pending
         address,
         schoolId,
+        subject,
       } = req.body;
       const { isSuperAdmin, loginType } = req.user;
 
@@ -566,6 +568,7 @@ module.exports = {
         bankAdded: bankDetails !== undefined ? true : false,
         isActive: true,
         address,
+        subject,
         profileImage,
       });
 
@@ -621,6 +624,7 @@ module.exports = {
    * @apiParam {Object} [address] address of the teacher
    * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [_school]  school id
+   * @apiParam {Array}  [subject] array of string subject:["Math"]
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -682,6 +686,7 @@ module.exports = {
         bankDetails,
         address,
         profileImage,
+        subject,
       } = req.body;
 
       if (loginType !== "admin" && isSuperAdmin === false) {
@@ -731,6 +736,7 @@ module.exports = {
         if (address.country !== undefined)
           user.address.country = address.country;
       }
+      if (subject !== undefined) user.subject = subject;
       if (profileImage !== undefined) user.profileImage = profileImage;
 
       await user.save();
