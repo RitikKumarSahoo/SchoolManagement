@@ -192,7 +192,7 @@ define({ "api": [
   {
     "type": "post",
     "url": "/createadmin/:id",
-    "title": "Create a new Admin",
+    "title": "Create a new Admin   (id of school)",
     "name": "CreateAdmin",
     "group": "Admin",
     "permission": [
@@ -413,7 +413,7 @@ define({ "api": [
     "title": "Find Admins",
     "name": "FindAdmins",
     "group": "Admin",
-    "description": "<p>Super admins can search all teachers details.</p>",
+    "description": "<p>SuperAdmin can search all admin details.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -460,43 +460,16 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"admin\"\n    }\n  ],\n  \"usersCount\": 1\n}",
           "type": "json"
         }
       ]
     },
     "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "UnauthorizedAccess",
-            "description": "<p>Unauthorized access (not an admin or super admin).</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "NoTeachersFound",
-            "description": "<p>No teachers found matching the search criteria.</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "InternalServerError",
-            "description": "<p>Internal server error.</p>"
-          }
-        ]
-      },
       "examples": [
         {
-          "title": "Unauthorized-Response:",
-          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"Unauthorized access\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "NoTeachers-Response:",
-          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No teacher found\"\n}",
+          "title": "NoAdmins-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"reason\": \"No admin found\"\n}",
           "type": "json"
         },
         {
@@ -504,7 +477,17 @@ define({ "api": [
           "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Internal server error\"\n}",
           "type": "json"
         }
-      ]
+      ],
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      }
     },
     "version": "0.0.0",
     "filename": "routes/rest/auth/signup.js",
@@ -521,7 +504,7 @@ define({ "api": [
         "name": "SuperAdmin"
       }
     ],
-    "description": "<p>Fetch a specific admin's details by their ID</p>",
+    "description": "<p>Fetch a specific admin's details by their ID.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -552,7 +535,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admin\": {\n    \"_id\": \"61234abcd5678ef901234567\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"loginType\": \"admin\",\n    \"createdAt\": \"2024-09-30T12:30:45.123Z\",\n    \"updatedAt\": \"2024-10-01T14:22:05.456Z\"\n  }\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"admin\": {\n    \"address\": {\n      \"city\": \"New York\",\n      \"country\": \"USA\",\n      \"locality\": \"Greenwood Avenue\",\n      \"pin\": \"10001\",\n      \"state\": \"NY\"\n    },\n    \"subject\": [],\n    \"_id\": \"6721d1c8d3ba636fe8102e4a\",\n    \"username\": \"Sumxyz686\",\n    \"firstName\": \"Suman\",\n    \"lastName\": \"Rana\",\n    \"email\": \"199921212sumanrana@gmail.com\",\n    \"accountType\": \"email\",\n    \"phone\": \"8371887686\",\n    \"gender\": \"Male\",\n    \"dob\": \"2018-02-28\",\n    \"loginType\": \"admin\",\n    \"isActive\": true,\n    \"isAdmin\": true,\n    \"joinDate\": \"Wed Oct 30 2024 06:27:20 GMT+0000 (Coordinated Universal Time)\",\n    \"bankAdded\": false,\n    \"_school\": \"6721d1c8d3ba636fe8102e48\",\n    \"isPaid\": false,\n    \"messagingEnabled\": false,\n    \"fullName\": \"Suman Rana\",\n    \"createdAt\": \"2024-10-30T06:27:20.850Z\",\n    \"updatedAt\": \"2024-10-30T06:27:20.850Z\",\n    \"__v\": 0,\n    \"id\": \"6721d1c8d3ba636fe8102e4a\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -8006,6 +7989,189 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/bulkCreateTeachers",
+    "title": "Bulk Create Teachers",
+    "name": "BulkCreateTeachers",
+    "group": "Teacher",
+    "permission": [
+      {
+        "name": "SuperAdmin, Admin"
+      }
+    ],
+    "description": "<p>Creates multiple teacher records from a CSV file. The request requires a CSV file with each row containing teacher details.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "teacherCSV",
+            "optional": false,
+            "field": "file",
+            "description": "<p>CSV file containing teacher data. Required fields: <code>firstName</code>, <code>lastName</code>, <code>gender</code>, <code>phone</code>. Optional fields include <code>email</code>, <code>dob</code>, <code>joinDate</code>, <code>profileImage</code>, <code>signature</code>, <code>bankDetails</code>, <code>address</code>, <code>schoolId</code>, and <code>subject</code>.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message showing the count of created teachers.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "results",
+            "description": "<p>List of successfully created teachers.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "results.error",
+            "description": "<p>Indicates if the teacher creation was successful (false).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "results.user",
+            "description": "<p>Created teacher's data.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "results.user.firstName",
+            "description": "<p>Teacher's first name.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "results.user.lastName",
+            "description": "<p>Teacher's last name.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "results.user.email",
+            "description": "<p>Teacher's email address.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "results.user.phone",
+            "description": "<p>Teacher's phone number.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Date",
+            "optional": false,
+            "field": "results.user.dob",
+            "description": "<p>Teacher's date of birth.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "results.user.username",
+            "description": "<p>Generated username for the teacher.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "errors",
+            "description": "<p>List of errors encountered during creation.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "errors.teacherData",
+            "description": "<p>Data from the CSV row that caused the error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "errors.error",
+            "description": "<p>Description of the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"message\": \"3 teachers created\",\n  \"results\": [\n    {\n      \"error\": false,\n      \"user\": {\n        \"firstName\": \"John\",\n        \"lastName\": \"Doe\",\n        \"email\": \"john@school.com\",\n        \"phone\": \"1234567890\",\n        \"dob\": \"06/04/2001\",\n        \"username\": \"Johsch890\"\n      }\n    },\n    {\n      \"error\": false,\n      \"user\": {\n        \"firstName\": \"Jane\",\n        \"lastName\": \"Smith\",\n        \"email\": \"jane@school.com\",\n        \"phone\": \"0987654321\",\n        \"dob\": \"02/02/1999\",\n        \"username\": \"Jansch321\"\n      }\n    },\n    {\n      \"error\": false,\n      \"user\": {\n        \"firstName\": \"Asit\",\n        \"lastName\": \"Raj\",\n        \"email\": \"asit@school.com\",\n        \"phone\": \"98223682221\",\n        \"dob\": \"01/11/2001\",\n        \"username\": \"Asisch221\"\n      }\n    }\n  ],\n  \"errors\": [\n    {\n      \"teacherData\": {\n        \"firstName\": \"Jane\",\n        \"lastName\": \"Smith\",\n        \"gender\": \"Female\",\n        \"email\": \"tim@school.com\",\n        \"phone\": \"0987654376\",\n        \"dob\": \"02/02/1999\",\n        \"subject\": \"['Math'\",\n        \"_7\": \"'English']\"\n      },\n      \"error\": \"Email already in use. Provide a unique email.\"\n    }\n  ]\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Status of the request (true if an error occurred).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message if the request fails.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to create teachers\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "File Missing:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"CSV file is required\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An error message explaining the failure\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTeacher.js",
+    "groupTitle": "Teacher"
+  },
+  {
+    "type": "post",
     "url": "admin/teacher/create",
     "title": "Create Teacher",
     "name": "CreateTeacher",
@@ -8302,7 +8468,7 @@ define({ "api": [
             "type": "String",
             "optional": true,
             "field": "searchText",
-            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>, <code>joinDate</code>,<code>gender</code> <code>phone</code>.</p>"
+            "description": "<p>Optional search text to filter teachers by <code>firstName</code>, <code>lastName</code>, <code>email</code>,<code>gender</code> <code>phone</code>.</p>"
           },
           {
             "group": "Parameter",
@@ -9275,6 +9441,7 @@ define({ "api": [
         "name": "Admin,superAdmin"
       }
     ],
+    "description": "<p>superAdmin can active deactivate any user and admin can only activate deactivate teacher and student</p>",
     "parameter": {
       "fields": {
         "Parameter": [
