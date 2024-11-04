@@ -31,6 +31,9 @@ const server = new ApolloServer({
 /**
  * Start the Apollo Server.
  */
+// Create and start the HTTP server
+const httpServer = http.createServer(app);
+const port = normalizePort(process.env.PORT || "3000");
 
 async function startServer() {
   await server.start();
@@ -38,9 +41,6 @@ async function startServer() {
   // Use Apollo Server middleware
   app.use("/graphql", cors(), express.json(), expressMiddleware(server));
 
-  // Create and start the HTTP server
-  const httpServer = http.createServer(app);
-  const port = normalizePort(process.env.PORT || "3000");
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
   });
