@@ -135,6 +135,9 @@ const UserSchema = new mongoose.Schema({
   currentAcademicYear: {
     type: String,
   },
+  subject: {
+    type: [String],
+  },
 });
 
 // UserSchema.pre("validate", function (next) {
