@@ -163,6 +163,11 @@ router.get("/admin/teacher/get/:id", adminTeacher.get);
 router.post("/admin/teacher/create", adminTeacher.createTeacher);
 router.put("/admin/teacher/update/:id", adminTeacher.updateTeacher);
 router.delete("/admin/teacher/delete/:id", adminTeacher.deleteTeacher);
+router.post(
+  "/admin/teacher/bulkupload",
+  uplodFile.single("teacherCSV"),
+  adminTeacher.bulkCreateTeachers
+);
 
 // class
 router.post("/admin/class/create", adminClassRoute.Post);

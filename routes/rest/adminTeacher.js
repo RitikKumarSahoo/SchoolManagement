@@ -4,6 +4,8 @@ const randomstring = require("randomstring");
 const mail = require("../../lib/mail");
 const moment = require("moment");
 const { request } = require("express");
+const { Readable } = require("stream");
+const csv = require("csv-parser");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
@@ -798,6 +800,148 @@ module.exports = {
       });
     } catch (error) {
       return res.status(400).json({ error: true, Error: error.message });
+    }
+  },
+
+  async bulkCreateTeachers(req, res) {
+    try {
+      const { isSuperAdmin, loginType, _school } = req.user;
+
+      if (!(isSuperAdmin || loginType === "admin")) {
+        return res.status(400).json({
+          error: true,
+          reason: "You do not have permission to create teachers",
+        });
+      }
+
+      const teachers = [];
+      const errors = [];
+
+      if (!req.file || !req.file.buffer) {
+        return res
+          .status(400)
+          .json({ error: true, message: "CSV file is required" });
+      }
+
+      const readableStream = new Readable();
+      readableStream.push(req.file.buffer);
+      readableStream.push(null);
+
+      readableStream
+        .pipe(csv())
+        .on("data", (row) => {
+          teachers.push(row);
+        })
+        .on("end", async () => {
+          const results = [];
+
+          for (const teacherData of teachers) {
+            try {
+              const {
+                firstName,
+                lastName,
+                gender,
+                email,
+                phone,
+                dob,
+                joinDate,
+                profileImage,
+                signature,
+                bankDetails,
+                address,
+                schoolId,
+                subject,
+              } = teacherData;
+
+              if (!firstName || !lastName || !gender || !phone) {
+                throw new Error("Missing required fields");
+              }
+
+              const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+              if (!dateOfBirth.isValid()) {
+                throw new Error(
+                  "Invalid date of birth format. Use DD/MM/YYYY."
+                );
+              }
+
+              // Check for duplicate email or phone
+              const existingUser = await User.findOne({
+                $or: [{ email }, { phone }],
+              })
+                .select("email phone")
+                .exec();
+
+              if (existingUser) {
+                if (existingUser.email === email) {
+                  throw new Error(
+                    "Email already in use. Provide a unique email."
+                  );
+                }
+                if (existingUser.phone === phone) {
+                  throw new Error(
+                    "Phone number already in use. Provide a unique phone number."
+                  );
+                }
+              }
+
+              const school = await School.findOne({
+                _id: isSuperAdmin ? schoolId : _school,
+              })
+                .select("_id name")
+                .exec();
+
+              if (!school) {
+                throw new Error("School not found");
+              }
+
+              const username = `${firstName.slice(0, 3)}${school.name.slice(
+                0,
+                3
+              )}${phone.slice(-3)}`;
+              const password = generateCustomPassword();
+
+              const user = await User.create({
+                firstName,
+                lastName,
+                gender,
+                email,
+                dob: dateOfBirth.toDate(),
+                _school: isSuperAdmin ? schoolId : _school,
+                _addedBy: req.user.id,
+                joinDate,
+                signature,
+                username,
+                phone,
+                password,
+                loginType: "teacher",
+                bankDetails,
+                bankAdded: !!bankDetails,
+                isActive: true,
+                address,
+                subject,
+                profileImage,
+              });
+
+              results.push({
+                success: true,
+                user: { firstName, lastName, email, phone },
+              });
+            } catch (error) {
+              errors.push({
+                teacherData,
+                error: error.message,
+              });
+            }
+          }
+
+          return res.status(200).json({
+            message: `${results.length} teachers created successfully`,
+            results,
+            errors,
+          });
+        });
+    } catch (error) {
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
 };
