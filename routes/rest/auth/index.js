@@ -442,7 +442,7 @@ module.exports = {
         dob: dateOfBirth,
         _school: existSchool._id,
         _addedBy: req.user.id,
-        joinDate,
+        joinDate: joinDate !== undefined ? joinDate : Date.now(),
         signature,
         username,
         phone,
