@@ -834,7 +834,6 @@ module.exports = {
         })
         .on("end", async () => {
           const results = [];
-
           for (const teacherData of teachers) {
             try {
               const {
@@ -885,7 +884,7 @@ module.exports = {
               }
 
               const school = await School.findOne({
-                _id: isSuperAdmin ? schoolId : _school,
+                _id: isSuperAdmin ? req.body.schoolId : _school,
               })
                 .select("_id name")
                 .exec();
@@ -923,8 +922,16 @@ module.exports = {
               });
 
               results.push({
-                success: true,
-                user: { firstName, lastName, email, phone },
+                error: false,
+                user: {
+                  firstName,
+                  lastName,
+                  email,
+                  phone,
+                  dob,
+                  phone,
+                  username,
+                },
               });
             } catch (error) {
               errors.push({
@@ -935,7 +942,7 @@ module.exports = {
           }
 
           return res.status(200).json({
-            message: `${results.length} teachers created successfully`,
+            message: `${results.length} teachers created`,
             results,
             errors,
           });
