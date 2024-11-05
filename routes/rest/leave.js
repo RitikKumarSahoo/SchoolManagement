@@ -44,7 +44,6 @@ module.exports = {
       const { loginType, _school } = req.user;
       let { searchText, pageNumber = 1, pageSize = 10 } = req.body;
 
-      // Error if the user is not a super admin or admin
       if (!(loginType === "teacher")) {
         return res
           .status(403)
