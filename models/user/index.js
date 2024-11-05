@@ -139,6 +139,14 @@ const UserSchema = new mongoose.Schema({
   subject: {
     type: [String],
   },
+
+  qualification: {
+    type: String,
+  },
+
+  experience: {
+    type: String,
+  },
 });
 
 // UserSchema.pre("validate", function (next) {
