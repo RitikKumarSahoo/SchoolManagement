@@ -322,14 +322,14 @@
   {
     "type": "delete",
     "url": "/admin/delete/:id",
-    "title": "Delete superadmin can delete admin and admin can delete student and teacher",
-    "name": "DeleteUser",
+    "title": "Delete User",
     "group": "Admin",
     "permission": [
       {
         "name": "SuperAdmin,admin"
       }
     ],
+    "name": "DeleteUser",
     "description": "<p>superadmin can delete admin and admin can delete student and teacher</p>",
     "header": {
       "fields": {
