@@ -8574,13 +8574,13 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "admin/teacher/create",
+    "url": "/admin/teacher/create",
     "title": "Create Teacher",
     "name": "CreateTeacher",
     "group": "Teacher",
     "permission": [
       {
-        "name": "admin,superAdmin"
+        "name": "admin, superAdmin"
       }
     ],
     "header": {
@@ -8602,113 +8602,25 @@ define({ "api": [
           {
             "group": "Parameter",
             "type": "String",
-            "optional": false,
-            "field": "firstName",
-            "description": "<p>First name of the teacher.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "lastName",
-            "description": "<p>Last name of the teacher.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "gender",
-            "description": "<p>Gender of the teacher (e.g., Male, Female).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "email",
-            "description": "<p>Email of the teacher (must be unique).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "phone",
-            "description": "<p>Phone number of the teacher (must be unique).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "dob",
-            "description": "<p>Date of birth of the teacher in DD/MM/YYYY format.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "signature",
-            "description": "<p>Optional signature of the teacher.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": true,
-            "field": "bankDetails",
-            "description": "<p>Optional bank details of the teacher.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": true,
-            "field": "address",
-            "description": "<p>address of the teacher</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "profileImage",
-            "description": "<p>image url of the teacher</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
             "optional": true,
             "field": "schoolId",
             "description": "<p>school id(only use when superadmin will create )</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Array",
-            "optional": true,
-            "field": "subject",
-            "description": "<p>array of string ['Math',&quot;English&quot;]</p>"
           }
         ]
       }
     },
+    "examples": [
+      {
+        "title": "Request-Example:",
+        "content": "{\n  \"firstName\": \"Sahil\",\n  \"lastName\": \"Sahu\",\n  \"gender\": \"Male\",\n  \"email\": \"sahil123@gmail.com\",\n  \"phone\": \"9668123060\",\n  \"dob\": \"06/04/2001\",\n  \"signature\": \"base64EncodedSignature\",\n  \"schoolId\":\"\"\n  \"bankDetails\": {\n    \"bankName\": \"Bank of Odisha\",\n    \"accountNumber\": \"123456789012\",\n    \"ifscCode\": \"BKID0001234\"\n  },\n  \"address\": {\n    \"locality\": \"Dhanupali\",\n    \"city\": \"Sambalpur\",\n    \"state\": \"Odisha\",\n    \"pin\": \"768005\",\n    \"country\": \"India\"\n  },\n  \"profileImage\": \"https://example.com/profile.jpg\",\n  \"schoolId\": \"671a88862e586338c6c94516\",\n  \"subject\": [\"Math\", \"English\"],\n  \"qualification\": \"PhD\",\n  \"experience\": \"5 years\",\n  \"joinDate\": \"2024-11-01\"\n}",
+        "type": "json"
+      }
+    ],
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user",
-            "description": "<p>The newly created teacher object.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\",\n    \"address\":{\n       \"locality\":\"\",\n       \"city\":\"\",\n       \"state\":\"\",\n       \"pin\":\"\",\n       \"country\":\"\"\n     },\n    \"subject\":[\"Math\",\"English\"]\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"DD/MM/YYYY\",\n    \"isActive\": true,\n    \"address\": {\n      \"locality\": \"Dhanupali\",\n      \"city\": \"Sambalpur\",\n      \"state\": \"Odisha\",\n      \"pin\": \"768005\",\n      \"country\": \"India\"\n    },\n    \"subject\": [\"Math\", \"English\"],\n    \"qualification\": \"PhD\",\n    \"experience\": \"5\",\n    \"joinDate\": \"2024-11-01\",\n    \"profileImage\": \"https://example.com/profile.jpg\",\n    \"createdAt\": \"2024-11-01T19:14:42.334Z\",\n    \"updatedAt\": \"2024-11-02T21:24:44.423Z\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -8772,12 +8684,12 @@ define({ "api": [
         },
         {
           "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Email already use, please provide an unique email\"\n}",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Email already in use, please provide a unique email.\"\n}",
           "type": "json"
         },
         {
           "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Phone number already use, please provide an unique phone number\"\n}",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Phone number already in use, please provide a unique phone number.\"\n}",
           "type": "json"
         },
         {
@@ -8989,7 +8901,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"users\": [\n    {\n      \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"isActive\": true,\n      \"loginType\": \"teacher\"\n    }\n  ],\n  \"usersCount\": 1\n}",
+          "content": "HTTP/1.1 200 OK\n{\n\"error\": false,\n\"users\": [\n   {\n        \"address\": {\n            \"city\": \"New York\",\n            \"country\": \"USA\",\n            \"locality\": \"Greenwood Avenue\",\n            \"pin\": \"10001\",\n            \"state\": \"NY\"\n        },\n        \"subject\": [],\n        \"_id\": \"670cf24bdbb09a7c2b2af9a0\",\n        \"username\": \"sri990\",\n        \"firstName\": \"Sritam\",\n        \"lastName\": \"mohapatra123\",\n        \"email\": \"bonysahoo133@gmail.com\",\n        \"accountType\": \"email\",\n        \"gender\": \"Male\",\n        \"dob\": \"2000-02-20\",\n        \"loginType\": \"teacher\",\n        \"_addedBy\": \"670cf177dbb09a7c2b2af98b\",\n        \"isActive\": true,\n        \"joinDate\": \"Sat Apr 06 2024 05:30:00 GMT+0530 (India Standard Time)\",\n        \"bankAdded\": false,\n        \"_school\": \"670cc3c55aa29e2e31348c7e\",\n        \"customerStripeId\": \"cus_R1pATMqHh7GKzy\",\n        \"isPaid\": false,\n       \"messagingEnabled\": false,\n        \"createdAt\": \"2024-10-14T10:28:27.463Z\",\n        \"updatedAt\": \"2024-11-03T14:09:21.434Z\",\n        \"__v\": 0,\n        \"isSuperAdmin\": false,\n        \"fullName\": \"Sritam mohapatra123\",\n        \"id\": \"670cf24bdbb09a7c2b2af9a0\"\n    }\n],\n\"usersCount\": 1\n  }",
           "type": "json"
         }
       ]
@@ -9046,7 +8958,7 @@ define({ "api": [
     "name": "GetAllTeachers",
     "group": "Teacher",
     "version": "1.0.0",
-    "description": "<p>Retrieves all teachers belonging to the school</p>",
+    "description": "<p>Retrieves all teachers belonging to the school.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -9069,7 +8981,7 @@ define({ "api": [
             "optional": false,
             "field": "pageNumber",
             "defaultValue": "1",
-            "description": "<p>page number (start with 1) send within the params</p>"
+            "description": "<p>Page number (starting from 1) sent within the params.</p>"
           },
           {
             "group": "Parameter",
@@ -9077,7 +8989,7 @@ define({ "api": [
             "optional": false,
             "field": "pageSize",
             "defaultValue": "10",
-            "description": "<p>number of data send within the params</p>"
+            "description": "<p>Number of records to return (default is 10) sent within the params.</p>"
           }
         ]
       }
@@ -9086,7 +8998,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Teachers retrieved successfully.\",\n  \"data\": [\n    {\n      \"_id\": \"614d1b6f8f8b9e001cb12345\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"1234567890\",\n      \"gender\": \"Male\",\n      \"_school\": \"614c1b6f8f8b9e001cb12345\",\n      \"isActive\": true\n    },\n    {\n      \"_id\": \"614d1b6f8f8b9e001cb12346\",\n      \"firstName\": \"Jane\",\n      \"lastName\": \"Smith\",\n      \"email\": \"jane.smith@example.com\",\n      \"phone\": \"0987654321\",\n      \"gender\": \"Female\",\n      \"_school\": \"614c1b6f8f8b9e001cb12345\",\n      \"isActive\": true\n    }\n  ]\n}",
+          "content": " HTTP/1.1 200 OK\n{\n   \"error\": false,\n   \"message\": \"Teachers retrieved successfully.\",\n   \"data\": [\n       {\n           \"qualification\": \"\",\n           \"experience\": \"2\",\n           \"address\": {\n               \"city\": \"New York\",\n               \"country\": \"USA\",\n               \"locality\": \"Greenwood Avenue\",\n               \"pin\": \"10001\",\n               \"state\": \"NY\"\n           },\n           \"subject\": [],\n           \"_id\": \"671b8f3e792331ab10d6a525\",\n           \"username\": \"ritsch855\",\n           \"firstName\": \"Ritik\",\n           \"lastName\": \"Sahoo\",\n           \"email\": \"ritik133@gmail.com\",\n           \"accountType\": \"email\",\n           \"gender\": \"Male\",\n           \"dob\": \"2001-04-06T00:00:00Z\",\n           \"loginType\": \"teacher\",\n           \"_addedBy\": \"671a88862e586338c6c94518\",\n           \"isActive\": true,\n           \"isSuperAdmin\": false,\n           \"bankAdded\": false,\n           \"_school\": \"671a88862e586338c6c94516\",\n           \"isPaid\": false,\n           \"messagingEnabled\": false,\n           \"createdAt\": \"2024-10-25T12:29:50.885Z\",\n           \"updatedAt\": \"2024-10-25T15:57:04.821Z\",\n           \"__v\": 0,\n           \"phone\": \"8712302804\",\n           \"joinDate\": \"2024-04-06T05:30:00Z\",\n           \"id\": \"671b8f3e792331ab10d6a525\"\n       }\n   ],\n   \"totalTeachers\": 5\n}",
           "type": "json"
         }
       ]
@@ -9159,84 +9071,10 @@ define({ "api": [
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates whether there was an error (false).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "user",
-            "description": "<p>Details of the teacher.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user._id",
-            "description": "<p>Teacher's unique ID.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.firstName",
-            "description": "<p>Teacher's first name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.lastName",
-            "description": "<p>Teacher's last name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.gender",
-            "description": "<p>Teacher's gender.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.email",
-            "description": "<p>Teacher's email.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "user.phone",
-            "description": "<p>Teacher's phone number.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Date",
-            "optional": false,
-            "field": "user.dob",
-            "description": "<p>Teacher's date of birth.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "user.isActive",
-            "description": "<p>Indicates if the teacher is active.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1985-04-15T00:00:00.000Z\",\n    \"isActive\": true\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1985-04-15T00:00:00.000Z\",\n    \"isActive\": true,\n    \"address\": {\n      \"locality\": \"\",\n      \"state\": \"\",\n      \"city\": \"\",\n      \"pin\": \"\",\n      \"country\": \"\"\n    },\n    \"subject\": [\"Math\", \"English\"],\n    \"qualification\": \"PhD\",\n    \"experience\": \"5\",\n    \"_school\": \"\",\n    \"joinDate\": \"2021-09-01T00:00:00.000Z\",\n    \"fullName\": \"John Doe\",\n    \"isSuperAdmin\": false,\n    \"bankAdded\": false,\n    \"isPaid\": false,\n    \"messagingEnabled\": false,\n    \"createdAt\": \"2021-09-01T00:00:00.000Z\",\n    \"updatedAt\": \"2021-09-01T00:00:00.000Z\",\n    \"__v\": 0\n  }\n}",
           "type": "json"
         }
       ]
@@ -9246,21 +9084,17 @@ define({ "api": [
         "Error 4xx": [
           {
             "group": "Error 4xx",
+            "type": "Boolean",
             "optional": false,
-            "field": "NotAdmin",
-            "description": "<p>You are not an admin.</p>"
+            "field": "error",
+            "description": "<p>Indicates if there was an error (true if failed).</p>"
           },
           {
             "group": "Error 4xx",
+            "type": "String",
             "optional": false,
-            "field": "NoTeacherFound",
-            "description": "<p>No teacher found with the given ID.</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "InternalServerError",
-            "description": "<p>Internal server error.</p>"
+            "field": "reason",
+            "description": "<p>Error message explaining the reason.</p>"
           }
         ]
       },
@@ -9389,6 +9223,27 @@ define({ "api": [
             "optional": true,
             "field": "subject",
             "description": "<p>array of string subject:[&quot;Math&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "joinDate",
+            "description": "<p>joinDate</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "qualification",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "experience",
+            "description": ""
           }
         ]
       }
@@ -9397,7 +9252,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n},\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\",\n   \"subject\":[\"Math\",\"English\"]\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n    },\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\",\n   \"subject\":[\"Math\",\"English\"]\n   \"joinDate\":\"\",\n   \"experience\":\"\",\n   \"qualification:\"\"\n\n  }\n}",
           "type": "json"
         }
       ]
