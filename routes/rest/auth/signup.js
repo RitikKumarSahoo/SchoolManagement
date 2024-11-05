@@ -286,7 +286,7 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/delete/:id  Delete superadmin can delete admin and admin can delete student and teacher
+   * @api {delete} /admin/delete/:id
    * @apiName DeleteAdmin
    * @apiGroup Admin
    * @apiPermission SuperAdmin,admin
