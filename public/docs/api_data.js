@@ -8306,7 +8306,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\",\n    \"address\":{\n       \"locality\":\"\",\n       \"city\":\"\",\n       \"state\":\"\",\n       \"pin\":\"\",\n       \"country\":\"\"\n     }\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"1990-01-01T00:00:00.000Z\",\n    \"username\": \"Joh1230\",\n    \"isActive\": true,\n    \"customerStripeId\": \"cus_123456789\",\n    \"address\":{\n       \"locality\":\"\",\n       \"city\":\"\",\n       \"state\":\"\",\n       \"pin\":\"\",\n       \"country\":\"\"\n     },\n    \"subject\":[\"Math\",\"English\"]\n  }\n}",
           "type": "json"
         }
       ]
@@ -8392,7 +8392,7 @@ define({ "api": [
   {
     "type": "delete",
     "url": "/admin/teacher/delete/:id",
-    "title": "Delete Teacher by admin or superadmin",
+    "title": "Delete Teacher",
     "name": "DeleteTeacher",
     "group": "Teacher",
     "permission": [
@@ -8400,6 +8400,7 @@ define({ "api": [
         "name": "Admin or SuperAdmin"
       }
     ],
+    "description": "<p>Allows an admin to delete a teacher from their assigned school, and a superadmin to delete any teacher. For superadmins, an optional <code>schoolId</code> can be provided to ensure the teacher belongs to a specific school.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -8408,30 +8409,123 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>The ID of the teacher to be deleted (as URL parameter).</p>"
+            "description": "<p>The ID of the teacher to delete.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schoolId",
+            "description": "<p>(SuperAdmin only) Optional ID of the school to which the teacher must belong for deletion.</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>User's access token.</p>"
           }
         ]
       }
     },
     "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (false if successful).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Message indicating the result.</p>"
+          }
+        ]
+      },
       "examples": [
         {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"reason\": \"user deleted\"\n}",
+          "title": "Success Response (Admin or SuperAdmin):",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"reason\": \"Teacher deleted successfully\"\n}",
           "type": "json"
         }
       ]
     },
     "error": {
+      "fields": {
+        "Error 400": [
+          {
+            "group": "Error 400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Error 400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Reason for the error, e.g., &quot;Teacher not found&quot; or &quot;You do not have permission to delete this teacher.&quot;</p>"
+          }
+        ],
+        "Error 403": [
+          {
+            "group": "Error 403",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Error 403",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Message indicating unauthorized action, e.g., &quot;This teacher does not belong to the specified school.&quot;</p>"
+          }
+        ],
+        "Error 500": [
+          {
+            "group": "Error 500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an internal server error.</p>"
+          },
+          {
+            "group": "Error 500",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message explaining the issue.</p>"
+          }
+        ]
+      },
       "examples": [
         {
-          "title": "Error-Response (No Permission):",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete teacher\"\n}",
+          "title": "Teacher Not Found (Error 400):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Teacher not found\"\n}",
           "type": "json"
         },
         {
-          "title": "Error-Response (Teacher Not Found):",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"teacher not found\"\n}",
+          "title": "Unauthorized Action (Error 403):",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission to delete this teacher\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "SuperAdmin School ID Mismatch (Error 403):",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"reason\": \"This teacher does not belong to the specified school\"\n}",
           "type": "json"
         }
       ]
@@ -8901,7 +8995,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n},\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\"\n  }\n}",
+          "content": "{\n  \"error\": false,\n  \"user\": {\n    \"_id\": \"60d5f60c9b4d7635e8aebaf7\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"1234567890\",\n    \"isActive\": true,\n    \"bankDetails\": {\n      \"accountNumber\": \"123456789\",\n      \"ifscCode\": \"IFSC0001\"\n    }\n   \"address\":{\n   \"locality\":\"\",\n   \"city\":\"\",\n   \"state\":\"\",\n   \"pin\":\"\",\n   \"country\":\"\"\n},\n   \"_school\":\"schoolid\",\n   \"profileImage\":\"\",\n   \"subject\":[\"Math\",\"English\"]\n  }\n}",
           "type": "json"
         }
       ]
