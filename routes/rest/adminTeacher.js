@@ -213,7 +213,6 @@ module.exports = {
    *             "pin": "10001",
    *             "state": "NY"
    *         },
-   *         "subject": [],
    *         "_id": "670cf24bdbb09a7c2b2af9a0",
    *         "username": "sri990",
    *         "firstName": "Sritam",
@@ -231,6 +230,9 @@ module.exports = {
    *         "customerStripeId": "cus_R1pATMqHh7GKzy",
    *         "isPaid": false,
    *        "messagingEnabled": false,
+   *         "subject": [],
+   *         "qualification":"",
+   *         "experience":"2"
    *         "createdAt": "2024-10-14T10:28:27.463Z",
    *         "updatedAt": "2024-11-03T14:09:21.434Z",
    *         "__v": 0,
@@ -581,6 +583,11 @@ module.exports = {
           .status(400)
           .json({ error: true, message: "Phone number is required" });
       }
+      if (email === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Email is required" });
+      }
 
       const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
       if (!dateOfBirth.isValid()) {
@@ -621,6 +628,14 @@ module.exports = {
       const username =
         firstName.slice(0, 3) + existSchool.name.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
+
+      if (isSuperAdmin === true) {
+        if (schoolId === undefined) {
+          return res
+            .status(400)
+            .json({ error: true, reason: `Field "schoolId" is required` });
+        }
+      }
 
       const user = await User.create({
         firstName,
