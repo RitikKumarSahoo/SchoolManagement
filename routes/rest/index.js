@@ -133,6 +133,7 @@ router.get("/admin/schedule/get-schedule/", adminScheduleRoutes.get); // Get a s
 router.post("/admin/schedule/create-schedule", adminScheduleRoutes.post); // Create a new schedule
 router.put("/admin/schedule/edit-schedule/:id", adminScheduleRoutes.put); // Edit a schedule by ID
 router.delete("/admin/schedule/:id", adminScheduleRoutes.delete); // Delete a schedule by ID
+router.post("/admin/fetchavailableteachers",adminScheduleRoutes.fetchAvailableTeachers);
 
 //Progress Report Rooutec
 router.post(
