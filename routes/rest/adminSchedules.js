@@ -562,10 +562,6 @@ async post(req,res){
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message })
     }
-  },
-
-  async fetchAvailableTeachers(req,res){
-    
   }
 
 }
