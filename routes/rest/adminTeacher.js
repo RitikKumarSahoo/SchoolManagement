@@ -37,40 +37,56 @@ module.exports = {
    * @apiName GetAllTeachers
    * @apiGroup Teacher
    * @apiVersion 1.0.0
-   * @apiDescription Retrieves all teachers belonging to the school
+   * @apiDescription Retrieves all teachers belonging to the school.
    *
    * @apiHeader {String} Authorization Bearer token for admin authentication.
    *
-   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
-   * @apiParam  {Number} pageSize="10" number of data send within the params
+   * @apiParam {Number} pageNumber=1 Page number (starting from 1) sent within the params.
+   * @apiParam {Number} pageSize=10 Number of records to return (default is 10) sent within the params.
+   *
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
-   *  {
+   * {
    *    "error": false,
    *    "message": "Teachers retrieved successfully.",
    *    "data": [
-   *      {
-   *        "_id": "614d1b6f8f8b9e001cb12345",
-   *        "firstName": "John",
-   *        "lastName": "Doe",
-   *        "email": "john.doe@example.com",
-   *        "phone": "1234567890",
-   *        "gender": "Male",
-   *        "_school": "614c1b6f8f8b9e001cb12345",
-   *        "isActive": true
-   *      },
-   *      {
-   *        "_id": "614d1b6f8f8b9e001cb12346",
-   *        "firstName": "Jane",
-   *        "lastName": "Smith",
-   *        "email": "jane.smith@example.com",
-   *        "phone": "0987654321",
-   *        "gender": "Female",
-   *        "_school": "614c1b6f8f8b9e001cb12345",
-   *        "isActive": true
-   *      }
-   *    ]
-   *  }
+   *        {
+   *            "qualification": "",
+   *            "experience": "2",
+   *            "address": {
+   *                "city": "New York",
+   *                "country": "USA",
+   *                "locality": "Greenwood Avenue",
+   *                "pin": "10001",
+   *                "state": "NY"
+   *            },
+   *            "subject": [],
+   *            "_id": "671b8f3e792331ab10d6a525",
+   *            "username": "ritsch855",
+   *            "firstName": "Ritik",
+   *            "lastName": "Sahoo",
+   *            "email": "ritik133@gmail.com",
+   *            "accountType": "email",
+   *            "gender": "Male",
+   *            "dob": "2001-04-06T00:00:00Z",
+   *            "loginType": "teacher",
+   *            "_addedBy": "671a88862e586338c6c94518",
+   *            "isActive": true,
+   *            "isSuperAdmin": false,
+   *            "bankAdded": false,
+   *            "_school": "671a88862e586338c6c94516",
+   *            "isPaid": false,
+   *            "messagingEnabled": false,
+   *            "createdAt": "2024-10-25T12:29:50.885Z",
+   *            "updatedAt": "2024-10-25T15:57:04.821Z",
+   *            "__v": 0,
+   *            "phone": "8712302804",
+   *            "joinDate": "2024-04-06T05:30:00Z",
+   *            "id": "671b8f3e792331ab10d6a525"
+   *        }
+   *    ],
+   *    "totalTeachers": 5
+   * }
    *
    * @apiError {Boolean} error Indicates if there was an error (true if failed).
    * @apiError {String} message Error message explaining the reason.
@@ -187,20 +203,46 @@ module.exports = {
    * @apiSuccessExample {json} Success-Response:
    * HTTP/1.1 200 OK
    * {
-   *   "error": false,
-   *   "users": [
-   *     {
-   *       "_id": "60d5f60c9b4d7635e8aebaf7",
-   *       "firstName": "John",
-   *       "lastName": "Doe",
-   *       "email": "john.doe@example.com",
-   *       "phone": "1234567890",
-   *       "isActive": true,
-   *       "loginType": "teacher"
+   * "error": false,
+   * "users": [
+   *    {
+   *         "address": {
+   *             "city": "New York",
+   *             "country": "USA",
+   *             "locality": "Greenwood Avenue",
+   *             "pin": "10001",
+   *             "state": "NY"
+   *         },
+   *         "_id": "670cf24bdbb09a7c2b2af9a0",
+   *         "username": "sri990",
+   *         "firstName": "Sritam",
+   *         "lastName": "mohapatra123",
+   *         "email": "bonysahoo133@gmail.com",
+   *         "accountType": "email",
+   *         "gender": "Male",
+   *         "dob": "2000-02-20",
+   *         "loginType": "teacher",
+   *         "_addedBy": "670cf177dbb09a7c2b2af98b",
+   *         "isActive": true,
+   *         "joinDate": "Sat Apr 06 2024 05:30:00 GMT+0530 (India Standard Time)",
+   *         "bankAdded": false,
+   *         "_school": "670cc3c55aa29e2e31348c7e",
+   *         "customerStripeId": "cus_R1pATMqHh7GKzy",
+   *         "isPaid": false,
+   *        "messagingEnabled": false,
+   *         "subject": [],
+   *         "qualification":"",
+   *         "experience":"2"
+   *         "createdAt": "2024-10-14T10:28:27.463Z",
+   *         "updatedAt": "2024-11-03T14:09:21.434Z",
+   *         "__v": 0,
+   *         "isSuperAdmin": false,
+   *         "fullName": "Sritam mohapatra123",
+   *         "id": "670cf24bdbb09a7c2b2af9a0"
    *     }
-   *   ],
-   *   "usersCount": 1
-   * }
+   * ],
+   * "usersCount": 1
+   *   }
    *
    * @apiError UnauthorizedAccess Unauthorized access (not an admin or super admin).
    * @apiErrorExample {json} Unauthorized-Response:
@@ -288,17 +330,6 @@ module.exports = {
    *
    * @apiParam {String} id Teacher's unique ID.
    *
-   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
-   * @apiSuccess {Object} user Details of the teacher.
-   * @apiSuccess {String} user._id Teacher's unique ID.
-   * @apiSuccess {String} user.firstName Teacher's first name.
-   * @apiSuccess {String} user.lastName Teacher's last name.
-   * @apiSuccess {String} user.gender Teacher's gender.
-   * @apiSuccess {String} user.email Teacher's email.
-   * @apiSuccess {String} user.phone Teacher's phone number.
-   * @apiSuccess {Date} user.dob Teacher's date of birth.
-   * @apiSuccess {Boolean} user.isActive Indicates if the teacher is active.
-   *
    * @apiSuccessExample {json} Success-Response:
    * {
    *   "error": false,
@@ -310,25 +341,45 @@ module.exports = {
    *     "email": "john.doe@example.com",
    *     "phone": "1234567890",
    *     "dob": "1985-04-15T00:00:00.000Z",
-   *     "isActive": true
+   *     "isActive": true,
+   *     "address": {
+   *       "locality": "",
+   *       "state": "",
+   *       "city": "",
+   *       "pin": "",
+   *       "country": ""
+   *     },
+   *     "subject": ["Math", "English"],
+   *     "qualification": "PhD",
+   *     "experience": "5",
+   *     "_school": "",
+   *     "joinDate": "2021-09-01T00:00:00.000Z",
+   *     "fullName": "John Doe",
+   *     "isSuperAdmin": false,
+   *     "bankAdded": false,
+   *     "isPaid": false,
+   *     "messagingEnabled": false,
+   *     "createdAt": "2021-09-01T00:00:00.000Z",
+   *     "updatedAt": "2021-09-01T00:00:00.000Z",
+   *     "__v": 0
    *   }
    * }
    *
-   * @apiError NotAdmin You are not an admin.
+   * @apiError {Boolean} error Indicates if there was an error (true if failed).
+   * @apiError {String} reason Error message explaining the reason.
+   *
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
    *   "reason": "You are not Admin"
    * }
    *
-   * @apiError NoTeacherFound No teacher found with the given ID.
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
    *   "reason": "No teacher found"
    * }
    *
-   * @apiError InternalServerError Internal server error.
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
@@ -371,28 +422,45 @@ module.exports = {
   },
 
   /**
-   * @api {post} admin/teacher/create Create Teacher
+   * @api {post} /admin/teacher/create Create Teacher
    * @apiName CreateTeacher
    * @apiGroup Teacher
-   * @apiPermission admin,superAdmin
+   * @apiPermission admin, superAdmin
    *
    * @apiHeader {String} Authorization Bearer token access.
    *
-   * @apiParam {String} firstName First name of the teacher.
-   * @apiParam {String} lastName Last name of the teacher.
-   * @apiParam {String} gender Gender of the teacher (e.g., Male, Female).
-   * @apiParam {String} email Email of the teacher (must be unique).
-   * @apiParam {String} phone Phone number of the teacher (must be unique).
-   * @apiParam {String} dob Date of birth of the teacher in DD/MM/YYYY format.
-   * @apiParam {String} [signature] Optional signature of the teacher.
-   * @apiParam {Object} [bankDetails] Optional bank details of the teacher.
-   * @apiParam {Object} [address] address of the teacher
-   * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [schoolId] school id(only use when superadmin will create )
-   * @apiParam {Array}  [subject]  array of string ['Math',"English"]
    *
-   * @apiSuccess {Boolean} error Indicates whether there was an error (false).
-   * @apiSuccess {Object} user The newly created teacher object.
+   * @apiExample Request-Example:
+   * {
+   *   "firstName": "Sahil",
+   *   "lastName": "Sahu",
+   *   "gender": "Male",
+   *   "email": "sahil123@gmail.com",
+   *   "phone": "9668123060",
+   *   "dob": "06/04/2001",
+   *   "signature": "base64EncodedSignature",
+   *   "schoolId":""
+   *   "bankDetails": {
+   *     "bankName": "Bank of Odisha",
+   *     "accountNumber": "123456789012",
+   *     "ifscCode": "BKID0001234"
+   *   },
+   *   "address": {
+   *     "locality": "Dhanupali",
+   *     "city": "Sambalpur",
+   *     "state": "Odisha",
+   *     "pin": "768005",
+   *     "country": "India"
+   *   },
+   *   "profileImage": "https://example.com/profile.jpg",
+   *   "schoolId": "671a88862e586338c6c94516",
+   *   "subject": ["Math", "English"],
+   *   "qualification": "PhD",
+   *   "experience": "5 years",
+   *   "joinDate": "2024-11-01"
+   * }
+   *
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -404,17 +472,22 @@ module.exports = {
    *     "gender": "Male",
    *     "email": "john.doe@example.com",
    *     "phone": "1234567890",
-   *     "dob": "1990-01-01T00:00:00.000Z",
-   *     "username": "Joh1230",
+   *     "dob": "DD/MM/YYYY",
    *     "isActive": true,
-   *     "customerStripeId": "cus_123456789",
-   *     "address":{
-   *        "locality":"",
-   *        "city":"",
-   *        "state":"",
-   *        "pin":"",
-   *        "country":""
-   *      }
+   *     "address": {
+   *       "locality": "Dhanupali",
+   *       "city": "Sambalpur",
+   *       "state": "Odisha",
+   *       "pin": "768005",
+   *       "country": "India"
+   *     },
+   *     "subject": ["Math", "English"],
+   *     "qualification": "PhD",
+   *     "experience": "5",
+   *     "joinDate": "2024-11-01",
+   *     "profileImage": "https://example.com/profile.jpg",
+   *     "createdAt": "2024-11-01T19:14:42.334Z",
+   *     "updatedAt": "2024-11-02T21:24:44.423Z"
    *   }
    * }
    *
@@ -443,14 +516,14 @@ module.exports = {
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
-   *   "message": "Email already use, please provide an unique email"
+   *   "message": "Email already in use, please provide a unique email."
    * }
    *
    * @apiError PhoneExists Phone number already in use.
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
-   *   "message": "Phone number already use, please provide an unique phone number"
+   *   "message": "Phone number already in use, please provide a unique phone number."
    * }
    *
    * @apiError InternalServerError Internal server error.
@@ -460,6 +533,7 @@ module.exports = {
    *   "reason": "Internal server error"
    * }
    */
+
   async createTeacher(req, res) {
     try {
       const {
@@ -476,6 +550,8 @@ module.exports = {
         address,
         schoolId,
         subject,
+        qualification,
+        experience,
       } = req.body;
       const { isSuperAdmin, loginType } = req.user;
 
@@ -506,6 +582,11 @@ module.exports = {
         return res
           .status(400)
           .json({ error: true, message: "Phone number is required" });
+      }
+      if (email === undefined) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Email is required" });
       }
 
       const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
@@ -548,6 +629,14 @@ module.exports = {
         firstName.slice(0, 3) + existSchool.name.slice(0, 3) + phone.slice(-3);
       const password = randomStr;
 
+      if (isSuperAdmin === true) {
+        if (schoolId === undefined) {
+          return res
+            .status(400)
+            .json({ error: true, reason: `Field "schoolId" is required` });
+        }
+      }
+
       const user = await User.create({
         firstName,
         lastName,
@@ -568,6 +657,8 @@ module.exports = {
         address,
         subject,
         profileImage,
+        qualification,
+        experience,
       });
 
       const schoolName = await School.findOne({ _id: req.user._school })
@@ -623,6 +714,9 @@ module.exports = {
    * @apiParam {String} [profileImage] image url of the teacher
    * @apiParam {String} [_school]  school id
    * @apiParam {Array}  [subject] array of string subject:["Math"]
+   * @apiParam {String} [joinDate] joinDate
+   * @apiParam {String} [qualification]
+   * @apiParam {String} [experience]
    *
    * @apiSuccessExample {json} Success-Response:
    * {
@@ -644,9 +738,14 @@ module.exports = {
    *    "state":"",
    *    "pin":"",
    *    "country":""
-   * },
+   *     },
    *    "_school":"schoolid",
-   *    "profileImage":""
+   *    "profileImage":"",
+   *    "subject":["Math","English"]
+   *    "joinDate":"",
+   *    "experience":"",
+   *    "qualification:""
+   *
    *   }
    * }
    *
@@ -685,6 +784,9 @@ module.exports = {
         address,
         profileImage,
         subject,
+        joinDate,
+        experience,
+        qualification,
       } = req.body;
 
       if (loginType !== "admin" && isSuperAdmin === false) {
@@ -736,6 +838,9 @@ module.exports = {
       }
       if (subject !== undefined) user.subject = subject;
       if (profileImage !== undefined) user.profileImage = profileImage;
+      if (joinDate !== undefined) user.joinDate = joinDate;
+      if (qualification !== undefined) user.qualification = qualification;
+      if (experience !== undefined) user.experience = experience;
 
       await user.save();
       return res.status(200).json({
@@ -748,57 +853,99 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/teacher/delete/:id Delete Teacher by admin or superadmin
+   * @api {delete} /admin/teacher/delete/:id Delete Teacher
    * @apiName DeleteTeacher
    * @apiGroup Teacher
    * @apiPermission Admin or SuperAdmin
    *
-   * @apiParam {String} id The ID of the teacher to be deleted (as URL parameter).
-   * @apiSuccessExample Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "error": false,
-   *       "reason": "user deleted"
-   *     }
+   * @apiDescription Allows an admin to delete a teacher from their assigned school, and a superadmin to delete any teacher. For superadmins, an optional `schoolId` can be provided to ensure the teacher belongs to a specific school.
    *
-   * @apiErrorExample Error-Response (No Permission):
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "You do not have permission to delete teacher"
-   *     }
+   * @apiParam {String} id The ID of the teacher to delete.
+   * @apiParam {String} [schoolId] (SuperAdmin only) Optional ID of the school to which the teacher must belong for deletion.
    *
-   * @apiErrorExample Error-Response (Teacher Not Found):
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "teacher not found"
-   *     }
+   * @apiHeader {String} Authorization User's access token.
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error (false if successful).
+   * @apiSuccess {String} reason Message indicating the result.
+   *
+   * @apiError (Error 400) {Boolean} error Indicates if there was an error.
+   * @apiError (Error 400) {String} reason Reason for the error, e.g., "Teacher not found" or "You do not have permission to delete this teacher."
+   * @apiError (Error 403) {Boolean} error Indicates if there was an error.
+   * @apiError (Error 403) {String} reason Message indicating unauthorized action, e.g., "This teacher does not belong to the specified school."
+   * @apiError (Error 500) {Boolean} error Indicates if there was an internal server error.
+   * @apiError (Error 500) {String} reason Error message explaining the issue.
+   *
+   * @apiSuccessExample {json} Success Response (Admin or SuperAdmin):
+   *    HTTP/1.1 200 OK
+   *    {
+   *      "error": false,
+   *      "reason": "Teacher deleted successfully"
+   *    }
+   *
+   * @apiErrorExample {json} Teacher Not Found (Error 400):
+   *    HTTP/1.1 400 Bad Request
+   *    {
+   *      "error": true,
+   *      "reason": "Teacher not found"
+   *    }
+   *
+   * @apiErrorExample {json} Unauthorized Action (Error 403):
+   *    HTTP/1.1 403 Forbidden
+   *    {
+   *      "error": true,
+   *      "reason": "You do not have permission to delete this teacher"
+   *    }
+   *
+   * @apiErrorExample {json} SuperAdmin School ID Mismatch (Error 403):
+   *    HTTP/1.1 403 Forbidden
+   *    {
+   *      "error": true,
+   *      "reason": "This teacher does not belong to the specified school"
+   *    }
    */
 
   async deleteTeacher(req, res) {
     try {
-      if (req.user.loginType === "admin" || req.user.isSuperAdmin === true) {
-        const user = await User.findOne({ _id: req.params.id }).exec();
-        if (user === null) {
-          return res
-            .status(400)
-            .json({ error: true, reason: "teacher not found" });
-        }
+      const { isSuperAdmin, loginType, _school } = req.user;
+      const { id } = req.params;
+      const { schoolId } = req.body;
 
-        await User.deleteOne({ _id: req.params.id });
-        return res.status(200).json({ error: false, reason: "user deleted" });
+      const user = await User.findOne({ _id: id }).exec();
+      if (user === null || user.loginType !== "teacher") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Teacher not found" });
       }
 
-      return res.status(400).json({
-        error: true,
-        reason: "You do not have permission to delete teacher",
-      });
+      // Check if user is an admin and can only delete teachers from their school
+      if (loginType === "admin" && String(user._school) !== String(_school)) {
+        return res.status(403).json({
+          error: true,
+          reason: "You do not have permission to delete this teacher",
+        });
+      }
+
+      // If user is a superadmin
+      if (isSuperAdmin === true) {
+        if (
+          schoolId !== undefined &&
+          String(user._school) !== String(schoolId)
+        ) {
+          return res.status(403).json({
+            error: true,
+            reason: "This teacher does not belong to the specified school",
+          });
+        }
+      }
+
+      await User.deleteOne({ _id: id });
+      return res
+        .status(200)
+        .json({ error: false, reason: "Teacher deleted successfully" });
     } catch (error) {
-      return res.status(400).json({ error: true, Error: error.message });
+      return res.status(500).json({ error: true, reason: error.message });
     }
   },
-
   /**
    * @api {post} /bulkCreateTeachers Bulk Create Teachers
    * @apiName BulkCreateTeachers
