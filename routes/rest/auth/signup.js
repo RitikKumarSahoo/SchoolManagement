@@ -286,13 +286,12 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/delete/:id
-   * @apiName DeleteAdmin
+   * @api {delete} /admin/delete/:id  Delete User
    * @apiGroup Admin
    * @apiPermission SuperAdmin,admin
+   * @apiName DeleteUser
    *
    * @apiDescription superadmin can delete admin and admin can delete student and teacher
-   * @apiName DeleteUser
    *
    * @apiHeader {String} Authorization Bearer token for authentication.
    *
