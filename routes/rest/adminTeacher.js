@@ -414,7 +414,8 @@ module.exports = {
    *        "state":"",
    *        "pin":"",
    *        "country":""
-   *      }
+   *      },
+   *     "subject":["Math","English"]
    *   }
    * }
    *
@@ -646,7 +647,8 @@ module.exports = {
    *    "country":""
    * },
    *    "_school":"schoolid",
-   *    "profileImage":""
+   *    "profileImage":"",
+   *    "subject":["Math","English"]
    *   }
    * }
    *
@@ -748,57 +750,99 @@ module.exports = {
   },
 
   /**
-   * @api {delete} /admin/teacher/delete/:id Delete Teacher by admin or superadmin
+   * @api {delete} /admin/teacher/delete/:id Delete Teacher
    * @apiName DeleteTeacher
    * @apiGroup Teacher
    * @apiPermission Admin or SuperAdmin
    *
-   * @apiParam {String} id The ID of the teacher to be deleted (as URL parameter).
-   * @apiSuccessExample Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "error": false,
-   *       "reason": "user deleted"
-   *     }
+   * @apiDescription Allows an admin to delete a teacher from their assigned school, and a superadmin to delete any teacher. For superadmins, an optional `schoolId` can be provided to ensure the teacher belongs to a specific school.
    *
-   * @apiErrorExample Error-Response (No Permission):
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "You do not have permission to delete teacher"
-   *     }
+   * @apiParam {String} id The ID of the teacher to delete.
+   * @apiParam {String} [schoolId] (SuperAdmin only) Optional ID of the school to which the teacher must belong for deletion.
    *
-   * @apiErrorExample Error-Response (Teacher Not Found):
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "teacher not found"
-   *     }
+   * @apiHeader {String} Authorization User's access token.
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error (false if successful).
+   * @apiSuccess {String} reason Message indicating the result.
+   *
+   * @apiError (Error 400) {Boolean} error Indicates if there was an error.
+   * @apiError (Error 400) {String} reason Reason for the error, e.g., "Teacher not found" or "You do not have permission to delete this teacher."
+   * @apiError (Error 403) {Boolean} error Indicates if there was an error.
+   * @apiError (Error 403) {String} reason Message indicating unauthorized action, e.g., "This teacher does not belong to the specified school."
+   * @apiError (Error 500) {Boolean} error Indicates if there was an internal server error.
+   * @apiError (Error 500) {String} reason Error message explaining the issue.
+   *
+   * @apiSuccessExample {json} Success Response (Admin or SuperAdmin):
+   *    HTTP/1.1 200 OK
+   *    {
+   *      "error": false,
+   *      "reason": "Teacher deleted successfully"
+   *    }
+   *
+   * @apiErrorExample {json} Teacher Not Found (Error 400):
+   *    HTTP/1.1 400 Bad Request
+   *    {
+   *      "error": true,
+   *      "reason": "Teacher not found"
+   *    }
+   *
+   * @apiErrorExample {json} Unauthorized Action (Error 403):
+   *    HTTP/1.1 403 Forbidden
+   *    {
+   *      "error": true,
+   *      "reason": "You do not have permission to delete this teacher"
+   *    }
+   *
+   * @apiErrorExample {json} SuperAdmin School ID Mismatch (Error 403):
+   *    HTTP/1.1 403 Forbidden
+   *    {
+   *      "error": true,
+   *      "reason": "This teacher does not belong to the specified school"
+   *    }
    */
 
   async deleteTeacher(req, res) {
     try {
-      if (req.user.loginType === "admin" || req.user.isSuperAdmin === true) {
-        const user = await User.findOne({ _id: req.params.id }).exec();
-        if (user === null) {
-          return res
-            .status(400)
-            .json({ error: true, reason: "teacher not found" });
-        }
+      const { isSuperAdmin, loginType, _school } = req.user;
+      const { id } = req.params;
+      const { schoolId } = req.body;
 
-        await User.deleteOne({ _id: req.params.id });
-        return res.status(200).json({ error: false, reason: "user deleted" });
+      const user = await User.findOne({ _id: id }).exec();
+      if (user === null || user.loginType !== "teacher") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Teacher not found" });
       }
 
-      return res.status(400).json({
-        error: true,
-        reason: "You do not have permission to delete teacher",
-      });
+      // Check if user is an admin and can only delete teachers from their school
+      if (loginType === "admin" && String(user._school) !== String(_school)) {
+        return res.status(403).json({
+          error: true,
+          reason: "You do not have permission to delete this teacher",
+        });
+      }
+
+      // If user is a superadmin
+      if (isSuperAdmin === true) {
+        if (
+          schoolId !== undefined &&
+          String(user._school) !== String(schoolId)
+        ) {
+          return res.status(403).json({
+            error: true,
+            reason: "This teacher does not belong to the specified school",
+          });
+        }
+      }
+
+      await User.deleteOne({ _id: id });
+      return res
+        .status(200)
+        .json({ error: false, reason: "Teacher deleted successfully" });
     } catch (error) {
-      return res.status(400).json({ error: true, Error: error.message });
+      return res.status(500).json({ error: true, reason: error.message });
     }
   },
-
   /**
    * @api {post} /bulkCreateTeachers Bulk Create Teachers
    * @apiName BulkCreateTeachers
