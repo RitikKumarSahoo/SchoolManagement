@@ -17,7 +17,6 @@ const settingSchema = new mongoose.Schema({
     type: Map,
     of: Number,
   },
-
   salaryRange: [
     {
       classRange: { type: String }, //"1-4", "5-7", "8-10"
@@ -35,6 +34,46 @@ const settingSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now() },
 
   isActive: { type: Boolean },
+
+  weekSchedule:{
+    mon:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    },
+    tue:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    },
+    wed:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    },
+    thu:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    },
+    fri:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    },
+    sat:{
+      periodDuration: {type: Number},
+      startTime: {type: String},
+      endTime: {type: String},
+      recessTime: {type: String}
+    }
+  }
+ 
 });
 
 module.exports = mongoose.model("Setting", settingSchema);
