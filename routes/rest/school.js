@@ -296,6 +296,7 @@ module.exports = {
         pfname,
         plname,
         locationUrl,
+        admin,
       } = req.body;
       const { isSuperAdmin, loginType, _school } = req.user;
 
@@ -327,6 +328,9 @@ module.exports = {
         if (location !== undefined) school.location = location;
         if (locationUrl !== undefined) school.locationUrl = locationUrl;
         // if (locationUrl !== undefined) school.locationUrl = locationUrl;
+        if (admin !== undefined) {
+          // admin;
+        }
 
         await school.save();
         return res
@@ -375,12 +379,10 @@ module.exports = {
    * @apiName GetSchoolDetails
    * @apiGroup School
    * @apiVersion 1.0.0
-   * @apiDescription Fetch the details of a specific school using its ID.
+   * @apiDescription Fetch the details of a specific school using its ID, along with its assigned admin user.
    *
    * @apiParam {String} id The unique ID of the school.
    *
-   * @apiSuccess {Boolean} error Indicates if there was an error (false if successful).
-   * @apiSuccess {Object} school The school object containing detailed information.
    *
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
@@ -411,7 +413,36 @@ module.exports = {
    *      "totalStudents": 1200,
    *      "totalClasses": 40,
    *      "isActive": true,
-   *      "locationUrl":""
+   *      "locationUrl": ""
+   *    },
+   *    "admin": {
+   *      "address": {
+   *        "city": "New York",
+   *        "country": "USA",
+   *        "locality": "Greenwood Avenue",
+   *        "pin": "10001",
+   *        "state": "NY"
+   *      },
+   *      "_id": "6711051061792663918458bf",
+   *      "username": "mahesh",
+   *      "firstName": "admin",
+   *      "lastName": "abcd",
+   *      "email": "mahesh123@gmail.com",
+   *      "accountType": "email",
+   *      "dob": "Sat Dec 08 2001 00:00:00 GMT+0530 (India Standard Time)",
+   *      "loginType": "admin",
+   *      "isActive": true,
+   *      "isAdmin": true,
+   *      "isSuperAdmin": false,
+   *      "bankAdded": false,
+   *      "_school": "670cc3c55aa29e2e31348c7e",
+   *      "customerStripeId": "cus_R2yvkL6hLUVk7h",
+   *      "messagingEnabled": true,
+   *      "createdAt": "2024-10-17T12:37:36.453Z",
+   *      "updatedAt": "2024-10-24T11:53:08.239Z",
+   *      "gender": "Male",
+   *      "profileImage": "https://img.freepik.com/free-photo/",
+   *      "id": "6711051061792663918458bf"
    *    }
    *  }
    *
@@ -426,107 +457,102 @@ module.exports = {
   async schoolDetails(req, res) {
     try {
       const school = await School.findOne({ _id: req.params.id });
-      return res.status(200).json({ error: false, school });
+      const user = await User.findOne({
+        loginType: "admin",
+        isSuperAdmin: false,
+        _school: school._id,
+      }).select("-forgotpassword -password -bankDetails");
+
+      const schoolWithAdmin = {
+        ...school.toObject(),
+        admin: user,
+      };
+
+      return res.status(200).json({ error: false, schoolWithAdmin });
     } catch (error) {
-      return res.status(500).json({ error: true, Error: error });
+      return res.status(500).json({ error: true, Error: error.message });
     }
   },
 
   /**
-   * @api {post} /schools Get All Schools
+   * @api {post} /school Get All Schools
    * @apiName GetAllSchools
    * @apiGroup School
    * @apiVersion 1.0.0
-   * @apiDescription Fetch a list of all schools.
+   * @apiDescription Retrieve a paginated list of all schools with their associated admin details (only accessible by super admins).
    *
-   * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
+   * @apiPermission SuperAdmin
    *
-   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
-   * @apiParam  {Number} pageSize="10" number of data send within the params
+   * @apiParam {Number} [pageNumber=1] Page number for pagination (optional).
+   * @apiParam {Number} [pageSize=10] Number of records per page (optional).
    *
    * @apiSuccessExample Success Response:
-   *  HTTP/1.1 200 OK
-   *  {
-   *    "error": false,
-   *    "school": [
-   *      {
-   *        "_id": "603ddf15e245ae19f85ce109",
-   *        "name": "Green Valley High School",
-   *        "registrationNumber": "GVHS-1234",
-   *        "address": {
-   *          "city": "San Francisco",
-   *          "state": "California",
-   *          "country": "USA",
-   *          "pinCode": "94107"
-   *        },
-   *        "contact": {
-   *          "phoneNo": "+1 415-555-0198",
-   *          "email": "info@greenvalleyhigh.com",
-   *          "website": "www.greenvalleyhigh.com"
-   *        },
-   *        "principalName": "Dr. John Doe",
-   *        "establishYear": 1995,
-   *        "schoolType": "highSchool",
-   *        "totalStudents": 1200,
-   *        "totalClasses": 40,
-   *        "isActive": true
-   *        "imageUrl":"",
-   *        "location":"",
-   *        "locationUrl":"",
-   *        "location": {
-   *             "type": "Point",
-   *             "coordinates": [
-   *                 73.323,
-   *                 88.323
-   *             ]
-   *         },
-   *      },
-   *      {
-   *        "_id": "603ddf15e245ae19f85ce110",
-   *        "name": "Blue Sky Elementary School",
-   *        "registrationNumber": "BSES-5678",
-   *        "address": {
-   *          "city": "New York",
-   *          "state": "New York",
-   *          "country": "USA",
-   *          "pinCode": "10001"
-   *        },
-   *        "contact": {
-   *          "phoneNo": "+1 212-555-0199",
-   *          "email": "info@blueskyelementary.com",
-   *          "website": "www.blueskyelementary.com"
-   *        },
-   *        "principalName": "Dr. Jane Smith",
-   *        "establishYear": 2000,
-   *        "schoolType": "primary",
-   *        "totalStudents": 800,
-   *        "totalClasses": 20,
-   *        "isActive": true,
-   *        "imageUrl":"",
-   *        "locationUrl":"",
-   *        "location": {
-   *             "type": "Point",
-   *             "coordinates": [
-   *                 73.323,
-   *                 88.323
-   *             ]
-   *         },
-   *      }
-   *    ]
-   *  }
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "school": [
+   *     {
+   *       "_id": "603ddf15e245ae19f85ce109",
+   *       "name": "Green Valley High School",
+   *       "registrationNumber": "GVHS-1234",
+   *       "address": {
+   *         "city": "San Francisco",
+   *         "state": "California",
+   *         "country": "USA",
+   *         "pinCode": "94107"
+   *       },
+   *       "contact": {
+   *         "phoneNo": "+1 415-555-0198",
+   *         "email": "info@greenvalleyhigh.com",
+   *         "website": "www.greenvalleyhigh.com"
+   *       },
+   *       "location": {
+   *         "type": "Point",
+   *         "coordinates": [-122.399972, 37.781372]
+   *       },
+   *       "principalName": "Dr. John Doe",
+   *       "establishYear": 1995,
+   *       "schoolType": "highSchool",
+   *       "totalStudents": 1200,
+   *       "totalClasses": 40,
+   *       "isActive": true,
+   *       "admin": {
+   *         "_id": "6711051061792663918458bf",
+   *         "username": "mahesh",
+   *         "firstName": "admin",
+   *         "lastName": "abcd",
+   *         "email": "mahesh123@gmail.com",
+   *         "accountType": "email",
+   *         "dob": "2001-12-08T00:00:00.000Z",
+   *         "loginType": "admin",
+   *         "isActive": true,
+   *         "isAdmin": true,
+   *         "isSuperAdmin": false,
+   *         "bankAdded": false,
+   *         "messagingEnabled": true,
+   *         "createdAt": "2024-10-17T12:37:36.453Z",
+   *         "updatedAt": "2024-10-24T11:53:08.239Z",
+   *         "gender": "Male",
+   *         "profileImage": "https://img.freepik.com/free-photo/sample-image.jpg"
+   *       }
+   *     }
+   *   ],
+   *   "totalSchools": 100
+   * }
    *
    * @apiErrorExample Error Response:
-   *  HTTP/1.1 400 Bad Request
-   *  {
-   *    "error": true,
-   *    "Error": "You are not superadmin"
-   *  }
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "reason": "You are not superadmin"
+   * }
    *
-   *  HTTP/1.1 500 Internal Server Error
-   *  {
-   *    "error": true,
-   *    "Error": "Server Error Message"
-   *  }
+   * @apiErrorExample Internal Server Error:
+   * HTTP/1.1 500 Internal Server Error
+   * {
+   *   "error": true,
+   *   "Error": "Server Error Message"
+   * }
    */
 
   async getAllSchool(req, res) {
@@ -553,8 +579,22 @@ module.exports = {
           .json({ error: true, reason: "You are not superadmin" });
       }
 
-      const school = await School.find().skip(skipNumber).limit(pageSize);
+      const schools = await School.find().skip(skipNumber).limit(pageSize);
       const totalSchools = await School.countDocuments();
+
+      const school = await Promise.all(
+        schools.map(async (scl) => {
+          const admin = await User.findOne({
+            loginType: "admin",
+            isSuperAdmin: false,
+            _school: scl._id,
+          }).select("-password -forgotpassword -bankDetails");
+          return {
+            ...scl.toObject(),
+            admin: admin ? admin.toObject() : null,
+          };
+        })
+      );
 
       return res.status(200).json({ error: false, school, totalSchools });
     } catch (error) {
