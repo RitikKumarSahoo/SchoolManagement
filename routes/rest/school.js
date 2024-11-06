@@ -61,6 +61,7 @@ module.exports = {
    * @apiParam {String} pfname Principal's first name.
    * @apiParam {String} plname Principal's last name.
    * @apiParam {String} schoolType  ["primary", "secondary", "highSchool"]
+   * @apiParam {String} locationUrl url of school location
    *
    * @apiError (500) InternalServerError Unexpected error occurred.
    *
@@ -94,6 +95,7 @@ module.exports = {
    *   "gender": "Male",
    *   "phone": "9668123855"
    * "profileImage":"nvkdjnvdjfnkfd",
+   * "locationUrl":""
    * }
    *
    */
@@ -119,6 +121,7 @@ module.exports = {
         pfname,
         plname,
         joinDate,
+        locationUrl,
       } = req.body;
       const { isSuperAdmin } = req.user;
       if (isSuperAdmin !== true) {
@@ -184,6 +187,7 @@ module.exports = {
         registrationNumber,
         principalName: pfname + " " + plname,
         establishYear,
+        locationUrl,
       });
 
       // Check if the admin already exists
@@ -258,6 +262,7 @@ module.exports = {
    * @apiParam {String} pfname Principal's first name.
    * @apiParam {String} plname Principal's last name.
    * @apiParam {String} schoolType The type of the school  ["primary", "secondary", "highSchool"]
+   * @apiParam {String} locationUrl location url of school
    *
    * @apiError (400) {Boolean} error Whether there was an error.
    * @apiError (400) {String} reason Reason for the error (if applicable).
@@ -290,6 +295,7 @@ module.exports = {
         establishYear,
         pfname,
         plname,
+        locationUrl,
       } = req.body;
       const { isSuperAdmin, loginType, _school } = req.user;
 
@@ -319,6 +325,8 @@ module.exports = {
         }
         if (establishYear !== undefined) school.establishYear = establishYear;
         if (location !== undefined) school.location = location;
+        if (locationUrl !== undefined) school.locationUrl = locationUrl;
+        // if (locationUrl !== undefined) school.locationUrl = locationUrl;
 
         await school.save();
         return res
@@ -345,6 +353,7 @@ module.exports = {
         }
         if (establishYear !== undefined) school.establishYear = establishYear;
         if (location !== undefined) school.location = location;
+        if (locationUrl !== undefined) school.locationUrl = locationUrl;
 
         await school.save();
         return res
@@ -401,7 +410,8 @@ module.exports = {
    *      "schoolType": "highSchool",
    *      "totalStudents": 1200,
    *      "totalClasses": 40,
-   *      "isActive": true
+   *      "isActive": true,
+   *      "locationUrl":""
    *    }
    *  }
    *
@@ -431,6 +441,9 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token of superAdmin for authentication.
    *
+   * @apiParam  {Number} pageNumber="1" page number (start with 1) send within the params
+   * @apiParam  {Number} pageSize="10" number of data send within the params
+   *
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
    *  {
@@ -457,7 +470,16 @@ module.exports = {
    *        "totalStudents": 1200,
    *        "totalClasses": 40,
    *        "isActive": true
-   *        "imageUrl":""
+   *        "imageUrl":"",
+   *        "location":"",
+   *        "locationUrl":"",
+   *        "location": {
+   *             "type": "Point",
+   *             "coordinates": [
+   *                 73.323,
+   *                 88.323
+   *             ]
+   *         },
    *      },
    *      {
    *        "_id": "603ddf15e245ae19f85ce110",
@@ -480,7 +502,15 @@ module.exports = {
    *        "totalStudents": 800,
    *        "totalClasses": 20,
    *        "isActive": true,
-   *        "imageUrl":""
+   *        "imageUrl":"",
+   *        "locationUrl":"",
+   *        "location": {
+   *             "type": "Point",
+   *             "coordinates": [
+   *                 73.323,
+   *                 88.323
+   *             ]
+   *         },
    *      }
    *    ]
    *  }
