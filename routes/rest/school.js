@@ -335,10 +335,48 @@ module.exports = {
         if (establishYear !== undefined) school.establishYear = establishYear;
         if (location !== undefined) school.location = location;
         if (locationUrl !== undefined) school.locationUrl = locationUrl;
-        // if (locationUrl !== undefined) school.locationUrl = locationUrl;
+
+        //admin update
         if (admin !== undefined) {
-          // if(admin.username !== undefined)
+          if (admin.firstName !== undefined) {
+            adminUser.firstName = admin.firstName;
+          }
+          if (admin.lastName !== undefined) {
+            adminUser.lastName = admin.lastName;
+          }
+          if (admin.email !== undefined) {
+            adminUser.email = admin.email;
+          }
+          if (admin.phone !== undefined) {
+            adminUser.phone = admin.phone;
+          }
+          if (admin.dob !== undefined) {
+            adminUser.dob = admin.dob;
+          }
+          if (admin.profileImage !== undefined) {
+            adminUser.profileImage = admin.profileImage;
+          }
+          if (admin.gender !== undefined) {
+            adminUser.gender = admin.gender;
+          }
+          if (admin.address !== undefined) {
+            if (admin.address.country !== undefined)
+              adminUser.address.country = admin.address.country;
+            if (admin.address.state !== undefined)
+              adminUser.address.state = admin.address.state;
+            if (admin.address.city !== undefined)
+              adminUser.address.city = admin.address.city;
+            if (admin.address.pin !== undefined)
+              adminUser.address.pin = admin.address.pin;
+            if (admin.address.locality !== undefined) {
+              adminUser.address.locality = admin.address.locality;
+            }
+          }
+          if (admin.isActive !== undefined) {
+            adminUser.isActive = admin.isActive;
+          }
         }
+        await adminUser.save();
 
         await school.save();
         return res
