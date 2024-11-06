@@ -527,4 +527,8 @@ module.exports = {
       return res.status(500).json({ error: true, Error: error.message });
     }
   },
+
+  async setScheduleTime(req,res){
+    
+  }
 };

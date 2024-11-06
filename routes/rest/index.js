@@ -179,6 +179,7 @@ router.post("/admin/settings", settings.get);
 router.post("/admin/setsettings", settings.setSettings);
 router.put("/admin/updatesettings", settings.updateClassSettings);
 router.delete("/admin/deletesetting", settings.deleteSetting);
+router.post("/admin/setscheduletime",settings.setScheduleTime);
 
 //Leave
 router.post("/teacher/leave", leave.applyLeave);
