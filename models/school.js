@@ -68,6 +68,7 @@ const SchoolSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   }, // Comment
+  locationUrl: { type: String },
 });
 
 SchoolSchema.index({ location: "2dsphere" });
