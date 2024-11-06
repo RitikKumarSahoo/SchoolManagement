@@ -6624,43 +6624,35 @@
   },
   {
     "type": "post",
-    "url": "/schools",
+    "url": "/school",
     "title": "Get All Schools",
     "name": "GetAllSchools",
     "group": "School",
     "version": "1.0.0",
-    "description": "<p>Fetch a list of all schools.</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token of superAdmin for authentication.</p>"
-          }
-        ]
+    "description": "<p>Retrieve a paginated list of all schools with their associated admin details (only accessible by super admins).</p>",
+    "permission": [
+      {
+        "name": "SuperAdmin"
       }
-    },
+    ],
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
             "type": "Number",
-            "optional": false,
+            "optional": true,
             "field": "pageNumber",
             "defaultValue": "1",
-            "description": "<p>page number (start with 1) send within the params</p>"
+            "description": "<p>Page number for pagination (optional).</p>"
           },
           {
             "group": "Parameter",
             "type": "Number",
-            "optional": false,
+            "optional": true,
             "field": "pageSize",
             "defaultValue": "10",
-            "description": "<p>number of data send within the params</p>"
+            "description": "<p>Number of records per page (optional).</p>"
           }
         ]
       }
@@ -6669,7 +6661,7 @@
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": [\n    {\n      \"_id\": \"603ddf15e245ae19f85ce109\",\n      \"name\": \"Green Valley High School\",\n      \"registrationNumber\": \"GVHS-1234\",\n      \"address\": {\n        \"city\": \"San Francisco\",\n        \"state\": \"California\",\n        \"country\": \"USA\",\n        \"pinCode\": \"94107\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 415-555-0198\",\n        \"email\": \"info@greenvalleyhigh.com\",\n        \"website\": \"www.greenvalleyhigh.com\"\n      },\n      \"principalName\": \"Dr. John Doe\",\n      \"establishYear\": 1995,\n      \"schoolType\": \"highSchool\",\n      \"totalStudents\": 1200,\n      \"totalClasses\": 40,\n      \"isActive\": true\n      \"imageUrl\":\"\",\n      \"location\":\"\",\n      \"locationUrl\":\"\",\n      \"location\": {\n           \"type\": \"Point\",\n           \"coordinates\": [\n               73.323,\n               88.323\n           ]\n       },\n    },\n    {\n      \"_id\": \"603ddf15e245ae19f85ce110\",\n      \"name\": \"Blue Sky Elementary School\",\n      \"registrationNumber\": \"BSES-5678\",\n      \"address\": {\n        \"city\": \"New York\",\n        \"state\": \"New York\",\n        \"country\": \"USA\",\n        \"pinCode\": \"10001\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 212-555-0199\",\n        \"email\": \"info@blueskyelementary.com\",\n        \"website\": \"www.blueskyelementary.com\"\n      },\n      \"principalName\": \"Dr. Jane Smith\",\n      \"establishYear\": 2000,\n      \"schoolType\": \"primary\",\n      \"totalStudents\": 800,\n      \"totalClasses\": 20,\n      \"isActive\": true,\n      \"imageUrl\":\"\",\n      \"locationUrl\":\"\",\n      \"location\": {\n           \"type\": \"Point\",\n           \"coordinates\": [\n               73.323,\n               88.323\n           ]\n       },\n    }\n  ]\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": [\n    {\n      \"_id\": \"603ddf15e245ae19f85ce109\",\n      \"name\": \"Green Valley High School\",\n      \"registrationNumber\": \"GVHS-1234\",\n      \"address\": {\n        \"city\": \"San Francisco\",\n        \"state\": \"California\",\n        \"country\": \"USA\",\n        \"pinCode\": \"94107\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 415-555-0198\",\n        \"email\": \"info@greenvalleyhigh.com\",\n        \"website\": \"www.greenvalleyhigh.com\"\n      },\n      \"location\": {\n        \"type\": \"Point\",\n        \"coordinates\": [-122.399972, 37.781372]\n      },\n      \"principalName\": \"Dr. John Doe\",\n      \"establishYear\": 1995,\n      \"schoolType\": \"highSchool\",\n      \"totalStudents\": 1200,\n      \"totalClasses\": 40,\n      \"isActive\": true,\n      \"admin\": {\n        \"_id\": \"6711051061792663918458bf\",\n        \"username\": \"mahesh\",\n        \"firstName\": \"admin\",\n        \"lastName\": \"abcd\",\n        \"email\": \"mahesh123@gmail.com\",\n        \"accountType\": \"email\",\n        \"dob\": \"2001-12-08T00:00:00.000Z\",\n        \"loginType\": \"admin\",\n        \"isActive\": true,\n        \"isAdmin\": true,\n        \"isSuperAdmin\": false,\n        \"bankAdded\": false,\n        \"messagingEnabled\": true,\n        \"createdAt\": \"2024-10-17T12:37:36.453Z\",\n        \"updatedAt\": \"2024-10-24T11:53:08.239Z\",\n        \"gender\": \"Male\",\n        \"profileImage\": \"https://img.freepik.com/free-photo/sample-image.jpg\"\n      }\n    }\n  ],\n  \"totalSchools\": 100\n}",
           "type": "json"
         }
       ]
@@ -6678,7 +6670,12 @@
       "examples": [
         {
           "title": "Error Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"Error\": \"You are not superadmin\"\n}\n\nHTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
           "type": "json"
         }
       ]
@@ -6693,7 +6690,7 @@
     "name": "GetSchoolDetails",
     "group": "School",
     "version": "1.0.0",
-    "description": "<p>Fetch the details of a specific school using its ID.</p>",
+    "description": "<p>Fetch the details of a specific school using its ID, along with its assigned admin user.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -6708,28 +6705,10 @@
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error (false if successful).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "school",
-            "description": "<p>The school object containing detailed information.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": {\n    \"_id\": \"603ddf15e245ae19f85ce109\",\n    \"name\": \"Green Valley High School\",\n    \"registrationNumber\": \"GVHS-1234\",\n    \"address\": {\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"USA\",\n      \"pinCode\": \"94107\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1 415-555-0198\",\n      \"email\": \"info@greenvalleyhigh.com\",\n      \"website\": \"www.greenvalleyhigh.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-122.399972, 37.781372]\n    },\n    \"principalName\": \"Dr. John Doe\",\n    \"establishYear\": 1995,\n    \"schoolType\": \"highSchool\",\n    \"totalStudents\": 1200,\n    \"totalClasses\": 40,\n    \"isActive\": true,\n    \"locationUrl\":\"\"\n  }\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": {\n    \"_id\": \"603ddf15e245ae19f85ce109\",\n    \"name\": \"Green Valley High School\",\n    \"registrationNumber\": \"GVHS-1234\",\n    \"address\": {\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"USA\",\n      \"pinCode\": \"94107\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1 415-555-0198\",\n      \"email\": \"info@greenvalleyhigh.com\",\n      \"website\": \"www.greenvalleyhigh.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-122.399972, 37.781372]\n    },\n    \"principalName\": \"Dr. John Doe\",\n    \"establishYear\": 1995,\n    \"schoolType\": \"highSchool\",\n    \"totalStudents\": 1200,\n    \"totalClasses\": 40,\n    \"isActive\": true,\n    \"locationUrl\": \"\"\n  },\n  \"admin\": {\n    \"address\": {\n      \"city\": \"New York\",\n      \"country\": \"USA\",\n      \"locality\": \"Greenwood Avenue\",\n      \"pin\": \"10001\",\n      \"state\": \"NY\"\n    },\n    \"_id\": \"6711051061792663918458bf\",\n    \"username\": \"mahesh\",\n    \"firstName\": \"admin\",\n    \"lastName\": \"abcd\",\n    \"email\": \"mahesh123@gmail.com\",\n    \"accountType\": \"email\",\n    \"dob\": \"Sat Dec 08 2001 00:00:00 GMT+0530 (India Standard Time)\",\n    \"loginType\": \"admin\",\n    \"isActive\": true,\n    \"isAdmin\": true,\n    \"isSuperAdmin\": false,\n    \"bankAdded\": false,\n    \"_school\": \"670cc3c55aa29e2e31348c7e\",\n    \"customerStripeId\": \"cus_R2yvkL6hLUVk7h\",\n    \"messagingEnabled\": true,\n    \"createdAt\": \"2024-10-17T12:37:36.453Z\",\n    \"updatedAt\": \"2024-10-24T11:53:08.239Z\",\n    \"gender\": \"Male\",\n    \"profileImage\": \"https://img.freepik.com/free-photo/\",\n    \"id\": \"6711051061792663918458bf\"\n  }\n}",
           "type": "json"
         }
       ]
