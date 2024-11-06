@@ -228,8 +228,9 @@ module.exports = {
       // });
       return res.status(201).json({
         error: false,
-        message: "Admin successfully created.",
+        message: "School successfully created.",
         response,
+        newSchool,
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
@@ -308,6 +309,13 @@ module.exports = {
             .status(400)
             .json({ error: true, reason: "school not found" });
         }
+
+        const adminUser = await User.findOne({
+          loginType: "admin",
+          isSuperAdmin: false,
+          _school: school._id,
+        });
+
         if (name !== undefined) school.name = name;
         if (address !== undefined) {
           if (address.country !== undefined)
@@ -329,7 +337,7 @@ module.exports = {
         if (locationUrl !== undefined) school.locationUrl = locationUrl;
         // if (locationUrl !== undefined) school.locationUrl = locationUrl;
         if (admin !== undefined) {
-          // admin;
+          // if(admin.username !== undefined)
         }
 
         await school.save();
@@ -456,19 +464,19 @@ module.exports = {
 
   async schoolDetails(req, res) {
     try {
-      const school = await School.findOne({ _id: req.params.id });
+      const schoolData = await School.findOne({ _id: req.params.id });
       const user = await User.findOne({
         loginType: "admin",
         isSuperAdmin: false,
-        _school: school._id,
+        _school: schoolData._id,
       }).select("-forgotpassword -password -bankDetails");
 
-      const schoolWithAdmin = {
-        ...school.toObject(),
+      const school = {
+        ...schoolData.toObject(),
         admin: user,
       };
 
-      return res.status(200).json({ error: false, schoolWithAdmin });
+      return res.status(200).json({ error: false, school });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
