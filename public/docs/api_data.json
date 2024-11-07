@@ -6517,15 +6517,8 @@
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "pfname",
-            "description": "<p>Principal's first name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "plname",
-            "description": "<p>Principal's last name.</p>"
+            "field": "principalName",
+            "description": ""
           },
           {
             "group": "Parameter",
@@ -6559,7 +6552,7 @@
     "examples": [
       {
         "title": "Request-Example:",
-        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  \"establishYear\":\"1995\",\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n\"imageUrl\":\"http://www.greenwoodhigh.edu\"\n\"pfname\": \"PrincipalFirstName\",\n\"plname\": \"PrincipalLastName\",\n\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n\"profileImage\":\"nvkdjnvdjfnkfd\",\n\"locationUrl\":\"\"\n}",
+        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  \"establishYear\":\"1995\",\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n\"imageUrl\":\"http://www.greenwoodhigh.edu\"\n\"principalName\":\"\",\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n\"profileImage\":\"nvkdjnvdjfnkfd\",\n\"locationUrl\":\"\"\n}",
         "type": "json"
       }
     ],
