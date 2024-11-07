@@ -58,8 +58,7 @@ module.exports = {
    * @apiParam {String} gender user's gender.
    * @apiParam {String} phone user's phone number.
    * @apiParam {String} establishYear The year the school was established.
-   * @apiParam {String} pfname Principal's first name.
-   * @apiParam {String} plname Principal's last name.
+   * @apiParam {String} principalName
    * @apiParam {String} schoolType  ["primary", "secondary", "highSchool"]
    * @apiParam {String} locationUrl url of school location
    *
@@ -85,9 +84,7 @@ module.exports = {
    *     "coordinates": [21.418325060918168, 84.02980772446274]
    *   },
    * "imageUrl":"http://www.greenwoodhigh.edu"
-   * "pfname": "PrincipalFirstName",
-   * "plname": "PrincipalLastName",
-   *
+   * "principalName":"",
    *   "email": "sumanr@logic-square.com",
    *   "firstName": "suman",
    *   "lastName": "rana",
@@ -118,8 +115,7 @@ module.exports = {
         gender,
         address,
         establishYear,
-        pfname,
-        plname,
+        principalName,
         joinDate,
         locationUrl,
       } = req.body;
@@ -185,7 +181,7 @@ module.exports = {
         imageUrl,
         schoolType,
         registrationNumber,
-        principalName: pfname + " " + plname,
+        principalName,
         establishYear,
         locationUrl,
       });
