@@ -6842,15 +6842,8 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "pfname",
-            "description": "<p>Principal's first name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "plname",
-            "description": "<p>Principal's last name.</p>"
+            "field": "principalName",
+            "description": ""
           },
           {
             "group": "Parameter",
