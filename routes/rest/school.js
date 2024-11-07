@@ -256,8 +256,7 @@ module.exports = {
    * @apiParam {Boolean} [isActive] Update the activation status of the school.
    * @apiParam {Boolean} [imageUrl] image of school
    * @apiParam {String} establishYear The year the school was established.
-   * @apiParam {String} pfname Principal's first name.
-   * @apiParam {String} plname Principal's last name.
+   * @apiParam {String} principalName
    * @apiParam {String} schoolType The type of the school  ["primary", "secondary", "highSchool"]
    * @apiParam {String} locationUrl location url of school
    *
@@ -290,8 +289,7 @@ module.exports = {
         imageUrl,
         location,
         establishYear,
-        pfname,
-        plname,
+        principalName,
         locationUrl,
         admin,
       } = req.body;
@@ -325,8 +323,8 @@ module.exports = {
         if (isActive !== undefined) school.isActive = isActive;
         if (schoolType !== undefined) school.schoolType = schoolType;
         if (imageUrl !== undefined) school.imageUrl = imageUrl;
-        if (pfname !== undefined && plname !== undefined) {
-          school.principalName = pfname + " " + plname;
+        if (principalName !== undefined) {
+          school.principalName = principalName;
         }
         if (establishYear !== undefined) school.establishYear = establishYear;
         if (location !== undefined) school.location = location;
@@ -392,8 +390,8 @@ module.exports = {
         if (isActive !== undefined) school.isActive = isActive;
         if (schoolType !== undefined) school.schoolType = schoolType;
         if (imageUrl !== undefined) school.imageUrl = imageUrl;
-        if (pfname !== undefined && plname !== undefined) {
-          school.principalName = pfname + " " + plname;
+        if (principalName !== undefined) {
+          school.principalName = principalName;
         }
         if (establishYear !== undefined) school.establishYear = establishYear;
         if (location !== undefined) school.location = location;
