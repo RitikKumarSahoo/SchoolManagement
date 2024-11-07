@@ -619,7 +619,10 @@ module.exports = {
           .json({ error: true, reason: "You are not superadmin" });
       }
 
-      const schools = await School.find().skip(skipNumber).limit(pageSize);
+      const schools = await School.find()
+        .sort({ createdAt: -1 })
+        .skip(skipNumber)
+        .limit(pageSize);
       const totalSchools = await School.countDocuments();
 
       const school = await Promise.all(
