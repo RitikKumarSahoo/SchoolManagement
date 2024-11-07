@@ -130,6 +130,7 @@ module.exports = {
           _school: _school,
         })
           .select("-password -bankDetails -forgotpassword")
+          .sort({ createdAt: -1 })
           .skip(skipNumber)
           .limit(pageSize)
           .exec();
@@ -303,6 +304,7 @@ module.exports = {
       const [users, usersCount] = await Promise.all([
         User.find(query)
           .select("-password -bankDetails -forgotpassword")
+          .sort({ createdAt: -1 })
           .skip(skipNumber)
           .limit(Number(pageSize))
           .exec(),
