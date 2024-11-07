@@ -2,7 +2,7 @@ const { gql } = require("apollo-server");
 
 module.exports = `#graphql
   type User {
-    _id:ID
+    _id: ID
     username: String!
     password: String!
     firstName: String
@@ -64,10 +64,44 @@ module.exports = `#graphql
     pin: String
     country: String
   }
+  type userResponse {
+      _id: ID
+    username: String!
+    firstName: String
+    lastName: String
+    fullName: String
+    profileImage: String
+    email: String
+    accountType: String
+    socialId: String
+    phone: String
+    gender: String
+    admissionYear: String
+    dob: String
+    loginType: String
+    rollNo: String
+    _addedBy: String
+    _class: String
+    guardian: Guardian
+    isActive: Boolean
+    isAdmin: Boolean
+    isSuperAdmin: Boolean
+    joinDate: String
+    leaveDate: String
+    bankAdded: Boolean
+    _school: String
+    customerStripeId: String
+    signature: String
+    isPaid: Boolean
+    address: Address
+    currentAcademicYear: String
+    createdAt: String
+    updatedAt: String
+   }
 
   type Query {
-    getUser(id: ID!): User
-    getAllUsers: [User]
+    getUser(id: ID!): userResponse
+    getAllUsers: [userResponse]
   }
 
   type Mutation {

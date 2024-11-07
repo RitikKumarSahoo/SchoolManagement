@@ -6,13 +6,13 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
-require("dotenv").config();
+const http = require("http");
 const { ApolloServer } = require("@apollo/server");
 const { expressMiddleware } = require("@apollo/server/express4");
-const http = require("http");
+const schema = require("./graphql/schemas/index");
+const resolver = require("./graphql/resolvers/index");
 
-const typeDefs = require("./graphql/schemas/index");
-const resolvers = require("./graphql/resolvers/index");
+require("dotenv").config();
 
 const agenda = require("./agenda");
 require("./agenda/agenda_jobs")(agenda);
@@ -20,92 +20,76 @@ require("./agenda/agenda_jobs")(agenda);
 const restRouter = require("./routes/rest");
 const webRouter = require("./routes/web");
 
-const app = express(); // Ensure Express app is created here
+// Import GraphQL type definitions and resolvers
+
+const app = express();
 const port = process.env.PORT || 3000;
 
 // Apply security-related middleware
-if (
-  process.env.NODE_ENV !== undefined &&
-  process.env.NODE_ENV !== "development"
-) {
+if (process.env.NODE_ENV && process.env.NODE_ENV !== "development") {
   app.use(helmet());
 }
 
 app.use(cors());
 
 // Database setup
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGODB_CONNECTION_STRING, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose
+  .connect(process.env.MONGODB_CONNECTION_STRING, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// View engine setup
+// Set up views
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-// Apply general middleware
+// Set up general middleware
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Set up routes for REST and web
+// Set up REST and web routes
 app.use("/", webRouter);
 app.use(`/api/v${process.env.API_VERSION}`, restRouter);
 
-// Initialize Apollo Server
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+// Set up Apollo Server
+const apolloServer = new ApolloServer({
+  typeDefs: schema,
+  resolvers: resolver,
 });
 
-async function startServer() {
-  await server.start();
-  app.use("/graphql", expressMiddleware(server));
+async function startApolloServer() {
+  await apolloServer.start();
+  app.use("/graphql", expressMiddleware(apolloServer));
 
-  // Start the Agenda scheduler
+  // Start Agenda
   agenda.on("ready", async () => {
-    console.log("Agenda starting -_-");
+    console.log("Agenda starting...");
     await agenda.start();
-    console.log("Agenda started ^_^");
-
-    const cronJobs = require("./agenda/cron-jobs");
-    await cronJobs(agenda);
+    console.log("Agenda started.");
   });
 
-  // Handle server shutdown gracefully
-  async function graceful() {
+  // Graceful shutdown
+  async function gracefulShutdown() {
     await agenda.stop();
-    console.log("\nAgenda stopped ^o^");
+    console.log("Agenda stopped.");
     process.exit(0);
   }
+  process.on("SIGTERM", gracefulShutdown);
+  process.on("SIGINT", gracefulShutdown);
 
-  process.on("SIGTERM", graceful);
-  process.on("SIGINT", graceful);
-
-  // Set up the error handling for unknown routes
-  app.use((req, res, next) => {
-    next(createError(404));
-  });
-
-  // Error handler
-  app.use((err, req, res, next) => {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-    res.status(err.status || 500);
-    res.render("error");
-  });
-
-  // Create and start the HTTP server
+  // Start HTTP server
   const httpServer = http.createServer(app);
   httpServer.listen(port, () => {
     console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
   });
 }
 
-// Start Apollo Server and Express app together
-startServer().catch((err) => {
-  console.error("Error starting server:", err);
+// Handle errors and start Apollo server
+startApolloServer().catch((error) => {
+  console.error("Error starting server:", error);
 });
