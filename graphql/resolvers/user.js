@@ -1,24 +1,18 @@
 const User = require("../../models/user/index");
 const mongoose = require("mongoose");
+const { GraphQLError } = require("graphql");
 
 const userResolver = {
   Query: {
-    getUser: async (parent, { id }) => {
+    getUser: async (parent, args) => {
       try {
-        console.log(parent, id);
+        const { id } = args; // Destructure `id` from `args` here
+        console.log(parent, id, args);
         console.log("Hello");
 
-        const response = await User.findOne({ _id: id });
-        console.log(response);
-
-        if (!response) {
-          throw new Error("User not found");
-        }
-
-        return response;
+        return await User.findOne({ _id: id });
       } catch (error) {
-        console.error("Error fetching user:", error);
-        throw new Error(`Error fetching user: ${error.message}`);
+        return error;
       }
     },
 
