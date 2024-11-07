@@ -4,15 +4,15 @@ const { GraphQLError } = require("graphql");
 
 const userResolver = {
   Query: {
-    getUser: async (parent, args) => {
+    getUser: async (parent, args, context) => {
       try {
-        const { id } = args; // Destructure `id` from `args` here
-        console.log(parent, id, args);
-        console.log("Hello");
+        const { id } = args;
+        console.log(parent, id, args, context);
+        const user = await User.findOne({ _id: id });
 
-        return await User.findOne({ _id: id });
+        return user;
       } catch (error) {
-        return error;
+        throw new GraphQLError(error);
       }
     },
 
