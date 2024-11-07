@@ -528,65 +528,99 @@ module.exports = {
     }
   },
 
-  async setScheduleTime(req,res){
-    try{
-        const {loginType,isSuperadmin} = req.user
-        if(loginType!== "admin" || isSuperadmin === true) return res.status(401).json({error: true, message:"Unauthorized access"})
+// Adjust the import based on your directory structure
 
-        const {academicYear,availableClasses,weekSchedule} = req.body
-        const scheduleData = {};
+async setScheduleTime(req, res) {
+  try {
+    const { loginType, isSuperadmin } = req.user;
 
-        for (const day in weekSchedule) {
-          const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
-    
-          let currentTime = moment(startTime, 'HH:mm');
-          let end = moment(endTime, 'HH:mm');
-          let totalMinutes = end.diff(currentTime, 'minutes');
-          let periods = {};
-    
-          if (day !== 'sat') {
-            // Deduct break time (30 minutes) for weekdays after the 3rd period
-            totalMinutes -= parseInt(breakTime);
-          }
-    
-          let periodNumber = 1;
-          let periodCount = Math.floor(totalMinutes / periodDuration);
-          
-          while (currentTime.isBefore(end) && periodNumber <= periodCount) {
-            let periodStart = moment(currentTime);
-            let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
-            
-            periods[periodNumber] = {
-              startTime: periodStart.format('HH:mm'),
-              endTime: periodEnd.format('HH:mm')
-            };
-    
-            // Add break after the 3rd period for weekdays only
-            if (periodNumber === 3 && day !== 'sat') {
-              currentTime.add(parseInt(breakTime), 'minutes');
-            }
-    
-            // Move to the start time of the next period
-            currentTime = periodEnd;
-            periodNumber++;
-          }
-    
-          scheduleData[day] = periods;
+    if (loginType !== 'admin' || isSuperadmin === true) {
+      return res.status(401).json({ error: true, message: 'Unauthorized access' });
+    }
+
+    const { academicYear, availableClasses, weekSchedule } = req.body;
+    const scheduleData = {};
+
+    for (const day in weekSchedule) {
+      const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
+
+      let currentTime = moment(startTime, 'HH:mm');
+      let end = moment(endTime, 'HH:mm');
+      let totalMinutes = end.diff(currentTime, 'minutes');
+
+      // Only subtract break time for weekdays (Monday to Friday)
+      if (day !== 'sat') {
+        totalMinutes -= parseInt(breakTime);  // Deduct 30 minutes for weekdays
+      }
+
+      let periodCount = Math.floor(totalMinutes / periodDuration);
+      let periods = {};
+      let periodNumber = 1;
+
+      // Calculate periods for the given day
+      while (currentTime.isBefore(end) && periodNumber <= periodCount) {
+        let periodStart = moment(currentTime);
+        let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
+
+        // Use string keys for period numbers
+        periods[`period ${periodNumber}`] = {
+          startTime: periodStart.format('HH:mm'),
+          endTime: periodEnd.format('HH:mm'),
+        };
+
+        // Add a 30-minute break after the 3rd period for weekdays only
+        if (periodNumber === 3 && day !== 'sat') {
+          // Insert break time after the 3rd period
+          const breakStart = periodEnd; // Break starts after the 3rd period
+          const breakEnd = moment(breakStart).add(parseInt(breakTime), 'minutes');
+
+          periods["breakTime"] = {
+            startTime: breakStart.format('HH:mm'),
+            endTime: breakEnd.format('HH:mm'),
+          };
+
+          // Update currentTime to be after the break
+          currentTime = breakEnd;
+        } else {
+          // Move to the start time of the next period
+          currentTime = periodEnd;
         }
-    
-        // Save the calculated schedule in the database
-        const newSchedule = await Settings.create({
 
-        })
-    
-        res.json({
-          message: 'Schedule created successfully',
-          weekSchedule: scheduleData,
-        });
+        periodNumber++;
+      }
+
+      // Save the periods for the day in the scheduleData object
+      scheduleData[day] = periods;
     }
-    catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
+
+    // Create and save the new schedule in the database
+    const newSchedule = new Settings({
+      academicYear,
+      availableClasses,
+      weekSchedule: scheduleData,
+      _school: req.user._school 
+    });
+
+    await newSchedule.save();
+
+    // Return a success response with the saved schedule
+    res.json({
+      message: 'Schedule created successfully',
+      weekSchedule: newSchedule.weekSchedule,
+      _school: req.user._school
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
+}
+
+
+
+
+
+
+
+
 };

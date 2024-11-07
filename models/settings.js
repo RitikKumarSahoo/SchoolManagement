@@ -9,7 +9,10 @@ const settingSchema = new mongoose.Schema({
     },
   ],
 
-  _school: { type: String },
+  _school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "School",
+  },
 
   academicYear: { type: String },
 
@@ -35,45 +38,50 @@ const settingSchema = new mongoose.Schema({
 
   isActive: { type: Boolean },
 
-  weekSchedule:{
-    mon:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
+  weekSchedule: {
+    mon: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
     },
-    tue:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
+    tue: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
     },
-    wed:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
+    wed: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
     },
-    thu:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
+    thu: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
     },
-    fri:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
+    fri: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
     },
-    sat:{
-      periodDuration: {type: Number},
-      startTime: {type: String},
-      endTime: {type: String},
-      recessTime: {type: String}
-    }
-  }
- 
+    sat: { 
+      type: Map, 
+      of: new mongoose.Schema({
+        startTime: { type: String },
+        endTime: { type: String },
+      }, { _id: false })
+    },
+  },
 });
 
 module.exports = mongoose.model("Setting", settingSchema);
