@@ -375,13 +375,11 @@ module.exports = {
           if (admin.isActive !== undefined) {
             adminUser.isActive = admin.isActive;
           }
+          await adminUser.save();
         }
-        await adminUser.save();
 
         await school.save();
-        return res
-          .status(200)
-          .json({ error: false, message: "school information updated" });
+        return res.status(200).json({ error: false, message: "updated" });
       }
 
       if (loginType === "admin") {
