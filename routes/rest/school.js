@@ -527,10 +527,16 @@ module.exports = {
         .skip(skipNumber)
         .limit(pageSize);
 
+      const totalTeachers = await User.countDocuments({
+        loginType: "teacher",
+        _school: schoolData._id,
+      });
+
       const school = {
         ...schoolData.toObject(),
         admin: user,
         teacher: teachers,
+        totalTeachers,
       };
 
       return res.status(200).json({ error: false, school });
