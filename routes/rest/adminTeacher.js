@@ -690,7 +690,7 @@ module.exports = {
         "-forgotpassword -password -bankDetails"
       );
 
-      return res.status(200).json({ error: true, user: response });
+      return res.status(200).json({ error: false, user: response });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
