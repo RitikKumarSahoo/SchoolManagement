@@ -81,7 +81,7 @@ module.exports = `#graphql
     loginType: String
     rollNo: String
     _addedBy: String
-    _class: String
+    _class: ID
     guardian: Guardian
     isActive: Boolean
     isAdmin: Boolean
@@ -89,7 +89,7 @@ module.exports = `#graphql
     joinDate: String
     leaveDate: String
     bankAdded: Boolean
-    _school: String
+    _school: ID
     customerStripeId: String
     signature: String
     isPaid: Boolean
