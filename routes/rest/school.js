@@ -421,6 +421,9 @@ module.exports = {
    *
    * @apiParam {String} id The unique ID of the school.
    *
+   * @apiParam {Number} [pageNumber=1] Page number for pagination (optional).
+   * @apiParam {Number} [pageSize=10] Number of records per page (optional).
+   *
    *
    * @apiSuccessExample Success Response:
    *  HTTP/1.1 200 OK
@@ -494,6 +497,20 @@ module.exports = {
 
   async schoolDetails(req, res) {
     try {
+      let { pageSize, pageNumber } = req.body;
+      if (pageNumber === undefined) {
+        pageNumber = 1;
+      } else {
+        pageNumber = Number(pageNumber);
+      }
+      // here check pagesize else set default
+      if (pageSize === undefined) {
+        pageSize = 10;
+      } else {
+        pageSize = Number(pageSize);
+      }
+      const skipNumber = (pageNumber - 1) * pageSize;
+
       const schoolData = await School.findOne({ _id: req.params.id });
       const user = await User.findOne({
         loginType: "admin",
@@ -504,7 +521,11 @@ module.exports = {
       const teachers = await User.find({
         loginType: "teacher",
         _school: schoolData._id,
-      }).select("-forgotpassword -password -bankDetails");
+      })
+        .select("-forgotpassword -password -bankDetails")
+        .sort({ createdAt: -1 })
+        .skip(skipNumber)
+        .limit(pageSize);
 
       const school = {
         ...schoolData.toObject(),
