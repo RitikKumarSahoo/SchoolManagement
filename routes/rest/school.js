@@ -501,9 +501,15 @@ module.exports = {
         _school: schoolData._id,
       }).select("-forgotpassword -password -bankDetails");
 
+      const teachers = await User.find({
+        loginType: "teacher",
+        _school: schoolData._id,
+      }).select("-forgotpassword -password -bankDetails");
+
       const school = {
         ...schoolData.toObject(),
         admin: user,
+        teacher: teachers,
       };
 
       return res.status(200).json({ error: false, school });
