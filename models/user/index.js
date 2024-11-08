@@ -7,7 +7,7 @@ const mailer = require("../../lib/mail");
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
-    unique: true,
+    // unique: true,
   },
 
   password: {
