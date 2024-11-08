@@ -1103,6 +1103,15 @@ module.exports = {
                 schoolId,
                 subject,
               } = teacherData;
+              console.log(subject);
+
+              const subjectArray = subject
+                ? subject.includes("|")
+                  ? subject
+                      .split("|")
+                      .map((s) => s.trim().replace(/^'|'$/g, ""))
+                  : [subject.trim().replace(/^'|'$/g, "")]
+                : [];
 
               if (!firstName || !lastName || !gender || !phone) {
                 throw new Error("Missing required fields");
@@ -1169,7 +1178,7 @@ module.exports = {
                 bankAdded: !!bankDetails,
                 isActive: true,
                 address,
-                subject,
+                subject: subjectArray,
                 profileImage,
               });
 
