@@ -782,6 +782,7 @@ module.exports = {
         email,
         isActive,
         phone,
+        dob,
         bankDetails,
         address,
         profileImage,
@@ -843,6 +844,7 @@ module.exports = {
       if (joinDate !== undefined) user.joinDate = joinDate;
       if (qualification !== undefined) user.qualification = qualification;
       if (experience !== undefined) user.experience = experience;
+      if (dob !== undefined) user.dob = dob;
 
       await user.save();
       return res.status(200).json({
