@@ -591,13 +591,13 @@ module.exports = {
           .json({ error: true, message: "Email is required" });
       }
 
-      const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
-      if (!dateOfBirth.isValid()) {
-        return res.status(400).json({
-          error: true,
-          message: "Invalid date of birth format. Use DD/MM/YYYY.",
-        });
-      }
+      // const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+      // if (!dateOfBirth.isValid()) {
+      //   return res.status(400).json({
+      //     error: true,
+      //     message: "Invalid date of birth format. Use DD/MM/YYYY.",
+      //   });
+      // }
 
       // check user already exists
       const checkUserData = await User.findOne({ email })
@@ -644,7 +644,7 @@ module.exports = {
         lastName,
         gender,
         email,
-        dob: dateOfBirth,
+        dob,
         _school: isSuperAdmin === true ? schoolId : req.user._school,
         _addedBy: req.user.id,
         joinDate,
