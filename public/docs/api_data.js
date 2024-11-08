@@ -87,7 +87,7 @@ define({ "api": [
             "group": "Parameter",
             "type": "File",
             "optional": false,
-            "field": "file",
+            "field": "studentCSV",
             "description": "<p>The CSV file containing student data to be uploaded.</p>"
           },
           {
@@ -4048,6 +4048,236 @@ define({ "api": [
     "version": "0.0.0",
     "filename": "routes/rest/adminNotices.js",
     "groupTitle": "Notices"
+  },
+  {
+    "type": "post",
+    "url": "/admin/progressReport/createprogressreport",
+    "title": "Upload and Generate Progress Report",
+    "name": "CreateProgressReport",
+    "group": "ProgressReport",
+    "description": "<p>This route allows an admin or teacher to upload a CSV file containing student progress data and generates progress reports for each student. The report is created based on specific academic, class, and section data provided in the request.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token with JWT, required for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "schoolId",
+            "description": "<p>The ID of the school where the report is being generated.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "academicYear",
+            "description": "<p>The academic year for the progress report.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "className",
+            "description": "<p>The class name for the students (e.g., &quot;10th Grade&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section name for the class (e.g., &quot;A&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "File",
+            "optional": false,
+            "field": "csvFile",
+            "description": "<p>The CSV file containing progress data. Expected headers include &quot;S.No&quot;, &quot;Roll No&quot;, &quot;Term&quot;, &quot;Student Name&quot;, &quot;DOB&quot;, &quot;Class&quot;, &quot;Section&quot;, &quot;Academic Year&quot;, and specific subjects with marks.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Confirmation message upon successful report generation.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "NoFileUploaded",
+            "description": "<p>The request did not include a file.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "Unauthorized",
+            "description": "<p>Only admins and teachers can access this route.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "SchoolOrClassNotFound",
+            "description": "<p>The specified school or class could not be found.</p>"
+          },
+          {
+            "group": "404",
+            "optional": false,
+            "field": "NoMatchingStudents",
+            "description": "<p>No matching students found for the specified criteria.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>There was an error processing the data.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "No File Uploaded:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": \"No file uploaded.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Unauthorized Access:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized. Only admins or teachers can upload progress reports.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "School or Class Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"School or class not found.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "No Matching Students Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"No matching students found.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Error processing the data\",\n  \"details\": \"<Error details>\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Postman testing steps:",
+        "content": "Add the following fields:\n   - `schoolId`: Enter the school ID.\n   - `academicYear`: Enter the academic year (e.g., \"2023-2024\").\n   - `className`: Enter the class name (e.g., \"10th Grade\").\n   - `section`: Enter the section name (e.g., \"A\").\n   - `csvFile`: Choose the file option, and upload your CSV file.\nClick `Send` to make the request.",
+        "type": "Postman"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminProgressReport.js",
+    "groupTitle": "ProgressReport"
+  },
+  {
+    "type": "get",
+    "url": "/admin/progressReport/getprogressreport/:studentId",
+    "title": "Retrieve Student Progress Report",
+    "name": "GetProgressReport",
+    "group": "ProgressReport",
+    "permission": [
+      {
+        "name": "student, teacher, admin"
+      }
+    ],
+    "description": "<p>Retrieve the progress report for a student by class and academic year. Admins and teachers can view any student’s report by providing the student’s ID. Students can only view their own report.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "studentId",
+            "description": "<p>Student's unique ID. Required for admins and teachers.</p>"
+          }
+        ]
+      }
+    },
+    "query": [
+      {
+        "group": "Query",
+        "type": "String",
+        "optional": false,
+        "field": "class",
+        "description": "<p>Class name to filter the progress report (e.g., &quot;10th Grade&quot;).</p>"
+      },
+      {
+        "group": "Query",
+        "type": "String",
+        "optional": false,
+        "field": "academicYear",
+        "description": "<p>The academic year to filter the report (e.g., &quot;2023-2024&quot;).</p>"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer Token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Postman Testing:",
+          "content": "Add `class` and `academicYear` as query parameters:\n  - `class`: Set to the class name (e.g., \"10th Grade\").\n  - `academicYear`: Set to the desired academic year (e.g., \"2023-2024\").\nSend the request.",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "\nHTTP/1.1 400 Bad Request\n{\n  \"error\": \"Please provide both class and academic year.\"\n}\n\nHTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized access.\"\n}\n\nHTTP/1.1 404 Not Found\n{\n  \"message\": \"No progress reports found for the specified class and academic year.\"\n}\n\nHTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Error retrieving the progress report\",\n  \"details\": \"Detailed error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminProgressReport.js",
+    "groupTitle": "ProgressReport"
   },
   {
     "type": "post",

@@ -9,37 +9,70 @@ const { Readable } = require('stream');
 // const upload = multer({ storage: multer.memoryStorage() });
 
 module.exports = {
-  // Route to upload CSV file and generate progress report 
-   
   /**
-   * Uploads a CSV file containing student marks and generates a progress report
-   * for each student in the specified class and section.
-   * 
-   * The CSV file must contain the following columns:
-   * - S.No
-   * - Roll No
-   * - Term (midterm or final)
-   * - Student Name
-   * - DOB
-   * - Class
-   * - Section
-   * - Academic Year
-   * - Subject marks (e.g. English, Math, etc.)
-   * 
-   * The route requires the following body parameters:
-   * - schoolId: the ID of the school
-   * - academicYear: the academic year for which the report is requested
-   * - className: the name of the class
-   * - section: the section of the class
-   * 
-   * The route returns a JSON response with a success message if the reports are
-   * generated successfully, or an error message if there is an issue with the
-   * file or data.
-   * 
-   * @param {Object} req - The request object
-   * @param {Object} res - The response object
-   * @returns {Object} - The response object
-   */
+ * @api {post} /admin/progressReport/createprogressreport  Upload and Generate Progress Report
+ * @apiName CreateProgressReport
+ * @apiGroup ProgressReport
+ * 
+ * @apiDescription This route allows an admin or teacher to upload a CSV file containing student progress data and generates progress reports for each student. The report is created based on specific academic, class, and section data provided in the request.
+ * 
+ * @apiHeader {String} Authorization Bearer token with JWT, required for authentication.
+ * 
+ * @apiParam {String} schoolId The ID of the school where the report is being generated.
+ * @apiParam {String} academicYear The academic year for the progress report.
+ * @apiParam {String} className The class name for the students (e.g., "10th Grade").
+ * @apiParam {String} section The section name for the class (e.g., "A").
+ * @apiParam {File} csvFile The CSV file containing progress data. Expected headers include "S.No", "Roll No", "Term", "Student Name", "DOB", "Class", "Section", "Academic Year", and specific subjects with marks.
+ * 
+ * @apiSuccess {String} message Confirmation message upon successful report generation.
+ * 
+ * @apiError (400) NoFileUploaded The request did not include a file.
+ * @apiError (403) Unauthorized Only admins and teachers can access this route.
+ * @apiError (404) SchoolOrClassNotFound The specified school or class could not be found.
+ * @apiError (404) NoMatchingStudents No matching students found for the specified criteria.
+ * @apiError (500) InternalServerError There was an error processing the data.
+ * 
+ * @apiExample {Postman} Postman testing steps:
+ * Add the following fields:
+ *    - `schoolId`: Enter the school ID.
+ *    - `academicYear`: Enter the academic year (e.g., "2023-2024").
+ *    - `className`: Enter the class name (e.g., "10th Grade").
+ *    - `section`: Enter the section name (e.g., "A").
+ *    - `csvFile`: Choose the file option, and upload your CSV file.
+ * Click `Send` to make the request.
+ *
+ * @apiErrorExample {json} No File Uploaded:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "No file uploaded."
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized Access:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       "error": "Unauthorized. Only admins or teachers can upload progress reports."
+ *     }
+ *
+ * @apiErrorExample {json} School or Class Not Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "School or class not found."
+ *     }
+ *
+ * @apiErrorExample {json} No Matching Students Found:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "No matching students found."
+ *     }
+ *
+ * @apiErrorExample {json} Internal Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": "Error processing the data",
+ *       "details": "<Error details>"
+ *     }
+ */
+
   async post(req,res){
     try {
       // Ensure a file is uploaded
@@ -164,18 +197,51 @@ module.exports = {
   },
 
 /**
- * Retrieves the progress report for a given student by class and academic year.
- *
- * @param {Object} req - The request object
- * @param {Object} res - The response object
- *
- * @throws {Error} - If the user is not a student, teacher, or admin
- * @throws {Error} - If the student ID is not provided when the user is a teacher or admin
- * @throws {Error} - If the student ID is invalid or not found
- * @throws {Error} - If the class or academic year is not provided in the query
- * @throws {Error} - If the class name does not match the student's class if the requester is a student
- * @throws {Error} - If there are no progress reports found for the specified class and academic year
+ * @api {get} /admin/progressReport/getprogressreport/:studentId Retrieve Student Progress Report
+ * @apiName GetProgressReport
+ * @apiGroup ProgressReport
+ * @apiPermission student, teacher, admin
+ * 
+ * @apiDescription Retrieve the progress report for a student by class and academic year. 
+ * Admins and teachers can view any student’s report by providing the student’s ID. 
+ * Students can only view their own report.
+ * 
+ * @apiParam {String} studentId Student's unique ID. Required for admins and teachers.
+ * @apiQuery {String} class Class name to filter the progress report (e.g., "10th Grade").
+ * @apiQuery {String} academicYear The academic year to filter the report (e.g., "2023-2024").
+ * 
+ * @apiHeader {String} Authorization Bearer Token for authentication.
+ * 
+ * @apiSuccessExample {json} Postman Testing:
+ *  Add `class` and `academicYear` as query parameters:
+ *    - `class`: Set to the class name (e.g., "10th Grade").
+ *    - `academicYear`: Set to the desired academic year (e.g., "2023-2024").
+ *  Send the request.
+ * 
+ * @apiErrorExample {json} Error-Response:
+ * 
+ *  HTTP/1.1 400 Bad Request
+ *  {
+ *    "error": "Please provide both class and academic year."
+ *  }
+ * 
+ *  HTTP/1.1 403 Forbidden
+ *  {
+ *    "error": "Unauthorized access."
+ *  }
+ * 
+ *  HTTP/1.1 404 Not Found
+ *  {
+ *    "message": "No progress reports found for the specified class and academic year."
+ *  }
+ * 
+ *  HTTP/1.1 500 Internal Server Error
+ *  {
+ *    "error": "Error retrieving the progress report",
+ *    "details": "Detailed error message"
+ *  }
  */
+
 async get(req, res) {
   try {
     // Extract user ID and loginType (role) from the token

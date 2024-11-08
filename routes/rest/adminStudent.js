@@ -849,7 +849,7 @@ module.exports = {
    *
    * @apiHeader {String} Authorization Bearer token for admin authentication.
    *
-   * @apiParam {File} file The CSV file containing student data to be uploaded.
+   * @apiParam {File} studentCSV The CSV file containing student data to be uploaded.
    * @apiParam {String} className The name of the class where students will be enrolled.
    * @apiParam {String} section The section of the class.
    * @apiParam {String} academicYear The academic year for the enrollment.
