@@ -6693,6 +6693,22 @@
             "optional": false,
             "field": "id",
             "description": "<p>The unique ID of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>Number of records per page (optional).</p>"
           }
         ]
       }
