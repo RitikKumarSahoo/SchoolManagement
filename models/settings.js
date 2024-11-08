@@ -9,7 +9,10 @@ const settingSchema = new mongoose.Schema({
     },
   ],
 
-  _school: { type: String },
+  _school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "School",
+  },
 
   academicYear: { type: String },
 
