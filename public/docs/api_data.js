@@ -8100,6 +8100,13 @@ define({ "api": [
             "group": "Request Body",
             "type": "String",
             "optional": true,
+            "field": "fullName",
+            "description": "<p>Student's full name.</p>"
+          },
+          {
+            "group": "Request Body",
+            "type": "String",
+            "optional": true,
             "field": "email",
             "description": "<p>Student's email.</p>"
           },

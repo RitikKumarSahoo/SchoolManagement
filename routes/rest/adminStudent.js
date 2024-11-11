@@ -296,6 +296,7 @@ module.exports = {
    *
    * @apiParam (Request Body) {String} [firstName] Student's first name.
    * @apiParam (Request Body) {String} [lastName] Student's last name.
+   * @apiParam (Request Body) {String} [fullName] Student's full name.
    * @apiParam (Request Body) {String} [email] Student's email.
    * @apiParam (Request Body) {String} [gender] Student's gender.
    * @apiParam (Request Body) {String} [guardian] Guardian's name.
@@ -369,6 +370,7 @@ module.exports = {
       const updateData = {};
       if (firstName) updateData.firstName = firstName;
       if (lastName) updateData.lastName = lastName;
+      if(firstName || lastName) updateData.fullName = `${firstName} ${lastName}`
       if (email) updateData.email = email;
       if (gender) updateData.gender = gender;
       if (guardian) updateData.guardian = guardian;
