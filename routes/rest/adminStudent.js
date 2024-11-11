@@ -35,92 +35,83 @@ function generateCustomPassword() {
 
 module.exports = {
   /**
- * @api {post} /admin/student/createstudent Create Student
+ * @api {post} /admin/student Create New Student (Admin)
  * @apiName CreateStudent
- * @apiGroup Student
- * @apiVersion 1.0.0
+ * @apiGroup Students
  * 
- * @apiHeader {String} Authorization Admin's access token.
+ * @apiDescription This endpoint allows an admin to create a new student record in the system. The admin is responsible for providing all required student details including personal information, class details, and optional fields like roll number and join date. The system also auto-generates the username and password for the student.
  * 
- * @apiParam {String} firstName Student's first name (required).
- * @apiParam {String} lastName Student's last name (required).
- * @apiParam {String} [email] Student's email address.
- * @apiParam {String} gender Student's gender (required).
- * @apiParam {Object} guardian Guardian's information (required).
- * @apiParam {String} guardian.fathersName Guardian's father's name.
- * @apiParam {String} guardian.mothersName Guardian's mother's name.
- * @apiParam {String} phone Student's phone number (required).
- * @apiParam {Number} admissionYear Year of admission (required).
- * @apiParam {String} dob Student's date of birth (required).
- * @apiParam {String} classname Class name (required).
- * @apiParam {String} section Class section (required).
- * @apiParam {String} joinDate Date of joining (required).
- * @apiParam {String} signature Base64 encoded signature.
- * @apiParam {String} profileImage Path to the profile image.
- * @apiParam {String} [rollNo] Student's roll number. Required if autoAssignRoll is false.
- * @apiParam {Boolean} [autoAssignRoll=false] Whether to auto-assign the roll number.
+ * @apiParam {String} firstName First name of the student.
+ * @apiParam {String} lastName Last name of the student.
+ * @apiParam {String} email Email address of the student.
+ * @apiParam {String} gender Gender of the student.
+ * @apiParam {Object} guardian Guardian details (father's and mother's names and occupations).
+ * @apiParam {String} guardian.fathersName Father's name.
+ * @apiParam {String} guardian.fathersOccupation Father's occupation.
+ * @apiParam {String} guardian.mothersName Mother's name.
+ * @apiParam {String} guardian.mothersOccupation Mother's occupation.
+ * @apiParam {String} phone Contact number of the student.
+ * @apiParam {String} admissionYear The year in which the student was admitted.
+ * @apiParam {String} dob Date of birth of the student (in `YYYY-MM-DD` format).
+ * @apiParam {String} classname The name of the class the student is assigned to.
+ * @apiParam {String} section The section the student is assigned to.
+ * @apiParam {String} currentAcademicYear The academic year for which the student is enrolled, e.g., "2024-2025".
+ * @apiParam {String} [signature] Digital signature of the student (optional).
+ * @apiParam {String} [profileImage] Profile image of the student (optional).
+ * @apiParam {Boolean} [autoAssignRoll=true] Flag to auto-assign the roll number (default is `true`).
+ * @apiParam {Object} address Address of the student.
+ * @apiParam {String} address.locality Locality of the student's address.
+ * @apiParam {String} address.city City of the student's address.
+ * @apiParam {String} address.state State of the student's address.
+ * @apiParam {String} address.pin PIN code of the student's address.
+ * @apiParam {String} address.country Country of the student's address.
+ * @apiParam {String} [rollNo] Roll number of the student (optional, but required if `autoAssignRoll=false`).
+ * @apiParam {String} [joinDate] Date the student joined (in `YYYY-MM-DD` format, optional).
  * 
- * @apiDescription Creates a new student record in the database. The roll number can be auto-assigned or manually entered by the admin. If manually entered, it must be sequential based on the last roll number in the class and section.
+ * @apiHeader {String} Authorization Bearer token for admin authentication.
  * 
- * @apiExample Example usage (Manual Roll Number):
- * '{
- *     "firstName": "June",
- *     "lastName": "David",
- *     "gender": "Female",
- *     "guardian": {
- *       "fathersName": "Ryan David",
- *       "fathersOccupation":"School Teacher"
- *       "mothersName": "Milli David",
- *        "mothersOccupation":"Housewife"
- *     },
- *    "address":{
- *      locality:"Godrej Waterside, Salt Lake,Kolkata, 700009",
- *        "city":"Kolkata",
- *        "state":"West Bengal",
- *        "pin":"700009"
- *        "country":"India",
- *      },
- *     "phone": "9080264385",
- *     "admissionYear": 2024,
- *     "dob": "1990-07-02",
- *     "rollNo": "R004",  // Manually assigned roll number
- *     "classname": "10",
- *     "section": "A",
- *     "joinDate": "2024-10-10",
- *     "signature": "base64EncodedString",
- *     "profileImage": "public/docsimg/ProfilePic.jpeg",
- *     "autoAssignRoll": false
- *   }'
+ * @apiError (400) {String} error `Unauthorized` If the user is not an admin or if the request is malformed.
+ * @apiError (404) {String} error `Class not found!` If the class with the given name, section, and academic year is not found.
+ * @apiError (400) {String} error `Roll number must be sequential` If the roll number is not sequential when `autoAssignRoll` is false.
+ * @apiError (500) {String} error Error message if there is an issue with the request.
  * 
- * @apiExample Example usage (Auto-Assigned Roll Number):
- * '{
- *     "firstName": "John",
- *     "lastName": "Doe",
- *     "gender": "Male",
- *     "guardian": {
- *       "fathersName": "Ryan David",
- *       "fathersOccupation":"School Teacher"
- *       "mothersName": "Milli David",
- *        "mothersOccupation":"Housewife"
- *     },
- * "address":{
- *      "locality":"Godrej Waterside, Salt Lake,Kolkata, 700009",
- *        "city":"Kolkata",
- *        "state":"West Bengal",
- *        "pin":"700009",
- *        "country":"India",
- *      },
- *     "phone": "9123456789",
- *     "admissionYear": 2024,
- *     "dob": "1990-08-15",
- *     "classname": "10",
- *     "section": "B",
- *     "joinDate": "2024-10-10",
- *     "signature": "base64EncodedString",
- *     "profileImage": "public/docsimg/ProfilePic2.jpeg",
- *     "autoAssignRoll": true  // Roll number will be auto-assigned
- *   }'
+ * @apiExample Example Request:
+ *  {
+ *    "firstName": "John",
+ *    "lastName": "Doe",
+ *    "email": "john.doe@example.com",
+ *    "gender": "Male",
+ *    "guardian": {
+ *      "fathersName": "Robert Doe",
+ *      "fathersOccupation": "Engineer",
+ *      "mothersName": "Jane Doe",
+ *      "mothersOccupation": "Teacher"
+ *    },
+ *    "phone": "1234567890",
+ *    "admissionYear": "2024",
+ *    "dob": "2005-06-15",
+ *    "classname": "10th",
+ *    "section": "A",
+ *    "currentAcademicYear": "2024-2025",
+ *    "signature": "signature_image_data",
+ *    "profileImage": "profile_image_url",
+ *    "address": {
+ *      "locality": "Downtown",
+ *      "city": "Sample City",
+ *      "state": "Sample State",
+ *      "pin": "123456",
+ *      "country": "Sample Country"
+ *    }
+ *  }
+ * 
+ * @apiExample Example Response:
+ *  {
+ *    "error": false,
+ *    "StudentUserName": "JohSam789",
+ *    "StudentPassword": "generatedPassword123"
+ *  }
  */
+
 
   async createStudent(req, res) {
     try {
@@ -138,10 +129,10 @@ module.exports = {
       }
 
       // Set joinDate to today's date if not provided
-    if (!joinDate) {
-      const today = new Date();
-      joinDate = today.toISOString().split('T')[0]; // Formats as "YYYY-MM-DD"
-    }
+    // if (!joinDate) {
+    //   const today = new Date();
+    //   joinDate = today.toISOString().split('T')[0]; // Formats as "YYYY-MM-DD"
+    // }
 
        // Validate required fields
       //  if (!firstName || !lastName || !gender || !guardian || !phone || !admissionYear || !classname || !section || !dob || !joinDate) {

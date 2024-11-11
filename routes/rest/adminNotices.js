@@ -4,65 +4,76 @@ const agenda = require("../../agenda/index.js");
 
 module.exports = {
   /**
- * @api {post} /admin/notices/allnotices Fetch all notices
- * @apiName FetchNotices
+ * @api {post} /admin/notices/allnotices Find All Notices (Admin)
+ * @apiName FindAllNoticesAdmin
  * @apiGroup Notices
- * @apiDescription Retrieve a list of notices based on the user's role and optional filters. Only active notices are returned.
  * 
- * @apiHeader {String} Authorization User's access token.
+ * @apiDescription This endpoint is for admin users to retrieve all active notices, with filtering based on the user's role and notice type. It supports pagination and sorting by the upload date (`postedDate`).
  * 
- * @apiParam {String} [type] (Admin only) Filter notices by type ("student", "teacher", or "general").
+ * @apiParam {String} [type] Optional parameter for admins to filter by notice type. Can be "student", "teacher", or "general".
+ * @apiParam {Number} [pageNo=1] Page number for pagination (defaults to 1 if not provided).
+ * @apiParam {Number} [skipLimit=10] Number of notices per page (defaults to 10 if not provided).
  * 
- * @apiSuccess {Boolean} error Indicates if there was an error.
- * @apiSuccess {Number} count The total number of notices matching the criteria.
- * @apiSuccess {Object[]} notices List of notice objects.
+ * @apiHeader {String} Authorization Bearer token for admin authentication.
  * 
- * @apiError {Boolean} error Indicates if there was an error.
- * @apiError {String} reason The reason for the error.
+ * @apiSuccess {Boolean} error `false` if the request was successful.
+ * @apiSuccess {Number} count Total number of notices matching the filter criteria.
+ * @apiSuccess {Object[]} notices List of notices for the current page.
+ * @apiSuccess {Number} pageNo The current page number.
+ * @apiSuccess {Number} skipLimit The number of notices per page.
+ * @apiSuccess {Number} totalPages The total number of pages based on the count and skipLimit.
  * 
- * @apiPermission admin
- * @apiPermission teacher
- * @apiPermission student
- *
- * @apiExample {json} Request Example (Admin):
- *     {
- *       "type": "teacher"
- *     }
+ * @apiError (400) {String} error `Unauthorized` if the user is not an admin or if the request is malformed.
+ * @apiError (500) {String} error Error message if there is an issue with the request.
  * 
- * @apiExample {json} Response Example:
- *     {
- *       "error": false,
- *       "count": 5,
- *       "notices": [
- *         {
- *           "_id": "634d2c347f5b9c23388b5c61",
- *           "title": "Upcoming Exam",
- *           "description": "Exam details for students",
- *           "noticeType": "student",
- *           "isActive": true,
- *           "postedBy": "634b2c238f9a24388b5a1c51",
- *           "expireDate": "2024-12-31T00:00:00.000Z",
- *           "attachments": [],
- *           "postedDate": "2024-10-01T10:30:00.000Z",
- *           "signatureOfTeacherUrl": "https://example.com/signature.png"
- *         },
- *         ...
- *       ]
- *     }
- *
- * @apiErrorExample {json} Error Response (Unauthorized):
- *     {
- *       "error": true,
- *       "reason": "Unauthorized"
- *     }
+ * @apiExample Example Request (Admin):
+ *  {
+ *    "pageNo": 1,
+ *    "skipLimit": 10,
+ *    "type": "teacher"  // Optional filter for admin
+ *  }
+ * 
+ * @apiExample Example Response:
+ *  {
+ *    "error": false,
+ *    "count": 50,
+ *    "notices": [
+ *      {
+ *        "_id": "603f5f3f7c6d8b3d4c1f0a1b",
+ *        "title": "Notice 1",
+ *        "content": "Content of notice 1.",
+ *        "noticeType": "teacher",
+ *        "postedDate": "2024-11-10T10:30:00Z",
+ *        "isActive": true
+ *      },
+ *      {
+ *        "_id": "603f5f3f7c6d8b3d4c1f0a2c",
+ *        "title": "Notice 2",
+ *        "content": "Content of notice 2.",
+ *        "noticeType": "teacher",
+ *        "postedDate": "2024-11-09T08:00:00Z",
+ *        "isActive": true
+ *      }
+ *    ],
+ *    "pageNo": 1,
+ *    "skipLimit": 10,
+ *    "totalPages": 5
+ *  }
  */
 
   async findAllNotices(req, res) {
     try {
       const role = req.user.loginType;
   
+      // Pagination parameters from frontend
+      const { pageNo = 1, skipLimit = 10 } = req.body;
+  
+      // Calculate the number of documents to skip
+      const skip = (pageNo - 1) * skipLimit;
+  
       let filter = { isActive: true };  // Only retrieve active notices
-
+  
+      // Role-based filtering
       if (role === "teacher") {
         // Teachers can only see "teacher" and "general" notices
         filter.noticeType = { $in: ["teacher", "general"] };
@@ -73,23 +84,33 @@ module.exports = {
         // Unauthorized access if not admin, teacher, or student
         return res.status(403).json({ error: true, reason: "Unauthorized" });
       }
-
+  
       // Only for admin, check if a specific type is provided in the body
       const { type } = req.body;
       if (role === "admin" && type && ["student", "teacher", "general"].includes(type)) {
         filter.noticeType = type;  // Override noticeType filter for admin if specific type is given
       }
-
+  
+      // Fetch notices with pagination and sorting
       const [notices, count] = await Promise.all([
-        Notice.find(filter).sort({ postedDate: -1 }).exec(),
+        Notice.find(filter).sort({ postedDate: -1 }).skip(skip).limit(skipLimit).exec(),
         Notice.countDocuments(filter)
       ]);
-
-      return res.json({ error: false, count, notices });
+  
+      // Return the response with pagination info
+      return res.json({
+        error: false,
+        count,         // Total number of notices matching the filter
+        notices,       // The paginated notices
+        pageNo,        // Current page number
+        skipLimit,     // Number of notices per page
+        totalPages: Math.ceil(count / skipLimit) // Total number of pages
+      });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
     }
-},
+  },
+  
 
   /**
  * @api {get} /admin/notice/getNotice/:id Get a specific notice by ID
