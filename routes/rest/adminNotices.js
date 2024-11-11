@@ -81,7 +81,7 @@ module.exports = {
       }
 
       const [notices, count] = await Promise.all([
-        Notice.find(filter).exec(),
+        Notice.find(filter).sort({ postedDate: -1 }).exec(),
         Notice.countDocuments(filter)
       ]);
 
