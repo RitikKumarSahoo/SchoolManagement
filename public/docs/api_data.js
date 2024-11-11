@@ -9799,7 +9799,7 @@ define({ "api": [
     "groupTitle": "Transaction"
   },
   {
-    "type": "put",
+    "type": "post",
     "url": "/activatedeactivate/:id",
     "title": "Activate/Deactivate user",
     "name": "DeactivateUser",
