@@ -878,7 +878,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin access.</p>"
+            "description": "<p>Bearer token for admin|teacher|superAdmin access.</p>"
           }
         ]
       }
@@ -920,8 +920,8 @@ define({ "api": [
           {
             "group": "Error 4xx",
             "optional": false,
-            "field": "NotAdmin",
-            "description": "<p>You are not an admin.</p>"
+            "field": "You",
+            "description": "<p>are not authorized.</p>"
           },
           {
             "group": "Error 4xx",
@@ -934,7 +934,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Only admins can view student details\"\n}",
+          "content": "{\n  \"error\": true,\n  \"message\": \"You do not have permission to view student details\"\n}",
           "type": "json"
         },
         {

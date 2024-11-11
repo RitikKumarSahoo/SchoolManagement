@@ -415,7 +415,7 @@ module.exports = {
    * @apiGroup Admin
    *@apiVersion 1.0.0
    * @apiDescription Retrieves all teachers belonging to the school
-   * @apiHeader {String} Authorization Bearer token for admin access.
+   * @apiHeader {String} Authorization Bearer token for admin|teacher|superAdmin access.
    *
    * @apiParam {Number} [pageNo=1] The page number to retrieve (defaults to 1 if not provided).
    * @apiParam {Number} [skipLimit=20] The number of students to return per page (defaults to 20 if not provided).
@@ -462,11 +462,11 @@ module.exports = {
    *   "totalStudents": 2
    * }
    *
-   * @apiError NotAdmin You are not an admin.
+   * @apiError You are not authorized.
    * @apiErrorExample {json} Error-Response:
    * {
    *   "error": true,
-   *   "message": "Only admins can view student details"
+   *   "message": "You do not have permission to view student details"
    * }
    *
    * @apiError InternalServerError Internal server error.
@@ -480,10 +480,10 @@ module.exports = {
   async viewAllStudents(req, res) {
     try {
       const { loginType } = req.user; // Check if the user is an admin
-      if (loginType !== "admin") {
+      if (loginType !== "admin" || loginType !== "teacher" || !isSuperAdmin) {
         return res
           .status(403)
-          .json({ message: "Only admins can view student details" });
+          .json({ message: "You do not have permission to view student details" });
       }
 
       const { name, rollNo, className, section, academicYear } = req.body;
