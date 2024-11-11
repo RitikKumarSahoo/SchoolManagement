@@ -869,7 +869,7 @@
     "name": "ViewAllStudents",
     "group": "Admin",
     "version": "1.0.0",
-    "description": "<p>Retrieves all teachers belonging to the school</p>",
+    "description": "<p>Retrieves all students belonging to the school</p>",
     "header": {
       "fields": {
         "Header": [
@@ -8446,16 +8446,30 @@
     "groupTitle": "Student"
   },
   {
-    "type": "put",
-    "url": "/admin/student/change-status/:id",
-    "title": "5.0 Deactivate a student",
-    "name": "deactivateStudent",
-    "group": "Student",
+    "type": "patch",
+    "url": "/students/:id/status",
+    "title": "Change Student Status",
+    "name": "ChangeStudentStatus",
+    "group": "Students",
     "permission": [
       {
         "name": "Admin"
       }
     ],
+    "description": "<p>Toggles the active status (<code>isActive</code>) of a student. Only admins can perform this operation.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique ID of the student.</p>"
+          }
+        ]
+      }
+    },
     "header": {
       "fields": {
         "Header": [
@@ -8464,43 +8478,78 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "studentId",
-            "description": "<p><code>URL Param</code> The _id of the student to deactivate</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "adminId",
-            "description": "<p><code>Body Param</code> The _id of the admin who is deactivating the student</p>"
+            "description": "<p>Bearer token for admin authentication.</p>"
           }
         ]
       }
     },
     "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if the operation was successful (<code>false</code>).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>A message indicating the result of the operation (e.g., &quot;Student activated successfully&quot; or &quot;Student deactivated successfully&quot;).</p>"
+          }
+        ]
+      },
       "examples": [
         {
-          "title": "Success-Response: 200 OK",
-          "content": "{\n    error : false,\n    message: \"Student deactivated successfully\"\n}",
-          "type": "type"
+          "title": "Success Response (Activated)",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Student activated successfully\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Success Response (Deactivated)",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Student deactivated successfully\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (<code>true</code>).</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>A message describing the error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Unauthorized Error",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"message\": \"Only admins can edit student details\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Student Not Found",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Student not found\"\n}",
+          "type": "json"
         }
       ]
     },
     "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
-    "groupTitle": "Student"
+    "groupTitle": "Students"
   },
   {
     "type": "post",

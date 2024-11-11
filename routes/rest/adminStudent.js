@@ -414,7 +414,7 @@ module.exports = {
    * @apiName ViewAllStudents
    * @apiGroup Admin
    *@apiVersion 1.0.0
-   * @apiDescription Retrieves all teachers belonging to the school
+   * @apiDescription Retrieves all students belonging to the school
    * @apiHeader {String} Authorization Bearer token for admin|teacher|superAdmin access.
    *
    * @apiParam {Number} [pageNo=1] The page number to retrieve (defaults to 1 if not provided).
@@ -480,7 +480,7 @@ module.exports = {
   async viewAllStudents(req, res) {
     try {
       const { loginType,isSuperAdmin } = req.user; // Check if the user is an admin
-      if (loginType !== "admin" || loginType !== "teacher" || !isSuperAdmin) {
+      if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin)) {
         return res
           .status(403)
           .json({ message: "You do not have permission to view student details" });
@@ -657,55 +657,88 @@ module.exports = {
   },
 
   /**
-   * Deactivate a student
-   * @api {put} /admin/student/change-status/:id 5.0 Deactivate a student
-   * @apiName deactivateStudent
-   * @apiGroup Student
-   * @apiPermission Admin
-   *
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiParam {String} studentId `URL Param` The _id of the student to deactivate
-   * @apiParam {String} adminId `Body Param` The _id of the admin who is deactivating the student
-   *
-   * @apiSuccessExample {type} Success-Response: 200 OK
-   * {
-   *     error : false,
-   *     message: "Student deactivated successfully"
-   * }
-   */
+ * @api {patch} /students/:id/status Change Student Status
+ * @apiName ChangeStudentStatus
+ * @apiGroup Students
+ * @apiPermission Admin
+ * 
+ * @apiDescription Toggles the active status (`isActive`) of a student. Only admins can perform this operation.
+ * 
+ * @apiParam {String} id The unique ID of the student.
+ * 
+ * @apiHeader {String} Authorization Bearer token for admin authentication.
+ * 
+ * @apiSuccess {Boolean} error Indicates if the operation was successful (`false`).
+ * @apiSuccess {String} message A message indicating the result of the operation (e.g., "Student activated successfully" or "Student deactivated successfully").
+ * 
+ * @apiError {Boolean} error Indicates if there was an error (`true`).
+ * @apiError {String} message A message describing the error.
+ * 
+ * @apiErrorExample {json} Unauthorized Error
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       "error": true,
+ *       "message": "Only admins can edit student details"
+ *     }
+ * 
+ * @apiErrorExample {json} Student Not Found
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "error": true,
+ *       "message": "Student not found"
+ *     }
+ * 
+ * @apiSuccessExample {json} Success Response (Activated)
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "error": false,
+ *       "message": "Student activated successfully"
+ *     }
+ * 
+ * @apiSuccessExample {json} Success Response (Deactivated)
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "error": false,
+ *       "message": "Student deactivated successfully"
+ *     }
+ */
+
   async changeStudentStatus(req, res) {
     try {
       // Check if the user exists and has the 'admin' role
-      if (!req.user.isAdmin)
+      if (!req.user.isAdmin) {
         return res
           .status(403)
           .json({ message: "Only admins can edit student details" });
-      console.log(isAdmin);
+      }
+  
       const student = await users
         .findOne({ _id: req.params.id, loginType: "student" })
         .exec();
-      if (!student)
+  
+      if (!student) {
         return res
           .status(404)
           .json({ error: true, message: "Student not found" });
+      }
+  
+      // Toggle the `isActive` status
       student.isActive = !student.isActive;
       await student.save();
+  
+      const statusMessage = student.isActive
+        ? "Student activated successfully"
+        : "Student deactivated successfully";
+  
       return res.json({
         error: false,
-        message: "Student status changed successfully",
-      });
-
-      student.isActive = false;
-      await student.save();
-      return res.json({
-        error: false,
-        message: "Student deactivated successfully",
+        message: statusMessage,
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+  
 
   async searchStudents(req, res) {
     try {
