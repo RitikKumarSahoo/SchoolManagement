@@ -58,7 +58,6 @@ module.exports = {
  * @apiParam {String} currentAcademicYear The academic year for which the student is enrolled, e.g., "2024-2025".
  * @apiParam {String} [signature] Digital signature of the student (optional).
  * @apiParam {String} [profileImage] Profile image of the student (optional).
- * @apiParam {Boolean} [autoAssignRoll=true] Flag to auto-assign the roll number (default is `true`).
  * @apiParam {Object} address Address of the student.
  * @apiParam {String} address.locality Locality of the student's address.
  * @apiParam {String} address.city City of the student's address.
