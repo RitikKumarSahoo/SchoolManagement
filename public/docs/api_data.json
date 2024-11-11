@@ -3938,23 +3938,10 @@
   {
     "type": "post",
     "url": "/admin/notices/allnotices",
-    "title": "Fetch all notices",
-    "name": "FetchNotices",
+    "title": "Find All Notices (Admin)",
+    "name": "FindAllNoticesAdmin",
     "group": "Notices",
-    "description": "<p>Retrieve a list of notices based on the user's role and optional filters. Only active notices are returned.</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>User's access token.</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>This endpoint is for admin users to retrieve all active notices, with filtering based on the user's role and notice type. It supports pagination and sorting by the upload date (<code>postedDate</code>).</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -3963,7 +3950,36 @@
             "type": "String",
             "optional": true,
             "field": "type",
-            "description": "<p>(Admin only) Filter notices by type (&quot;student&quot;, &quot;teacher&quot;, or &quot;general&quot;).</p>"
+            "description": "<p>Optional parameter for admins to filter by notice type. Can be &quot;student&quot;, &quot;teacher&quot;, or &quot;general&quot;.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNo",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (defaults to 1 if not provided).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "skipLimit",
+            "defaultValue": "10",
+            "description": "<p>Number of notices per page (defaults to 10 if not provided).</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin authentication.</p>"
           }
         ]
       }
@@ -3976,72 +3992,77 @@
             "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
+            "description": "<p><code>false</code> if the request was successful.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "count",
-            "description": "<p>The total number of notices matching the criteria.</p>"
+            "description": "<p>Total number of notices matching the filter criteria.</p>"
           },
           {
             "group": "Success 200",
             "type": "Object[]",
             "optional": false,
             "field": "notices",
-            "description": "<p>List of notice objects.</p>"
+            "description": "<p>List of notices for the current page.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "pageNo",
+            "description": "<p>The current page number.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "skipLimit",
+            "description": "<p>The number of notices per page.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "totalPages",
+            "description": "<p>The total number of pages based on the count and skipLimit.</p>"
           }
         ]
       }
     },
     "error": {
       "fields": {
-        "Error 4xx": [
+        "400": [
           {
-            "group": "Error 4xx",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
-          },
-          {
-            "group": "Error 4xx",
+            "group": "400",
             "type": "String",
             "optional": false,
-            "field": "reason",
-            "description": "<p>The reason for the error.</p>"
+            "field": "error",
+            "description": "<p><code>Unauthorized</code> if the user is not an admin or if the request is malformed.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error message if there is an issue with the request.</p>"
           }
         ]
-      },
-      "examples": [
-        {
-          "title": "Error Response (Unauthorized):",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"Unauthorized\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "permission": [
-      {
-        "name": "admin"
-      },
-      {
-        "name": "teacher"
-      },
-      {
-        "name": "student"
       }
-    ],
+    },
     "examples": [
       {
-        "title": "Request Example (Admin):",
-        "content": "{\n  \"type\": \"teacher\"\n}",
+        "title": "Example Request (Admin):",
+        "content": "{\n  \"pageNo\": 1,\n  \"skipLimit\": 10,\n  \"type\": \"teacher\"  // Optional filter for admin\n}",
         "type": "json"
       },
       {
-        "title": "Response Example:",
-        "content": "{\n  \"error\": false,\n  \"count\": 5,\n  \"notices\": [\n    {\n      \"_id\": \"634d2c347f5b9c23388b5c61\",\n      \"title\": \"Upcoming Exam\",\n      \"description\": \"Exam details for students\",\n      \"noticeType\": \"student\",\n      \"isActive\": true,\n      \"postedBy\": \"634b2c238f9a24388b5a1c51\",\n      \"expireDate\": \"2024-12-31T00:00:00.000Z\",\n      \"attachments\": [],\n      \"postedDate\": \"2024-10-01T10:30:00.000Z\",\n      \"signatureOfTeacherUrl\": \"https://example.com/signature.png\"\n    },\n    ...\n  ]\n}",
+        "title": "Example Response:",
+        "content": "{\n  \"error\": false,\n  \"count\": 50,\n  \"notices\": [\n    {\n      \"_id\": \"603f5f3f7c6d8b3d4c1f0a1b\",\n      \"title\": \"Notice 1\",\n      \"content\": \"Content of notice 1.\",\n      \"noticeType\": \"teacher\",\n      \"postedDate\": \"2024-11-10T10:30:00Z\",\n      \"isActive\": true\n    },\n    {\n      \"_id\": \"603f5f3f7c6d8b3d4c1f0a2c\",\n      \"title\": \"Notice 2\",\n      \"content\": \"Content of notice 2.\",\n      \"noticeType\": \"teacher\",\n      \"postedDate\": \"2024-11-09T08:00:00Z\",\n      \"isActive\": true\n    }\n  ],\n  \"pageNo\": 1,\n  \"skipLimit\": 10,\n  \"totalPages\": 5\n}",
         "type": "json"
       }
     ],
@@ -8031,168 +8052,6 @@
     "groupTitle": "Settings"
   },
   {
-    "type": "post",
-    "url": "/admin/student/createstudent",
-    "title": "Create Student",
-    "name": "CreateStudent",
-    "group": "Student",
-    "version": "1.0.0",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Admin's access token.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "firstName",
-            "description": "<p>Student's first name (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "lastName",
-            "description": "<p>Student's last name (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "email",
-            "description": "<p>Student's email address.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "gender",
-            "description": "<p>Student's gender (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "guardian",
-            "description": "<p>Guardian's information (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "guardian.fathersName",
-            "description": "<p>Guardian's father's name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "guardian.mothersName",
-            "description": "<p>Guardian's mother's name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "phone",
-            "description": "<p>Student's phone number (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": false,
-            "field": "admissionYear",
-            "description": "<p>Year of admission (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "dob",
-            "description": "<p>Student's date of birth (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "classname",
-            "description": "<p>Class name (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "section",
-            "description": "<p>Class section (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "joinDate",
-            "description": "<p>Date of joining (required).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "signature",
-            "description": "<p>Base64 encoded signature.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "profileImage",
-            "description": "<p>Path to the profile image.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "rollNo",
-            "description": "<p>Student's roll number. Required if autoAssignRoll is false.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "autoAssignRoll",
-            "defaultValue": "false",
-            "description": "<p>Whether to auto-assign the roll number.</p>"
-          }
-        ]
-      }
-    },
-    "description": "<p>Creates a new student record in the database. The roll number can be auto-assigned or manually entered by the admin. If manually entered, it must be sequential based on the last roll number in the class and section.</p>",
-    "examples": [
-      {
-        "title": "Example usage (Manual Roll Number):",
-        "content": "'{\n    \"firstName\": \"June\",\n    \"lastName\": \"David\",\n    \"gender\": \"Female\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"fathersOccupation\":\"School Teacher\"\n      \"mothersName\": \"Milli David\",\n       \"mothersOccupation\":\"Housewife\"\n    },\n   \"address\":{\n     locality:\"Godrej Waterside, Salt Lake,Kolkata, 700009\",\n       \"city\":\"Kolkata\",\n       \"state\":\"West Bengal\",\n       \"pin\":\"700009\"\n       \"country\":\"India\",\n     },\n    \"phone\": \"9080264385\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-07-02\",\n    \"rollNo\": \"R004\",  // Manually assigned roll number\n    \"classname\": \"10\",\n    \"section\": \"A\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n    \"autoAssignRoll\": false\n  }'",
-        "type": "json"
-      },
-      {
-        "title": "Example usage (Auto-Assigned Roll Number):",
-        "content": "'{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"gender\": \"Male\",\n    \"guardian\": {\n      \"fathersName\": \"Ryan David\",\n      \"fathersOccupation\":\"School Teacher\"\n      \"mothersName\": \"Milli David\",\n       \"mothersOccupation\":\"Housewife\"\n    },\n\"address\":{\n     \"locality\":\"Godrej Waterside, Salt Lake,Kolkata, 700009\",\n       \"city\":\"Kolkata\",\n       \"state\":\"West Bengal\",\n       \"pin\":\"700009\",\n       \"country\":\"India\",\n     },\n    \"phone\": \"9123456789\",\n    \"admissionYear\": 2024,\n    \"dob\": \"1990-08-15\",\n    \"classname\": \"10\",\n    \"section\": \"B\",\n    \"joinDate\": \"2024-10-10\",\n    \"signature\": \"base64EncodedString\",\n    \"profileImage\": \"public/docsimg/ProfilePic2.jpeg\",\n    \"autoAssignRoll\": true  // Roll number will be auto-assigned\n  }'",
-        "type": "json"
-      }
-    ],
-    "filename": "routes/rest/adminStudent.js",
-    "groupTitle": "Student"
-  },
-  {
     "type": "put",
     "url": "/admin/student/:id",
     "title": "Edit Student Details",
@@ -8635,6 +8494,254 @@
     "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
+  },
+  {
+    "type": "post",
+    "url": "/admin/student",
+    "title": "Create New Student (Admin)",
+    "name": "CreateStudent",
+    "group": "Students",
+    "description": "<p>This endpoint allows an admin to create a new student record in the system. The admin is responsible for providing all required student details including personal information, class details, and optional fields like roll number and join date. The system also auto-generates the username and password for the student.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "firstName",
+            "description": "<p>First name of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "lastName",
+            "description": "<p>Last name of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": "<p>Email address of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "gender",
+            "description": "<p>Gender of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "guardian",
+            "description": "<p>Guardian details (father's and mother's names and occupations).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "guardian.fathersName",
+            "description": "<p>Father's name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "guardian.fathersOccupation",
+            "description": "<p>Father's occupation.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "guardian.mothersName",
+            "description": "<p>Mother's name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "guardian.mothersOccupation",
+            "description": "<p>Mother's occupation.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>Contact number of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "admissionYear",
+            "description": "<p>The year in which the student was admitted.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "dob",
+            "description": "<p>Date of birth of the student (in <code>YYYY-MM-DD</code> format).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "classname",
+            "description": "<p>The name of the class the student is assigned to.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "section",
+            "description": "<p>The section the student is assigned to.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "currentAcademicYear",
+            "description": "<p>The academic year for which the student is enrolled, e.g., &quot;2024-2025&quot;.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "signature",
+            "description": "<p>Digital signature of the student (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "profileImage",
+            "description": "<p>Profile image of the student (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "address",
+            "description": "<p>Address of the student.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address.locality",
+            "description": "<p>Locality of the student's address.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address.city",
+            "description": "<p>City of the student's address.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address.state",
+            "description": "<p>State of the student's address.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address.pin",
+            "description": "<p>PIN code of the student's address.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "address.country",
+            "description": "<p>Country of the student's address.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "rollNo",
+            "description": "<p>Roll number of the student (optional, but required if <code>autoAssignRoll=false</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "joinDate",
+            "description": "<p>Date the student joined (in <code>YYYY-MM-DD</code> format, optional).</p>"
+          }
+        ]
+      }
+    },
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin authentication.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p><code>Unauthorized</code> If the user is not an admin or if the request is malformed.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p><code>Class not found!</code> If the class with the given name, section, and academic year is not found.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Error message if there is an issue with the request.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"gender\": \"Male\",\n  \"guardian\": {\n    \"fathersName\": \"Robert Doe\",\n    \"fathersOccupation\": \"Engineer\",\n    \"mothersName\": \"Jane Doe\",\n    \"mothersOccupation\": \"Teacher\"\n  },\n  \"phone\": \"1234567890\",\n  \"admissionYear\": \"2024\",\n  \"dob\": \"2005-06-15\",\n  \"classname\": \"10th\",\n  \"section\": \"A\",\n  \"currentAcademicYear\": \"2024-2025\",\n  \"signature\": \"signature_image_data\",\n  \"profileImage\": \"profile_image_url\",\n  \"address\": {\n    \"locality\": \"Downtown\",\n    \"city\": \"Sample City\",\n    \"state\": \"Sample State\",\n    \"pin\": \"123456\",\n    \"country\": \"Sample Country\"\n  }\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response:",
+        "content": "{\n  \"error\": false,\n  \"StudentUserName\": \"JohSam789\",\n  \"StudentPassword\": \"generatedPassword123\"\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminStudent.js",
+    "groupTitle": "Students"
   },
   {
     "type": "post",
