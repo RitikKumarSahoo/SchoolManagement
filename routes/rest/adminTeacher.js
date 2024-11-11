@@ -130,6 +130,7 @@ module.exports = {
           _school: _school,
         })
           .select("-password -bankDetails -forgotpassword")
+          .sort({ createdAt: -1 })
           .skip(skipNumber)
           .limit(pageSize)
           .exec();
@@ -303,6 +304,7 @@ module.exports = {
       const [users, usersCount] = await Promise.all([
         User.find(query)
           .select("-password -bankDetails -forgotpassword")
+          .sort({ createdAt: -1 })
           .skip(skipNumber)
           .limit(Number(pageSize))
           .exec(),
@@ -589,13 +591,13 @@ module.exports = {
           .json({ error: true, message: "Email is required" });
       }
 
-      const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
-      if (!dateOfBirth.isValid()) {
-        return res.status(400).json({
-          error: true,
-          message: "Invalid date of birth format. Use DD/MM/YYYY.",
-        });
-      }
+      // const dateOfBirth = moment(dob, "DD/MM/YYYY", true);
+      // if (!dateOfBirth.isValid()) {
+      //   return res.status(400).json({
+      //     error: true,
+      //     message: "Invalid date of birth format. Use DD/MM/YYYY.",
+      //   });
+      // }
 
       // check user already exists
       const checkUserData = await User.findOne({ email })
@@ -642,7 +644,7 @@ module.exports = {
         lastName,
         gender,
         email,
-        dob: dateOfBirth,
+        dob,
         _school: isSuperAdmin === true ? schoolId : req.user._school,
         _addedBy: req.user.id,
         joinDate,
@@ -688,7 +690,7 @@ module.exports = {
         "-forgotpassword -password -bankDetails"
       );
 
-      return res.status(200).json({ error: true, user: response });
+      return res.status(200).json({ error: false, user: response });
     } catch (error) {
       return res.status(500).json({ error: true, Error: error.message });
     }
@@ -780,6 +782,7 @@ module.exports = {
         email,
         isActive,
         phone,
+        dob,
         bankDetails,
         address,
         profileImage,
@@ -841,6 +844,7 @@ module.exports = {
       if (joinDate !== undefined) user.joinDate = joinDate;
       if (qualification !== undefined) user.qualification = qualification;
       if (experience !== undefined) user.experience = experience;
+      if (dob !== undefined) user.dob = dob;
 
       await user.save();
       return res.status(200).json({
@@ -1101,6 +1105,15 @@ module.exports = {
                 schoolId,
                 subject,
               } = teacherData;
+              console.log(subject);
+
+              const subjectArray = subject
+                ? subject.includes("|")
+                  ? subject
+                      .split("|")
+                      .map((s) => s.trim().replace(/^'|'$/g, ""))
+                  : [subject.trim().replace(/^'|'$/g, "")]
+                : [];
 
               if (!firstName || !lastName || !gender || !phone) {
                 throw new Error("Missing required fields");
@@ -1167,7 +1180,7 @@ module.exports = {
                 bankAdded: !!bankDetails,
                 isActive: true,
                 address,
-                subject,
+                subject: subjectArray,
                 profileImage,
               });
 

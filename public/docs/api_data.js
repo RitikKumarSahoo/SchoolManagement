@@ -6747,15 +6747,8 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "pfname",
-            "description": "<p>Principal's first name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "plname",
-            "description": "<p>Principal's last name.</p>"
+            "field": "principalName",
+            "description": ""
           },
           {
             "group": "Parameter",
@@ -6763,6 +6756,13 @@ define({ "api": [
             "optional": false,
             "field": "schoolType",
             "description": "<p>[&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "locationUrl",
+            "description": "<p>url of school location</p>"
           }
         ]
       }
@@ -6782,7 +6782,7 @@ define({ "api": [
     "examples": [
       {
         "title": "Request-Example:",
-        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  \"establishYear\":\"1995\",\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n\"imageUrl\":\"http://www.greenwoodhigh.edu\"\n\"pfname\": \"PrincipalFirstName\",\n\"plname\": \"PrincipalLastName\",\n\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n\"profileImage\":\"nvkdjnvdjfnkfd\",\n}",
+        "content": "{\n  \"name\": \"schoolXYZ\",\n  \"schoolAddress\": {\n    \"city\": \"Greenwood\",\n    \"state\": \"California\",\n    \"country\": \"USA\",\n    \"pinCode\": \"90210\"\n  },\n  \"contact\": {\n    \"phoneNo\": \"+1-f sjdfndsf\",\n    \"email\": \"info@greenwoodhigh.edu\",\n    \"website\": \"http://www.greenwoodhigh.edu\"\n  \"establishYear\":\"1995\",\n  },\n  \"location\": {\n    \"type\": \"Point\",\n    \"coordinates\": [21.418325060918168, 84.02980772446274]\n  },\n\"imageUrl\":\"http://www.greenwoodhigh.edu\"\n\"principalName\":\"\",\n  \"email\": \"sumanr@logic-square.com\",\n  \"firstName\": \"suman\",\n  \"lastName\": \"rana\",\n  \"dob\": \"12/08/2001\",\n  \"gender\": \"Male\",\n  \"phone\": \"9668123855\"\n\"profileImage\":\"nvkdjnvdjfnkfd\",\n\"locationUrl\":\"\"\n}",
         "type": "json"
       }
     ],
@@ -6847,21 +6847,35 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/schools",
+    "url": "/school",
     "title": "Get All Schools",
     "name": "GetAllSchools",
     "group": "School",
     "version": "1.0.0",
-    "description": "<p>Fetch a list of all schools.</p>",
-    "header": {
+    "description": "<p>Retrieve a paginated list of all schools with their associated admin details (only accessible by super admins).</p>",
+    "permission": [
+      {
+        "name": "SuperAdmin"
+      }
+    ],
+    "parameter": {
       "fields": {
-        "Header": [
+        "Parameter": [
           {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token of superAdmin for authentication.</p>"
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>Number of records per page (optional).</p>"
           }
         ]
       }
@@ -6870,7 +6884,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": [\n    {\n      \"_id\": \"603ddf15e245ae19f85ce109\",\n      \"name\": \"Green Valley High School\",\n      \"registrationNumber\": \"GVHS-1234\",\n      \"address\": {\n        \"city\": \"San Francisco\",\n        \"state\": \"California\",\n        \"country\": \"USA\",\n        \"pinCode\": \"94107\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 415-555-0198\",\n        \"email\": \"info@greenvalleyhigh.com\",\n        \"website\": \"www.greenvalleyhigh.com\"\n      },\n      \"principalName\": \"Dr. John Doe\",\n      \"establishYear\": 1995,\n      \"schoolType\": \"highSchool\",\n      \"totalStudents\": 1200,\n      \"totalClasses\": 40,\n      \"isActive\": true\n      \"imageUrl\":\"\"\n    },\n    {\n      \"_id\": \"603ddf15e245ae19f85ce110\",\n      \"name\": \"Blue Sky Elementary School\",\n      \"registrationNumber\": \"BSES-5678\",\n      \"address\": {\n        \"city\": \"New York\",\n        \"state\": \"New York\",\n        \"country\": \"USA\",\n        \"pinCode\": \"10001\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 212-555-0199\",\n        \"email\": \"info@blueskyelementary.com\",\n        \"website\": \"www.blueskyelementary.com\"\n      },\n      \"principalName\": \"Dr. Jane Smith\",\n      \"establishYear\": 2000,\n      \"schoolType\": \"primary\",\n      \"totalStudents\": 800,\n      \"totalClasses\": 20,\n      \"isActive\": true,\n      \"imageUrl\":\"\"\n    }\n  ]\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": [\n    {\n      \"_id\": \"603ddf15e245ae19f85ce109\",\n      \"name\": \"Green Valley High School\",\n      \"registrationNumber\": \"GVHS-1234\",\n      \"address\": {\n        \"city\": \"San Francisco\",\n        \"state\": \"California\",\n        \"country\": \"USA\",\n        \"pinCode\": \"94107\"\n      },\n      \"contact\": {\n        \"phoneNo\": \"+1 415-555-0198\",\n        \"email\": \"info@greenvalleyhigh.com\",\n        \"website\": \"www.greenvalleyhigh.com\"\n      },\n      \"location\": {\n        \"type\": \"Point\",\n        \"coordinates\": [-122.399972, 37.781372]\n      },\n      \"principalName\": \"Dr. John Doe\",\n      \"establishYear\": 1995,\n      \"schoolType\": \"highSchool\",\n      \"totalStudents\": 1200,\n      \"totalClasses\": 40,\n      \"isActive\": true,\n      \"admin\": {\n        \"_id\": \"6711051061792663918458bf\",\n        \"username\": \"mahesh\",\n        \"firstName\": \"admin\",\n        \"lastName\": \"abcd\",\n        \"email\": \"mahesh123@gmail.com\",\n        \"accountType\": \"email\",\n        \"dob\": \"2001-12-08T00:00:00.000Z\",\n        \"loginType\": \"admin\",\n        \"isActive\": true,\n        \"isAdmin\": true,\n        \"isSuperAdmin\": false,\n        \"bankAdded\": false,\n        \"messagingEnabled\": true,\n        \"createdAt\": \"2024-10-17T12:37:36.453Z\",\n        \"updatedAt\": \"2024-10-24T11:53:08.239Z\",\n        \"gender\": \"Male\",\n        \"profileImage\": \"https://img.freepik.com/free-photo/sample-image.jpg\"\n      }\n    }\n  ],\n  \"totalSchools\": 100\n}",
           "type": "json"
         }
       ]
@@ -6879,7 +6893,12 @@ define({ "api": [
       "examples": [
         {
           "title": "Error Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"Error\": \"You are not superadmin\"\n}\n\nHTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not superadmin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"Error\": \"Server Error Message\"\n}",
           "type": "json"
         }
       ]
@@ -6894,7 +6913,7 @@ define({ "api": [
     "name": "GetSchoolDetails",
     "group": "School",
     "version": "1.0.0",
-    "description": "<p>Fetch the details of a specific school using its ID.</p>",
+    "description": "<p>Fetch the details of a specific school using its ID, along with its assigned admin user.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -6904,33 +6923,31 @@ define({ "api": [
             "optional": false,
             "field": "id",
             "description": "<p>The unique ID of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (optional).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>Number of records per page (optional).</p>"
           }
         ]
       }
     },
     "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error (false if successful).</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "school",
-            "description": "<p>The school object containing detailed information.</p>"
-          }
-        ]
-      },
       "examples": [
         {
           "title": "Success Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": {\n    \"_id\": \"603ddf15e245ae19f85ce109\",\n    \"name\": \"Green Valley High School\",\n    \"registrationNumber\": \"GVHS-1234\",\n    \"address\": {\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"USA\",\n      \"pinCode\": \"94107\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1 415-555-0198\",\n      \"email\": \"info@greenvalleyhigh.com\",\n      \"website\": \"www.greenvalleyhigh.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-122.399972, 37.781372]\n    },\n    \"principalName\": \"Dr. John Doe\",\n    \"establishYear\": 1995,\n    \"schoolType\": \"highSchool\",\n    \"totalStudents\": 1200,\n    \"totalClasses\": 40,\n    \"isActive\": true\n  }\n}",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"school\": {\n    \"_id\": \"603ddf15e245ae19f85ce109\",\n    \"name\": \"Green Valley High School\",\n    \"registrationNumber\": \"GVHS-1234\",\n    \"address\": {\n      \"city\": \"San Francisco\",\n      \"state\": \"California\",\n      \"country\": \"USA\",\n      \"pinCode\": \"94107\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1 415-555-0198\",\n      \"email\": \"info@greenvalleyhigh.com\",\n      \"website\": \"www.greenvalleyhigh.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-122.399972, 37.781372]\n    },\n    \"principalName\": \"Dr. John Doe\",\n    \"establishYear\": 1995,\n    \"schoolType\": \"highSchool\",\n    \"totalStudents\": 1200,\n    \"totalClasses\": 40,\n    \"isActive\": true,\n    \"locationUrl\": \"\"\n  },\n  \"admin\": {\n    \"address\": {\n      \"city\": \"New York\",\n      \"country\": \"USA\",\n      \"locality\": \"Greenwood Avenue\",\n      \"pin\": \"10001\",\n      \"state\": \"NY\"\n    },\n    \"_id\": \"6711051061792663918458bf\",\n    \"username\": \"mahesh\",\n    \"firstName\": \"admin\",\n    \"lastName\": \"abcd\",\n    \"email\": \"mahesh123@gmail.com\",\n    \"accountType\": \"email\",\n    \"dob\": \"Sat Dec 08 2001 00:00:00 GMT+0530 (India Standard Time)\",\n    \"loginType\": \"admin\",\n    \"isActive\": true,\n    \"isAdmin\": true,\n    \"isSuperAdmin\": false,\n    \"bankAdded\": false,\n    \"_school\": \"670cc3c55aa29e2e31348c7e\",\n    \"customerStripeId\": \"cus_R2yvkL6hLUVk7h\",\n    \"messagingEnabled\": true,\n    \"createdAt\": \"2024-10-17T12:37:36.453Z\",\n    \"updatedAt\": \"2024-10-24T11:53:08.239Z\",\n    \"gender\": \"Male\",\n    \"profileImage\": \"https://img.freepik.com/free-photo/\",\n    \"id\": \"6711051061792663918458bf\"\n  }\n}",
           "type": "json"
         }
       ]
@@ -7071,15 +7088,8 @@ define({ "api": [
             "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "pfname",
-            "description": "<p>Principal's first name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "plname",
-            "description": "<p>Principal's last name.</p>"
+            "field": "principalName",
+            "description": ""
           },
           {
             "group": "Parameter",
@@ -7087,6 +7097,13 @@ define({ "api": [
             "optional": false,
             "field": "schoolType",
             "description": "<p>The type of the school  [&quot;primary&quot;, &quot;secondary&quot;, &quot;highSchool&quot;]</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "locationUrl",
+            "description": "<p>location url of school</p>"
           }
         ]
       }
@@ -10012,7 +10029,7 @@ define({ "api": [
     "groupTitle": "Transaction"
   },
   {
-    "type": "put",
+    "type": "post",
     "url": "/activatedeactivate/:id",
     "title": "Activate/Deactivate user",
     "name": "DeactivateUser",

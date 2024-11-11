@@ -371,7 +371,7 @@ module.exports = {
   },
 
   /**
-   * @api {put} /activatedeactivate/:id Activate/Deactivate user
+   * @api {post} /activatedeactivate/:id Activate/Deactivate user
    * @apiName DeactivateUser
    * @apiGroup User
    * @apiPermission Admin,superAdmin
