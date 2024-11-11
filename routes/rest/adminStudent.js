@@ -479,7 +479,7 @@ module.exports = {
 
   async viewAllStudents(req, res) {
     try {
-      const { loginType } = req.user; // Check if the user is an admin
+      const { loginType,isSuperAdmin } = req.user; // Check if the user is an admin
       if (loginType !== "admin" || loginType !== "teacher" || !isSuperAdmin) {
         return res
           .status(403)
