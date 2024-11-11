@@ -5,7 +5,7 @@ const attendanceSchema = new mongoose.Schema(
   {
     _school: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "School",
     },
 
     _class: {
