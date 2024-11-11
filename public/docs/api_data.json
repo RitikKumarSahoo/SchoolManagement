@@ -8446,30 +8446,18 @@
     "groupTitle": "Student"
   },
   {
-    "type": "patch",
-    "url": "/students/:id/status",
+    "type": "put",
+    "url": "/admin/student/change-status/:id",
     "title": "Change Student Status",
     "name": "ChangeStudentStatus",
     "group": "Students",
+    "version": "1.0.0",
     "permission": [
       {
         "name": "Admin"
       }
     ],
-    "description": "<p>Toggles the active status (<code>isActive</code>) of a student. Only admins can perform this operation.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>The unique ID of the student.</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>This endpoint allows an admin to activate or deactivate a student account. The status can either be explicitly provided or toggled automatically.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -8478,11 +8466,40 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin authentication.</p>"
+            "description": "<p>Admin's valid JWT token in the format <code>Bearer &lt;token&gt;</code>.</p>"
           }
         ]
       }
     },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique ID of the student whose status is to be changed.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "Boolean",
+        "optional": true,
+        "field": "isActive",
+        "description": "<p>Optional. If provided, the student's status will be set to the specified value (<code>true</code> for active, <code>false</code> for inactive).</p>"
+      }
+    ],
+    "examples": [
+      {
+        "title": "Example Usage in Postman:",
+        "content": "1. **Explicitly Activate a Student:**\n   - **Method**: PUT\n   - **URL**: https://schoolmanagement-zn7n.onrender.com/admin/student/change-status/671b78eb95c2172188f84ac4\n   - **Headers**:\n     - `Authorization`: Bearer <token>\n     - `Content-Type`: application/json\n   - **Body (raw JSON)**:\n     ```json\n     {\n       \"isActive\": true\n     }\n     ```\n\n2. **Toggle the Student's Current Status:**\n   - **Method**: PATCH\n   - **URL**: https://schoolmanagement-zn7n.onrender.com/admin/student/change-status/671b78eb95c2172188f84ac4\n   - **Headers**:\n     - `Authorization`: Bearer <token>\n     - `Content-Type`: application/json\n   - **Body**: Leave empty.",
+        "type": "postman"
+      }
+    ],
     "success": {
       "fields": {
         "Success 200": [
@@ -8491,63 +8508,70 @@
             "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p>Indicates if the operation was successful (<code>false</code>).</p>"
+            "description": "<p>Indicates whether the request was successful (<code>false</code> for success).</p>"
           },
           {
             "group": "Success 200",
             "type": "String",
             "optional": false,
             "field": "message",
-            "description": "<p>A message indicating the result of the operation (e.g., &quot;Student activated successfully&quot; or &quot;Student deactivated successfully&quot;).</p>"
+            "description": "<p>Describes the result of the operation.</p>"
           }
         ]
       },
       "examples": [
         {
-          "title": "Success Response (Activated)",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Student activated successfully\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Success Response (Deactivated)",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Student deactivated successfully\"\n}",
+          "title": "Success Response:",
+          "content": "{\n  \"error\": false,\n  \"message\": \"Student activated successfully\"\n}",
           "type": "json"
         }
       ]
     },
     "error": {
       "fields": {
-        "Error 4xx": [
+        "403": [
           {
-            "group": "Error 4xx",
-            "type": "Boolean",
+            "group": "403",
             "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error (<code>true</code>).</p>"
-          },
+            "field": "Unauthorized",
+            "description": "<p>The user is not an admin.</p>"
+          }
+        ],
+        "404": [
           {
-            "group": "Error 4xx",
-            "type": "String",
+            "group": "404",
             "optional": false,
-            "field": "message",
-            "description": "<p>A message describing the error.</p>"
+            "field": "NotFound",
+            "description": "<p>The student with the specified ID does not exist.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>There was a server error while processing the request.</p>"
           }
         ]
       },
       "examples": [
         {
-          "title": "Unauthorized Error",
-          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"message\": \"Only admins can edit student details\"\n}",
+          "title": "Unauthorized Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Only admins can edit student details\"\n}",
           "type": "json"
         },
         {
-          "title": "Student Not Found",
-          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Student not found\"\n}",
+          "title": "Not Found Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Student not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error Response:",
+          "content": "{\n  \"error\": true,\n  \"message\": \"Internal Server Error\"\n}",
           "type": "json"
         }
       ]
     },
-    "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Students"
   },

@@ -657,73 +657,97 @@ module.exports = {
   },
 
   /**
- * @api {patch} /students/:id/status Change Student Status
+ * @api {put} /admin/student/change-status/:id Change Student Status
  * @apiName ChangeStudentStatus
  * @apiGroup Students
+ * @apiVersion 1.0.0
  * @apiPermission Admin
- * 
- * @apiDescription Toggles the active status (`isActive`) of a student. Only admins can perform this operation.
- * 
- * @apiParam {String} id The unique ID of the student.
- * 
- * @apiHeader {String} Authorization Bearer token for admin authentication.
- * 
- * @apiSuccess {Boolean} error Indicates if the operation was successful (`false`).
- * @apiSuccess {String} message A message indicating the result of the operation (e.g., "Student activated successfully" or "Student deactivated successfully").
- * 
- * @apiError {Boolean} error Indicates if there was an error (`true`).
- * @apiError {String} message A message describing the error.
- * 
- * @apiErrorExample {json} Unauthorized Error
- *     HTTP/1.1 403 Forbidden
- *     {
- *       "error": true,
- *       "message": "Only admins can edit student details"
- *     }
- * 
- * @apiErrorExample {json} Student Not Found
- *     HTTP/1.1 404 Not Found
- *     {
- *       "error": true,
- *       "message": "Student not found"
- *     }
- * 
- * @apiSuccessExample {json} Success Response (Activated)
- *     HTTP/1.1 200 OK
- *     {
- *       "error": false,
- *       "message": "Student activated successfully"
- *     }
- * 
- * @apiSuccessExample {json} Success Response (Deactivated)
- *     HTTP/1.1 200 OK
- *     {
- *       "error": false,
- *       "message": "Student deactivated successfully"
- *     }
+ *
+ * @apiDescription This endpoint allows an admin to activate or deactivate a student account. The status can either be explicitly provided or toggled automatically.
+ *
+ * @apiHeader {String} Authorization Admin's valid JWT token in the format `Bearer <token>`.
+ *
+ * @apiParam {String} id The unique ID of the student whose status is to be changed.
+ *
+ * @apiBody {Boolean} [isActive] Optional. If provided, the student's status will be set to the specified value (`true` for active, `false` for inactive).
+ *
+ * @apiExample {postman} Example Usage in Postman:
+ * 1. **Explicitly Activate a Student:**
+ *    - **Method**: PUT
+ *    - **URL**: https://schoolmanagement-zn7n.onrender.com/admin/student/change-status/671b78eb95c2172188f84ac4
+ *    - **Headers**:
+ *      - `Authorization`: Bearer <token>
+ *      - `Content-Type`: application/json
+ *    - **Body (raw JSON)**:
+ *      ```json
+ *      {
+ *        "isActive": true
+ *      }
+ *      ```
+ *
+ * 2. **Toggle the Student's Current Status:**
+ *    - **Method**: PATCH
+ *    - **URL**: https://schoolmanagement-zn7n.onrender.com/admin/student/change-status/671b78eb95c2172188f84ac4
+ *    - **Headers**:
+ *      - `Authorization`: Bearer <token>
+ *      - `Content-Type`: application/json
+ *    - **Body**: Leave empty.
+ *
+ * @apiSuccess {Boolean} error Indicates whether the request was successful (`false` for success).
+ * @apiSuccess {String} message Describes the result of the operation.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * {
+ *   "error": false,
+ *   "message": "Student activated successfully"
+ * }
+ *
+ * @apiError (403) Unauthorized The user is not an admin.
+ * @apiError (404) NotFound The student with the specified ID does not exist.
+ * @apiError (500) InternalServerError There was a server error while processing the request.
+ *
+ * @apiErrorExample {json} Unauthorized Response:
+ * {
+ *   "error": true,
+ *   "message": "Only admins can edit student details"
+ * }
+ *
+ * @apiErrorExample {json} Not Found Response:
+ * {
+ *   "error": true,
+ *   "message": "Student not found"
+ * }
+ *
+ * @apiErrorExample {json} Server Error Response:
+ * {
+ *   "error": true,
+ *   "message": "Internal Server Error"
+ * }
  */
+
 
   async changeStudentStatus(req, res) {
     try {
       // Check if the user exists and has the 'admin' role
       if (!req.user.isAdmin) {
-        return res
-          .status(403)
-          .json({ message: "Only admins can edit student details" });
+        return res.status(403).json({ message: "Only admins can edit student details" });
       }
   
-      const student = await users
-        .findOne({ _id: req.params.id, loginType: "student" })
-        .exec();
+      const student = await users.findOne({ _id: req.params.id, loginType: "student" }).exec();
   
       if (!student) {
-        return res
-          .status(404)
-          .json({ error: true, message: "Student not found" });
+        return res.status(404).json({ error: true, message: "Student not found" });
       }
   
-      // Toggle the `isActive` status
-      student.isActive = !student.isActive;
+      const { isActive } = req.body;
+  
+      // Check if isActive is provided; otherwise, toggle the current status
+      if (typeof isActive === "boolean") {
+        student.isActive = isActive;
+      } else {
+        student.isActive = !student.isActive;
+      }
+  
       await student.save();
   
       const statusMessage = student.isActive
@@ -738,6 +762,7 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+  
   
 
   async searchStudents(req, res) {
