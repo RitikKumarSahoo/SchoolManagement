@@ -35,6 +35,7 @@ const scrappingRoutes = require("./scrapping");
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
+router.get("/scrapping", scrappingRoutes.getScrapData);
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
@@ -191,7 +192,7 @@ router.post("/leave/find", leave.find);
 
 //***************************************************************************** */
 
-router.post("/scrapping", scrappingRoutes.getScrapData);
+
 
 
 

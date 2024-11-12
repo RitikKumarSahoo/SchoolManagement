@@ -365,10 +365,6 @@ async get(req, res) {
     console.error(`Error retrieving progress report: ${error.message}`);
     res.status(500).json({ error: 'Error retrieving the progress report', details: error.message });
   }
-  
-  
-  
-  
 },
 
 

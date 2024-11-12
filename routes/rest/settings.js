@@ -617,10 +617,4 @@ async setScheduleTime(req, res) {
 }
 
 
-
-
-
-
-
-
 };
