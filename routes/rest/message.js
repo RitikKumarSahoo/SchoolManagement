@@ -237,17 +237,19 @@ module.exports = {
         return res.status(400).json({ error: true, reason: "No Thread Found" });
 
       const read = [];
-      const message = await ChatMessage.find({ _thread: thread._id });
+
+      const sortBy = { createdAt: -1 };
+      const message = await ChatMessage.find({ _thread: thread._id }).sort(sortBy).exec()
 
       message.forEach((e) => {
         e.isRead = true;
-        read.push(e.save());
+        read.push(e.save())
       });
-      await Promise.all(read);
+      await Promise.all(read)
 
-      return res.json({ error: false, message });
+      return res.json({ error: false, message })
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message });
+      return res.status(500).json({ error: true, message: error.message })
     }
   },
 
