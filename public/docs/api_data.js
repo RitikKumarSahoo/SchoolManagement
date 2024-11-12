@@ -2663,6 +2663,52 @@ define({ "api": [
     "groupTitle": "Leave"
   },
   {
+    "type": "get",
+    "url": "/leave/:id",
+    "title": "Retrieve Leave by ID",
+    "name": "GetLeave",
+    "group": "Leave",
+    "version": "1.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Leave unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leave\": {\n    \"_id\": \"6724d6a7eaa09a9de7c7e922\",\n    \"_school\": \"671a88862e586338c6c94516\",\n    \"_teacher\": \"671f435dadf7c71b57b7927d\",\n    \"startDate\": \"2024-11-10T00:00:00.000Z\",\n    \"endDate\": \"2024-11-12T00:00:00.000Z\",\n    \"reason\": \"due to health issue\",\n    \"status\": \"pending\",\n    \"appliedDate\": \"2024-11-01T13:24:55.270Z\",\n    \"isHalfDay\": true,\n    \"__v\": 0\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Leave Not Found:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"leave not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"Error\": \"error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leave"
+  },
+  {
     "type": "post",
     "url": "/leave/find",
     "title": "Find Teacher Leaves",
