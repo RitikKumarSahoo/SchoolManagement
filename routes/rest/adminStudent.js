@@ -633,7 +633,7 @@ module.exports = {
       }
 
       const student = await users
-        .findOne({ _id: id, isActive: true, loginType: "student" })
+        .findOne({ _id: id, loginType: "student" })
         .select("-password")
         .populate("_school", "-_id")
         .populate("_class", "-_id name section")
