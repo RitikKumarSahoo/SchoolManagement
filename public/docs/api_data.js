@@ -8065,7 +8065,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token of the admin.</p>"
+            "description": "<p>Bearer token of the admin|super admin.</p>"
           }
         ]
       }

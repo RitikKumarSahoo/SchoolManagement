@@ -288,7 +288,7 @@ module.exports = {
    * @apiName EditStudentDetails
    * @apiGroup Student
    *
-   * @apiHeader {String} Authorization Bearer token of the admin.
+   * @apiHeader {String} Authorization Bearer token of the admin|super admin.
    *
    * @apiParam {String} id Student's unique ID.
    *
@@ -340,14 +340,13 @@ module.exports = {
     try {
       // Get student ID from params
       const studentId = req.params.id;
-      const { isAdmin } = req.user; // Get adminId from the request body
-      console.log(studentId);
+      const { loginType, isSuperAdmin } = req.user; // Get adminId from the request body
 
       // Check if the user exists and has the 'admin' role
-      if (!isAdmin) {
+      if (!(loginType === "admin" || isSuperAdmin)) {
         return res
           .status(403)
-          .json({ message: "Only admins can edit student details" });
+          .json({ message: "You do not have permission to edit student details" });
       }
 
       // Get editable fields from the request body
@@ -378,7 +377,7 @@ module.exports = {
       if (admissionYear) updateData.admissionYear = admissionYear;
       if (dob) updateData.dob = dob;
       if (rollNo) updateData.rollNo = rollNo;
-      // if (_class) updateData._class = _class;
+      if (_class) updateData._class = _class;
       if (signature) updateData.signature = signature;
       if (profileImage) updateData.profileImage = profileImage;
 
