@@ -34,6 +34,9 @@ router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
+// Leave
+router.get("/leave/:id",leave.get)
+
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
 router.post("/activatedeactivate/:id", signup.Deactive);
@@ -187,5 +190,6 @@ router.post("/teacher/leave", leave.applyLeave);
 router.post("/leave/get", leave.getLeaves);
 router.post("/leave/find", leave.find);
 router.post("/leaves", leave.allLeaves);
+// router.get("/")
 
 module.exports = router;
