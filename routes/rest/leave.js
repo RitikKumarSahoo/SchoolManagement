@@ -49,7 +49,7 @@ module.exports = {
       if (leave === undefined)
         return res.status(400).json({ error: true, reason: "leave not found" });
 
-      return res.status(400).json({ error: false, leave });
+      return res.status(200).json({ error: false, leave });
     } catch (error) {
       return res.status(500).json({ Error: error.message });
     }
