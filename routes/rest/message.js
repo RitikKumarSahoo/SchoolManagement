@@ -237,17 +237,19 @@ module.exports = {
         return res.status(400).json({ error: true, reason: "No Thread Found" });
 
       const read = [];
-      const message = await ChatMessage.find({ _thread: thread._id });
+
+      const sortBy = { createdAt: -1 };
+      const message = await ChatMessage.find({ _thread: thread._id }).sort(sortBy).exec()
 
       message.forEach((e) => {
         e.isRead = true;
-        read.push(e.save());
+        read.push(e.save())
       });
-      await Promise.all(read);
+      await Promise.all(read)
 
-      return res.json({ error: false, message });
+      return res.json({ error: false, message })
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message });
+      return res.status(500).json({ error: true, message: error.message })
     }
   },
 
@@ -300,15 +302,13 @@ module.exports = {
       const admin = await User.findOne({ _id: id });
       if (!admin || admin.loginType !== "admin") {
         return res
-          .status(403)
-          .json({ error: true, message: "You are not an admin." });
+          .status(400)
+          .json({ error: true, reason: "You are not an admin." });
       }
 
       const user = await User.findOne({ _id: userId });
       if (user === null) {
-        return res
-          .status(404)
-          .json({ error: true, message: "User not found." });
+        return res.status(400).json({ error: true, reason: "User not found." });
       }
 
       const existingThread = await ChatThread.findOne({
@@ -316,10 +316,9 @@ module.exports = {
       });
 
       if (existingThread) {
-        return res.status(200).json({
-          error: false,
-          message: "Chat thread already exists.",
-          thread: existingThread,
+        return res.status(400).json({
+          error: true,
+          reason: "Chat thread already exists.",
         });
       }
 
@@ -330,7 +329,6 @@ module.exports = {
       return res.status(201).json({
         error: false,
         message: "Chat thread created successfully.",
-        thread,
       });
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });

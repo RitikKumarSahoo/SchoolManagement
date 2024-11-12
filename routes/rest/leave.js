@@ -3,6 +3,154 @@ const User = require("../../models/user/index");
 
 module.exports = {
   /**
+   * @api {get} /leave/:id Retrieve Leave by ID
+   * @apiName GetLeave
+   * @apiGroup Leave
+   * @apiVersion 1.0.0
+   *
+   * @apiParam {String} id Leave unique ID.
+   *
+   * @apiSuccessExample {json} Success Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "leave": {
+   *         "_id": "6724d6a7eaa09a9de7c7e922",
+   *         "_school": "671a88862e586338c6c94516",
+   *         "_teacher": "671f435dadf7c71b57b7927d",
+   *         "startDate": "2024-11-10T00:00:00.000Z",
+   *         "endDate": "2024-11-12T00:00:00.000Z",
+   *         "reason": "due to health issue",
+   *         "status": "pending",
+   *         "appliedDate": "2024-11-01T13:24:55.270Z",
+   *         "isHalfDay": true,
+   *         "__v": 0
+   *       }
+   *     }
+   *
+   * @apiErrorExample {json} Leave Not Found:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "leave not found"
+   *     }
+   *
+   * @apiErrorExample {json} Server Error:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "Error": "error message"
+   *     }
+   */
+  async get(req, res) {
+    try {
+      const { id } = req.params;
+      const leave = await Leave.findOne({ _id: id });
+
+      if (leave === undefined)
+        return res.status(400).json({ error: true, reason: "leave not found" });
+
+      return res.status(400).json({ error: false, leave });
+    } catch (error) {
+      return res.status(500).json({ Error: error.message });
+    }
+  },
+  /**
+   * @api {post} /leaves Get all leaves
+   * @apiName GetAllLeaves
+   * @apiGroup Leave
+   * @apiPermission admin, teacher
+   *
+   * @apiDescription This endpoint retrieves a paginated list of leave records. Admins can view all leaves within their school, while teachers can view only their own leave records.
+   *
+   * @apiHeader {String} Authorization Bearer token required for authentication.
+   *
+   * @apiBody {Number} [pageNumber=1] Page number for pagination (optional).
+   * @apiBody {Number} [pageSize=10] Number of records per page (optional).
+   *
+   * @apiError (400) PermissionError No permission to access leaves.
+   * @apiError (500) ServerError Internal server error.
+   *
+   * @apiSuccessExample {json} Success Response (admin):
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "leaves": [
+   *         {
+   *           "_id": "64a67f5a9a3c45e1d2c7b1e5",
+   *           "_teacher": "64a678f7e6c9b0b7f0e8d456",
+   *           "_school": "64a6715a9f1b24b8d2c7a5e7",
+   *           "createdAt": "2024-11-01T10:00:00.000Z"
+   *         },
+   *         ...
+   *       ],
+   *       "totalLeaves": 50
+   *     }
+   *
+   * @apiSuccessExample {json} Success Response (teacher):
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "leaves": [
+   *         {
+   *           "_id": "64a67f5a9a3c45e1d2c7b1e5",
+   *           "_teacher": "64a678f7e6c9b0b7f0e8d456",
+   *           "_school": "64a6715a9f1b24b8d2c7a5e7",
+   *           "createdAt": "2024-11-01T10:00:00.000Z"
+   *         }
+   *       ],
+   *       "totalLeaves": 10
+   *     }
+   *
+   * @apiErrorExample {json} Error Response:
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "No permission"
+   *     }
+   *
+   * @apiErrorExample {json} Server Error Response:
+   *     HTTP/1.1 500 Internal Server Error
+   *     {
+   *       "error": "Internal server error message"
+   *     }
+   */
+  async allLeaves(req, res) {
+    try {
+      let { pageNumber = 1, pageSize = 10 } = req.body;
+      const { loginType, _school, id } = req.user;
+
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      if (loginType === "admin") {
+        const leaves = await Leave.find({ _school })
+          .sort({ createdAt: -1 })
+          .skip(skipNumber)
+          .limit(Number(pageSize))
+          .exec();
+        const totalLeaves = await Leave.countDocuments({ _school });
+
+        return res.status(200).json({ error: false, leaves, totalLeaves });
+      }
+
+      if (loginType === "teacher") {
+        const leaves = await Leave.find({ _school, _teacher: id })
+          .sort({ createdAt: -1 })
+          .skip(skipNumber)
+          .limit(Number(pageSize))
+          .exec();
+        const totalLeaves = await Leave.countDocuments({
+          _school,
+          _teacher: id,
+        });
+        return res.status(200).json({ error: false, leaves, totalLeaves });
+      }
+
+      return res.status(400).json({ error: true, reason: "No permission" });
+    } catch (error) {
+      return res.status(500).json(error.message);
+    }
+  },
+  /**
    * @api {post} /leave/find Find Teacher Leaves
    * @apiName FindTeacherLeaves
    * @apiGroup Leaves
