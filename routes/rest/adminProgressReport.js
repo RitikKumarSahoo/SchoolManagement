@@ -10,68 +10,73 @@ const { Readable } = require('stream');
 
 module.exports = {
   /**
- * @api {post} /admin/progressReport/createprogressreport  Upload and Generate Progress Report
+ * @api {post} /admin/progressReport/createprogressreport Upload and Create Progress Reports
  * @apiName CreateProgressReport
  * @apiGroup ProgressReport
- * 
- * @apiDescription This route allows an admin or teacher to upload a CSV file containing student progress data and generates progress reports for each student. The report is created based on specific academic, class, and section data provided in the request.
- * 
- * @apiHeader {String} Authorization Bearer token with JWT, required for authentication.
- * 
- * @apiParam {String} schoolId The ID of the school where the report is being generated.
- * @apiParam {String} academicYear The academic year for the progress report.
- * @apiParam {String} className The class name for the students (e.g., "10th Grade").
- * @apiParam {String} section The section name for the class (e.g., "A").
- * @apiParam {File} csvFile The CSV file containing progress data. Expected headers include "S.No", "Roll No", "Term", "Student Name", "DOB", "Class", "Section", "Academic Year", and specific subjects with marks.
- * 
- * @apiSuccess {String} message Confirmation message upon successful report generation.
- * 
- * @apiError (400) NoFileUploaded The request did not include a file.
- * @apiError (403) Unauthorized Only admins and teachers can access this route.
- * @apiError (404) SchoolOrClassNotFound The specified school or class could not be found.
- * @apiError (404) NoMatchingStudents No matching students found for the specified criteria.
- * @apiError (500) InternalServerError There was an error processing the data.
- * 
- * @apiExample {Postman} Postman testing steps:
- * Add the following fields:
- *    - `schoolId`: Enter the school ID.
- *    - `academicYear`: Enter the academic year (e.g., "2023-2024").
- *    - `className`: Enter the class name (e.g., "10th Grade").
- *    - `section`: Enter the section name (e.g., "A").
- *    - `csvFile`: Choose the file option, and upload your CSV file.
- * Click `Send` to make the request.
+ * @apiDescription This endpoint allows an admin or teacher to upload a CSV file containing students' progress report data and create progress report entries in the database.
  *
- * @apiErrorExample {json} No File Uploaded:
- *     HTTP/1.1 400 Bad Request
+ * @apiParam {File} csvFile CSV file containing the progress report data.
+ * @apiParam {String} schoolId The ID of the school.
+ * @apiParam {String} academicYear The academic year of the progress report.
+ * @apiParam {String} className The name of the class (e.g., "Grade 10").
+ * @apiParam {String} section The section of the class (e.g., "A").
+ *
+ * @apiHeader {String} Authorization Bearer token (JWT) with user information.
+ * 
+ * @apiPermission Admin, Teacher
+ *
+ * @apiSuccess {String} message Success message confirming report generation.
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
  *     {
- *       "error": "No file uploaded."
+ *       "message": "Progress reports generated successfully!"
  *     }
  *
- * @apiErrorExample {json} Unauthorized Access:
+ * @apiError Unauthorized Only users with the role "admin" or "teacher" can upload progress reports.
+ * @apiErrorExample {json} Unauthorized Response:
  *     HTTP/1.1 403 Forbidden
  *     {
  *       "error": "Unauthorized. Only admins or teachers can upload progress reports."
  *     }
  *
- * @apiErrorExample {json} School or Class Not Found:
+ * @apiError BadRequest No file was uploaded.
+ * @apiErrorExample {json} No File Error:
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": "No file uploaded."
+ *     }
+ *
+ * @apiError NotFound School or class not found.
+ * @apiErrorExample {json} School/Class Not Found:
  *     HTTP/1.1 404 Not Found
  *     {
  *       "message": "School or class not found."
  *     }
  *
- * @apiErrorExample {json} No Matching Students Found:
+ * @apiError NoMatchingStudents No students were found matching the given Roll Numbers, School ID, Class, and Section.
+ * @apiErrorExample {json} No Matching Students:
  *     HTTP/1.1 404 Not Found
  *     {
  *       "message": "No matching students found."
  *     }
  *
- * @apiErrorExample {json} Internal Server Error:
+ * @apiError ExistingReports All reports already exist for the given students and term.
+ * @apiErrorExample {json} No New Reports:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "No new progress reports to generate. All reports already exist for the given students."
+ *     }
+ *
+ * @apiError ServerError Error processing the file or data.
+ * @apiErrorExample {json} Server Error:
  *     HTTP/1.1 500 Internal Server Error
  *     {
  *       "error": "Error processing the data",
- *       "details": "<Error details>"
+ *       "details": "Detailed error message"
  *     }
+ * @apiFileName progressReportRoute.js
  */
+
 
   async post(req,res){
     try {
@@ -86,8 +91,11 @@ module.exports = {
       // Validate user role: ensure they are an admin or teacher
       if (loginType !== "admin" && loginType !== "teacher") return res.status(403).json({ error: "Unauthorized. Only admins or teachers can upload progress reports." });
       
-  
+      
+      
       const { schoolId, academicYear, className, section } = req.body;
+      
+      
       const progressReports = [];
       const rollNoArray = [];
       const rollWiseSubjects = [];
@@ -96,17 +104,21 @@ module.exports = {
       const bufferStream = new Readable();
       bufferStream.push(req.file.buffer);
       bufferStream.push(null); // End the stream
-  
+      
+      
       bufferStream
         .pipe(csv())
         .on("headers", (csvHeaders) => {
           // Filter out unnecessary headers
+          
           this.subjects = csvHeaders.filter(
-            (header) => !["S.No", "Roll No", "Term", "Student Name", "DOB", "Class", "Section", "Academic Year"].includes(header)
+            (header) => !["S.No", "Roll No", "Term", "Student Name","Father's Name", "DOB", "Class", "Section", "Academic Year"].includes(header)
           );
         })
         .on("data", (row) => {
           // Collect roll numbers and roll-wise subjects
+          console.log(subjects);
+          
           rollNoArray.push(row["Roll No"]);
           rollWiseSubjects.push({
             rollNo: row["Roll No"],
@@ -123,7 +135,8 @@ module.exports = {
             // Find the school and class IDs based on names
             const school = await School.findOne({ _id: schoolId });
             const classData = await Class.findOne({ name: className });
-  
+            
+            
             if (!school || !classData) {
               return res.status(404).json({ message: "School or class not found." });
             }
@@ -135,7 +148,7 @@ module.exports = {
               _class: classData._id,
               section,
             });
-  
+            
             if (students.length > 0) {
               for (const student of students) {
                 // Loop through roll-wise subjects to find corresponding subject object
@@ -370,6 +383,97 @@ async get(req, res) {
   
   
 },
+
+/**
+ * @api {post} /getallprogressreport Get All Progress Reports
+ * @apiName GetAllProgressReports
+ * @apiGroup ProgressReport
+ * @apiPermission Admin, Teacher, SuperAdmin
+ * 
+ * @apiDescription Retrieves all progress reports for students based on filters provided in the request body.
+ * Only users with the roles of admin, teacher, or super admin are authorized to access this endpoint.
+ *
+ * @apiHeader {String} Authorization JWT token.
+ * 
+ * @apiBody {String} academicYear The academic year of the reports (e.g., "2024-2025").
+ * @apiBody {String} [className] The name of the class (e.g., "10").
+ * @apiBody {String} [section] The section of the class (e.g., "A").
+ * 
+ * @apiSuccess {Object[]} progressReports List of progress reports matching the specified criteria.
+ * @apiSuccess {String} progressReports._user.fullName Name of the student.
+ * @apiSuccess {String} progressReports._user.rollNo Roll number of the student.
+ * @apiSuccess {String} progressReports._class.name Class name.
+ * @apiSuccess {String} progressReports._class.section Class section.
+ * @apiSuccess {String} progressReports._school.name Name of the school.
+ *
+ * @apiError Unauthorized Only admin, teacher, or super admin can access this endpoint.
+ * @apiError NotFound No progress reports found for the specified criteria.
+ * @apiError ErrorRetrievingProgressReports An error occurred while retrieving the progress reports.
+ * 
+ * @apiErrorExample {json} Unauthorized Response:
+ *     HTTP/1.1 403 Forbidden
+ *     {
+ *       "error": "Unauthorized. Access restricted to admin, teacher, or super admin."
+ *     }
+ *
+ * @apiErrorExample {json} Not Found Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *       "message": "No progress reports found for the specified criteria."
+ *     }
+ *
+ * @apiErrorExample {json} Server Error Response:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": "Error retrieving progress reports",
+ *       "details": "Error message details here"
+ *     }
+ */
+
+async getAllProgressReport(req, res) {
+  try {
+    // Extract user details from JWT token (you'll need to implement this)
+    const { loginType, isSuperAdmin } = req.user;
+
+    // Check if user is authorized (only admin, teacher, or super admin can access)
+    if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin === true)) {
+      return res.status(403).json({ error: "Unauthorized. Access restricted to admin, teacher, or super admin." });
+    }
+
+    // Extract filters from the request body
+    const { academicYear, className, section } = req.body;
+    
+    // Build the query based on provided filters
+    const query = {};
+
+    if (academicYear) query.academicYear = academicYear;
+    if (className) {
+      const classData = await Class.findOne({ name: className, section:section, academicYear:academicYear });
+      if (!classData) {
+        return res.status(404).json({ message: "Class not found." });
+      }
+      query._class = classData._id;
+    }
+    if (section) query.section = section;
+
+    // Fetch progress reports based on filters
+    const progressReports = await ProgressReport.find(query)
+      .populate('_user', 'fullName rollNo ')    // Populate student details (name, rollNo)
+      .populate('_user._class', 'name section -_id')          // Populate class name
+      .populate('_school', 'name -_id');        // Populate school name
+
+    // Check if any reports were found
+    if (progressReports.length === 0) {
+      return res.status(404).json({ message: "No progress reports found for the specified criteria." });
+    }
+
+    // Return the found progress reports
+    res.status(200).json({ progressReports });
+  } catch (error) {
+    console.error(`Error fetching progress reports: ${error.message}`);
+    res.status(500).json({ error: "Error retrieving progress reports", details: error.message });
+  }
+}
 
 
 };

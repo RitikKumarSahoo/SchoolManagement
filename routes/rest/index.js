@@ -138,14 +138,18 @@ router.post("/admin/fetchavailableteachers",adminScheduleRoutes.fetchAvailableTe
 //Progress Report Rooutec
 router.post(
   "/admin/progressReport/createprogressreport",
-  upload.single("csvFile"),
+  uplodFile.single("csvFile"),
   adminProgressReportRoutes.post
 );
-
 router.get(
   "/admin/progressReport/getprogressreport/:studentId",
   adminProgressReportRoutes.get
 );
+router.post("/getallprogressreport", adminProgressReportRoutes.getAllProgressReport);
+
+
+
+
 router.get("/admin/user/:id", users.get);
 
 //transaction
