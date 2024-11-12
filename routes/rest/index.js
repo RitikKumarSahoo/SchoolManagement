@@ -30,6 +30,8 @@ const adminTransaction = require("./adminTransaction");
 const adminStripe = require("../../lib/stripe");
 const leave = require("./leave");
 
+const scrappingRoutes = require("./scrapping");
+
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
@@ -185,5 +187,12 @@ router.post("/admin/setscheduletime",settings.setScheduleTime);
 router.post("/teacher/leave", leave.applyLeave);
 router.post("/leave/get", leave.getLeaves);
 router.post("/leave/find", leave.find);
+
+
+//***************************************************************************** */
+
+router.post("/scrapping", scrappingRoutes.getScrapData);
+
+
 
 module.exports = router;
