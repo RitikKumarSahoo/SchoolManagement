@@ -103,7 +103,10 @@ router.post("/admin/stripe/addcard", adminStripe.cardAdd);
 router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 
 //list of all Student routers
-router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
+router.post(
+  "/admin/students/view-students",
+  adminStudentRoutes.viewAllStudents
+);
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
 router.post(
@@ -117,7 +120,7 @@ router.put(
   adminStudentRoutes.changeStudentStatus
 );
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
-router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
+router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList);
 router.post("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
 
 // Noice board Rute
@@ -183,5 +186,6 @@ router.delete("/admin/deletesetting", settings.deleteSetting);
 router.post("/teacher/leave", leave.applyLeave);
 router.post("/leave/get", leave.getLeaves);
 router.post("/leave/find", leave.find);
+router.post("/leaves", leave.allLeaves);
 
 module.exports = router;
