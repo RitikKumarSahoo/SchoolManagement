@@ -34,6 +34,9 @@ router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
+// Leave
+router.get("/leave/:id",leave.get)
+
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
 router.post("/activatedeactivate/:id", signup.Deactive);
@@ -103,7 +106,10 @@ router.post("/admin/stripe/addcard", adminStripe.cardAdd);
 router.post("/admin/confirmpayment", adminStripe.confirmpayment);
 
 //list of all Student routers
-router.post("/admin/students/view-students", adminStudentRoutes.viewAllStudents); 
+router.post(
+  "/admin/students/view-students",
+  adminStudentRoutes.viewAllStudents
+);
 router.get("/admin/student/:id", adminStudentRoutes.viewStudentDetails);
 router.post("/admin/student", adminStudentRoutes.createStudent);
 router.post(
@@ -117,7 +123,7 @@ router.put(
   adminStudentRoutes.changeStudentStatus
 );
 //  router.get("/admin/students/search", adminStudentRoutes.searchStudents);
-router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList)
+router.get("/admin/classsection/:id", adminStudentRoutes.fetchAllClassList);
 router.post("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
 
 // Noice board Rute
@@ -189,5 +195,7 @@ router.post("/admin/setscheduletime",settings.setScheduleTime);
 router.post("/teacher/leave", leave.applyLeave);
 router.post("/leave/get", leave.getLeaves);
 router.post("/leave/find", leave.find);
+router.post("/leaves", leave.allLeaves);
+// router.get("/")
 
 module.exports = router;

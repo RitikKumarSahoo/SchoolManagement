@@ -2571,6 +2571,145 @@
   },
   {
     "type": "post",
+    "url": "/leaves",
+    "title": "Get all leaves",
+    "name": "GetAllLeaves",
+    "group": "Leave",
+    "permission": [
+      {
+        "name": "admin, teacher"
+      }
+    ],
+    "description": "<p>This endpoint retrieves a paginated list of leave records. Admins can view all leaves within their school, while teachers can view only their own leave records.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token required for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageNumber",
+        "defaultValue": "1",
+        "description": "<p>Page number for pagination (optional).</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "pageSize",
+        "defaultValue": "10",
+        "description": "<p>Number of records per page (optional).</p>"
+      }
+    ],
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "PermissionError",
+            "description": "<p>No permission to access leaves.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "ServerError",
+            "description": "<p>Internal server error.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"No permission\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Internal server error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response (admin):",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leaves\": [\n    {\n      \"_id\": \"64a67f5a9a3c45e1d2c7b1e5\",\n      \"_teacher\": \"64a678f7e6c9b0b7f0e8d456\",\n      \"_school\": \"64a6715a9f1b24b8d2c7a5e7\",\n      \"createdAt\": \"2024-11-01T10:00:00.000Z\"\n    },\n    ...\n  ],\n  \"totalLeaves\": 50\n}",
+          "type": "json"
+        },
+        {
+          "title": "Success Response (teacher):",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leaves\": [\n    {\n      \"_id\": \"64a67f5a9a3c45e1d2c7b1e5\",\n      \"_teacher\": \"64a678f7e6c9b0b7f0e8d456\",\n      \"_school\": \"64a6715a9f1b24b8d2c7a5e7\",\n      \"createdAt\": \"2024-11-01T10:00:00.000Z\"\n    }\n  ],\n  \"totalLeaves\": 10\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leave"
+  },
+  {
+    "type": "get",
+    "url": "/leave/:id",
+    "title": "Retrieve Leave by ID",
+    "name": "GetLeave",
+    "group": "Leave",
+    "version": "1.0.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Leave unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leave\": {\n    \"_id\": \"6724d6a7eaa09a9de7c7e922\",\n    \"_school\": \"671a88862e586338c6c94516\",\n    \"_teacher\": \"671f435dadf7c71b57b7927d\",\n    \"startDate\": \"2024-11-10T00:00:00.000Z\",\n    \"endDate\": \"2024-11-12T00:00:00.000Z\",\n    \"reason\": \"due to health issue\",\n    \"status\": \"pending\",\n    \"appliedDate\": \"2024-11-01T13:24:55.270Z\",\n    \"isHalfDay\": true,\n    \"__v\": 0\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Leave Not Found:",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"leave not found\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"Error\": \"error message\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leave"
+  },
+  {
+    "type": "post",
     "url": "/leave/find",
     "title": "Find Teacher Leaves",
     "name": "FindTeacherLeaves",

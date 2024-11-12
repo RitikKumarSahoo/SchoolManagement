@@ -161,12 +161,25 @@ module.exports = {
           .json({ error: true, reason: "admin email is required" });
       }
 
-      const existingAdmin = await User.findOne({ email });
-      if (existingAdmin) {
-        return res.status(400).json({
-          error: true,
-          message: "Admin with this email already exists.",
-        });
+      const existingAdmin = await User.findOne({ $or: [{ email }, { phone }] })
+        .select("email phone")
+        .exec();
+
+      if (existingAdmin !== null) {
+        // if email match
+        if (
+          email !== undefined &&
+          existingAdmin.email === email.toLowerCase()
+        ) {
+          throw new Error("Email already use, please provide an unique email");
+        }
+
+        // if phone match
+        if (existingAdmin.phone === phone) {
+          throw new Error(
+            "Phone number already use, please provide an unique phone number"
+          );
+        }
       }
 
       const randomNumber = Math.floor(1000 + Math.random() * 9000);
@@ -209,6 +222,7 @@ module.exports = {
         gender,
         address,
         profileImage,
+        messagingEnabled: true,
         joinDate: joinDate || new Date(),
       });
 
