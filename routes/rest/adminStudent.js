@@ -557,7 +557,7 @@ module.exports = {
    * @apiName ViewStudentDetails
    * @apiGroup Student
    *
-   * @apiHeader {String} Authorization Bearer token of the admin.
+   * @apiHeader {String} Authorization Bearer token of the admin|teacher|Super Admin.
    *
    * @apiParam {String} id Unique ID of the student to view details.
    *
@@ -625,12 +625,13 @@ module.exports = {
       const { id } = req.params;
 
       //This may be changed as in this route only admin have access to enter this route
-      const { isAdmin } = req.user; // Get adminId from the request body
+      const { loginType, isSuperAdmin } = req.user; // Get adminId from the request body
       // Check if the user exists and has the 'admin' role
-      if (!isAdmin)
+      if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin)) {
         return res
           .status(403)
-          .json({ message: "Only admins can view student details" });
+          .json({ message: "You do not have permission to view student details" });
+      }
 
       const student = await users
         .findOne({ _id: id, isActive: true, loginType: "student" })
