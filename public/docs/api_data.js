@@ -2710,6 +2710,74 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/leavestatus/:id",
+    "title": "Update Leave Status",
+    "name": "UpdateLeaveStatus",
+    "group": "Leave",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Update the status of a leave request. Only admins can perform this action.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Leave request ID.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": false,
+        "field": "status",
+        "description": "<p>Status of the leave request. Must be one of &quot;approved&quot;, &quot;rejected&quot;, or &quot;cancelled&quot;.</p>"
+      }
+    ],
+    "examples": [
+      {
+        "title": "Request Example:",
+        "content": "PUT /leave/12345\n{\n  \"status\": \"approved\"\n}",
+        "type": "json"
+      }
+    ],
+    "success": {
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"leave\": {\n    \"_id\": \"673356750726b5a7972c4516\",\n    \"_school\": \"670cc3c55aa29e2e31348c7e\",\n    \"_teacher\": \"670cf24bdbb09a7c2b2af9a0\",\n    \"leaveType\": \"SL\",\n    \"startDate\": \"2024-11-06T00:00:00.000Z\",\n    \"endDate\": \"2024-11-15T00:00:00.000Z\",\n    \"reason\": \"All Test\",\n    \"status\": \"approved\",\n    \"appliedDate\": \"2024-11-12T13:21:57.549Z\",\n    \"createdAt\": \"2024-11-12T13:21:57.550Z\",\n    \"updatedAt\": \"2024-11-13T08:05:01.360Z\",\n    \"__v\": 0\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "Error Response (Not Admin):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You are not admin\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Invalid Status):",
+          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Invalid leave type. Must be one of approved, rejected, or cancelled\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/leave.js",
+    "groupTitle": "Leave"
+  },
+  {
+    "type": "post",
     "url": "/leave/find",
     "title": "Find Teacher Leaves",
     "name": "FindTeacherLeaves",
