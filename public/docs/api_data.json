@@ -8413,21 +8413,10 @@
     "type": "put",
     "url": "/admin/student/:id",
     "title": "Edit Student Details",
+    "version": "1.0.0",
     "name": "EditStudentDetails",
     "group": "Student",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token of the admin|super admin.</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>Allows an admin or super admin to edit the details of an existing student.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -8436,106 +8425,194 @@
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>Student's unique ID.</p>"
-          }
-        ],
-        "Request Body": [
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "firstName",
-            "description": "<p>Student's first name.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "lastName",
-            "description": "<p>Student's last name.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "fullName",
-            "description": "<p>Student's full name.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "email",
-            "description": "<p>Student's email.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "gender",
-            "description": "<p>Student's gender.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "guardian",
-            "description": "<p>Guardian's name.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "phone",
-            "description": "<p>Student's phone number.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "admissionYear",
-            "description": "<p>Admission year of the student.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "dob",
-            "description": "<p>Date of birth of the student.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "rollNo",
-            "description": "<p>Roll number of the student.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "signature",
-            "description": "<p>Signature of the student.</p>"
-          },
-          {
-            "group": "Request Body",
-            "type": "String",
-            "optional": true,
-            "field": "profileImage",
-            "description": "<p>Profile image URL of the student.</p>"
+            "description": "<p>The unique identifier of the student (in URL parameters).</p>"
           }
         ]
       }
     },
-    "description": "<p>This route allows only admin users to edit details of a specific student. The admin must be logged in and authorized to access this endpoint. Only the provided fields in the request body will be updated.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authorization.</p>"
+          }
+        ]
+      }
+    },
+    "body": [
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "firstName",
+        "description": "<p>First name of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "lastName",
+        "description": "<p>Last name of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "email",
+        "description": "<p>Email address of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "gender",
+        "description": "<p>Gender of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "phone",
+        "description": "<p>Phone number of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Number",
+        "optional": true,
+        "field": "admissionYear",
+        "description": "<p>Year the student was admitted.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Date",
+        "optional": true,
+        "field": "dob",
+        "description": "<p>Date of birth of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "rollNo",
+        "description": "<p>Roll number of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "signature",
+        "description": "<p>Signature of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "profileImage",
+        "description": "<p>URL of the student's profile image.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Object",
+        "optional": true,
+        "field": "address",
+        "description": "<p>Address of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "address.locality",
+        "description": "<p>Locality of the student's address.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "address.city",
+        "description": "<p>City of the student's address.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "address.state",
+        "description": "<p>State of the student's address.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "address.pin",
+        "description": "<p>Pin code of the student's address.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "address.country",
+        "description": "<p>Country of the student's address.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "Object",
+        "optional": true,
+        "field": "guardian",
+        "description": "<p>Guardian details of the student.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "guardian.fathersName",
+        "description": "<p>Father's name.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "guardian.fathersOccupation",
+        "description": "<p>Father's occupation.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "guardian.mothersName",
+        "description": "<p>Mother's name.</p>"
+      },
+      {
+        "group": "Body",
+        "type": "String",
+        "optional": true,
+        "field": "guardian.mothersOccupation",
+        "description": "<p>Mother's occupation.</p>"
+      }
+    ],
+    "permission": [
+      {
+        "name": "admin, superAdmin"
+      }
+    ],
     "error": {
       "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>Missing required parameters or invalid data.</p>"
+          }
+        ],
         "403": [
           {
             "group": "403",
             "optional": false,
             "field": "Forbidden",
-            "description": "<p>Only admins can edit student details.</p>"
+            "description": "<p>You do not have permission to edit student details.</p>"
           }
         ],
         "404": [
@@ -8554,31 +8631,49 @@
             "description": "<p>An error occurred while updating student details.</p>"
           }
         ]
-      }
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"Student not found\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message.</p>"
+          },
+          {
+            "group": "200",
+            "type": "Object",
+            "optional": false,
+            "field": "student",
+            "description": "<p>Updated student object excluding password, forgotpassword, and bankAdded fields.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"message\": \"Student details updated successfully\",\n  \"student\": {\n    \"_id\": \"123456\",\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"fullName\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"gender\": \"Male\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"2000-01-01T00:00:00.000Z\",\n    \"rollNo\": \"101\",\n    \"signature\": \"http://example.com/signature.jpg\",\n    \"profileImage\": \"http://example.com/profile.jpg\",\n    \"address\": {\n      \"locality\": \"Downtown\",\n      \"city\": \"Cityville\",\n      \"state\": \"Stateville\",\n      \"pin\": \"12345\",\n      \"country\": \"Countryland\"\n    },\n    \"guardian\": {\n      \"fathersName\": \"Michael Doe\",\n      \"fathersOccupation\": \"Engineer\",\n      \"mothersName\": \"Jane Doe\",\n      \"mothersOccupation\": \"Teacher\"\n    },\n    \"admissionYear\": \"2020\",\n    \"createdAt\": \"2024-01-01T12:00:00.000Z\",\n    \"updatedAt\": \"2024-01-02T12:00:00.000Z\"\n  }\n}",
+          "type": "json"
+        }
+      ]
     },
     "examples": [
       {
-        "title": "Request-Example:",
-        "content": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\",\n  \"email\": \"janedoe@example.com\",\n  \"gender\": \"Female\",\n  \"phone\": \"0987654321\"\n}",
-        "type": "json"
-      },
-      {
-        "title": "Error-Response:",
-        "content": "{\n  \"message\": \"Only admins can edit student details\"\n}",
-        "type": "json"
-      },
-      {
-        "title": "Error-Response:",
-        "content": "{\n  \"message\": \"Student not found\"\n}",
-        "type": "json"
-      },
-      {
-        "title": "Error-Response:",
-        "content": "{\n  \"message\": \"An error occurred while updating student details\",\n  \"error\": \"Error details here\"\n}",
-        "type": "json"
+        "title": "Example usage:",
+        "content": "curl -X PUT 'https://api.example.com/students/123456' \\\n-H 'Authorization: Bearer <token>' \\\n-d '{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"gender\": \"Male\",\n    \"phone\": \"1234567890\",\n    \"dob\": \"2000-01-01\",\n    \"rollNo\": \"101\",\n    \"signature\": \"http://example.com/signature.jpg\",\n    \"profileImage\": \"http://example.com/profile.jpg\",\n    \"address\": {\n      \"locality\": \"Downtown\",\n      \"city\": \"Cityville\",\n      \"state\": \"Stateville\",\n      \"pin\": \"12345\",\n      \"country\": \"Countryland\"\n    },\n    \"guardian\": {\n      \"fathersName\": \"Michael Doe\",\n      \"fathersOccupation\": \"Engineer\",\n      \"mothersName\": \"Jane Doe\",\n      \"mothersOccupation\": \"Teacher\"\n    }\n}'",
+        "type": "curl"
       }
     ],
-    "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Student"
   },
