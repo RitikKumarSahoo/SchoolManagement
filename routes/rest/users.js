@@ -165,10 +165,12 @@ module.exports = {
         if (email !== undefined) user.email = email;
 
         // Update guardian details if provided
-        if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
-        if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
-        if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
-        if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
+        if (guardian) {
+          if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
+          if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
+          if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
+          if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
+        }
 
         // Update address if provided
         if (address !== undefined) {
