@@ -419,7 +419,6 @@ module.exports = {
         phone,
         admissionYear,
         dob,
-        // rollNo,
         signature,
         profileImage,
         address,
@@ -432,48 +431,47 @@ module.exports = {
         return res.status(404).json({ message: "Student not found" });
       }
   
-      // Update fields if they are provided
-      if (firstName !== undefined) user.firstName = firstName;
-      if (lastName !== undefined) user.lastName = lastName;
+      // Update fields if they are provided and not empty
+      if (firstName) user.firstName = firstName;
+      if (lastName) user.lastName = lastName;
       if (firstName || lastName) user.fullName = `${firstName || user.firstName} ${lastName || user.lastName}`;
-      if (email !== undefined) user.email = email;
-      if (gender !== undefined) user.gender = gender;
-      if (phone !== undefined) user.phone = phone;
-      if (admissionYear !== undefined) user.admissionYear = admissionYear;
-      if (dob !== undefined) user.dob = dob;
-      // if (rollNo !== undefined) user.rollNo = rollNo;
-      // if (_class !== undefined) user._class = _class;
-      if (signature !== undefined) user.signature = signature;
-      if (profileImage !== undefined) user.profileImage = profileImage;
+      if (email) user.email = email;
+      if (gender) user.gender = gender;
+      if (phone) user.phone = phone;
+      if (admissionYear) user.admissionYear = admissionYear;
+      if (dob) user.dob = dob;
+      if (signature) user.signature = signature;
+      if (profileImage) user.profileImage = profileImage;
   
-      // Update guardian details if provided
-      if (guardian !== undefined) {
-        if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
-        if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
-        if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
-        if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
+      // Update guardian details if provided and not empty
+      if (guardian) {
+        if (guardian.fathersName) user.guardian.fathersName = guardian.fathersName;
+        if (guardian.fathersOccupation) user.guardian.fathersOccupation = guardian.fathersOccupation;
+        if (guardian.mothersName) user.guardian.mothersName = guardian.mothersName;
+        if (guardian.mothersOccupation) user.guardian.mothersOccupation = guardian.mothersOccupation;
       }
   
-      // Update address if provided
-      if (address !== undefined) {
-        if (address.locality !== undefined) user.address.locality = address.locality;
-        if (address.city !== undefined) user.address.city = address.city;
-        if (address.state !== undefined) user.address.state = address.state;
-        if (address.pin !== undefined) user.address.pin = address.pin;
-        if (address.country !== undefined) user.address.country = address.country;
+      // Update address if provided and not empty
+      if (address) {
+        if (address.locality) user.address.locality = address.locality;
+        if (address.city) user.address.city = address.city;
+        if (address.state) user.address.state = address.state;
+        if (address.pin) user.address.pin = address.pin;
+        if (address.country) user.address.country = address.country;
       }
   
       // Save the updated student record
       await user.save();
+  
       const studentResponse = user.toObject();
-    delete studentResponse.password;        // Remove password
-    delete studentResponse.forgotpassword;  // Remove forgotPassword
-    delete studentResponse.bankAdded;  
+      delete studentResponse.password;        // Remove password
+      delete studentResponse.forgotpassword;  // Remove forgotPassword
+      delete studentResponse.bankAdded;
   
       // Return the updated student
       res.status(200).json({
         message: "Student details updated successfully",
-        // student: studentResponse,
+        student: studentResponse,
       });
     } catch (error) {
       // Handle errors
@@ -484,6 +482,7 @@ module.exports = {
       });
     }
   },
+  
   
   
 

@@ -95,6 +95,7 @@ module.exports = {
       const { schoolId, academicYear, className, section } = req.body;
       
       
+      
       const progressReports = [];
       const rollNoArray = [];
       const rollWiseSubjects = [];
@@ -128,14 +129,15 @@ module.exports = {
             term: row["Term"],
             totalMarks: this.subjects.reduce((acc, subject) => acc + (parseInt(row[subject]) || 0), 0),
           });
+          
         })
         .on("end", async () => {
           try {
             // Find the school and class IDs based on names
             const school = await School.findOne({ _id: schoolId });
-            const classData = await Class.findOne({ name: className });
+            const classData = await Class.findOne({ name: className, _school: school._id, academicYear, section });
             
-            
+            console.log(classData);
             if (!school || !classData) {
               return res.status(404).json({ message: "School or class not found." });
             }
@@ -384,95 +386,128 @@ async get(req, res) {
 },
 
 /**
- * @api {post} /getallprogressreport Get All Progress Reports
+ * @api {post} /api/v1/progress-report/get-all Get All Progress Reports
  * @apiName GetAllProgressReports
  * @apiGroup ProgressReport
+ * @apiVersion 1.0.0
  * @apiPermission Admin, Teacher, SuperAdmin
  * 
- * @apiDescription Retrieves all progress reports for students based on filters provided in the request body.
- * Only users with the roles of admin, teacher, or super admin are authorized to access this endpoint.
- *
- * @apiHeader {String} Authorization JWT token.
+ * @apiHeader {String} Authorization Bearer token for authentication.
  * 
- * @apiBody {String} academicYear The academic year of the reports (e.g., "2024-2025").
- * @apiBody {String} [className] The name of the class (e.g., "10").
- * @apiBody {String} [section] The section of the class (e.g., "A").
+ * @apiBody {String} [academicYear] Filter by academic year (optional).
+ * @apiBody {String} [className] Filter by class name (optional).
+ * @apiBody {String} [section] Filter by section name (optional).
  * 
- * @apiSuccess {Object[]} progressReports List of progress reports matching the specified criteria.
- * @apiSuccess {String} progressReports._user.fullName Name of the student.
- * @apiSuccess {String} progressReports._user.rollNo Roll number of the student.
- * @apiSuccess {String} progressReports._class.name Class name.
- * @apiSuccess {String} progressReports._class.section Class section.
- * @apiSuccess {String} progressReports._school.name Name of the school.
- *
- * @apiError Unauthorized Only admin, teacher, or super admin can access this endpoint.
- * @apiError NotFound No progress reports found for the specified criteria.
- * @apiError ErrorRetrievingProgressReports An error occurred while retrieving the progress reports.
+ * @apiError (403) Unauthorized User does not have permission to access this resource.
+ * @apiError (404) ClassNotFound No class was found for the specified filters.
+ * @apiError (404) ProgressReportNotFound No progress reports were found for the specified filters.
+ * @apiError (500) InternalServerError Unexpected server error occurred.
  * 
- * @apiErrorExample {json} Unauthorized Response:
- *     HTTP/1.1 403 Forbidden
- *     {
- *       "error": "Unauthorized. Access restricted to admin, teacher, or super admin."
- *     }
- *
- * @apiErrorExample {json} Not Found Response:
- *     HTTP/1.1 404 Not Found
- *     {
- *       "message": "No progress reports found for the specified criteria."
- *     }
- *
- * @apiErrorExample {json} Server Error Response:
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "error": "Error retrieving progress reports",
- *       "details": "Error message details here"
- *     }
+ * @apiExample {json} Example Request:
+ * POST /api/v1/progress-report/get-all
+ * {
+ *   "academicYear": "2024-2025",
+ *   "className": "10th Grade",
+ *   "section": "A"
+ * }
+ * 
+ * @apiErrorExample {json} Error Response (Class Not Found):
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "message": "Class not found."
+ * }
+ * 
+ * @apiErrorExample {json} Error Response (No Progress Reports Found):
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "message": "No progress reports found for the specified criteria."
+ * }
+ * 
+ * @apiErrorExample {json} Error Response (Unauthorized):
+ * HTTP/1.1 403 Forbidden
+ * {
+ *   "error": "Unauthorized. Access restricted to admin, teacher, or super admin."
+ * }
+ * 
+ * @apiErrorExample {json} Error Response (Server Error):
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": "Error retrieving progress reports",
+ *   "details": "Error message here."
+ * }
  */
 
 async getAllProgressReport(req, res) {
   try {
-    // Extract user details from JWT token (you'll need to implement this)
+    // Extract user details from JWT token
     const { loginType, isSuperAdmin } = req.user;
 
     // Check if user is authorized (only admin, teacher, or super admin can access)
     if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin === true)) {
-      return res.status(403).json({ error: "Unauthorized. Access restricted to admin, teacher, or super admin." });
+      return res.status(403).json({
+        error: "Unauthorized. Access restricted to admin, teacher, or super admin.",
+      });
     }
 
     // Extract filters from the request body
     const { academicYear, className, section } = req.body;
-    
-    // Build the query based on provided filters
+
+    // Initialize query object
     const query = {};
 
+    // Add academicYear to the query if provided
     if (academicYear) query.academicYear = academicYear;
-    if (className) {
-      const classData = await Class.findOne({ name: className, section:section, academicYear:academicYear, _school: req.user._school });
-      if (!classData) {
+
+    // If className or section is provided, find the matching classes
+    if (className || section) {
+      const classFilter = { _school: req.user._school };
+      if (className) classFilter.name = className;
+      if (section) classFilter.section = section;
+      if (academicYear) classFilter.academicYear = academicYear;
+
+      // Find the matching classes
+      const classData = await Class.find(classFilter);
+
+      // Check if any classes are found
+      if (!classData || classData.length === 0) {
         return res.status(404).json({ message: "Class not found." });
       }
-      query._class = classData._id;
-    }
-    if (section) query.section = section;
 
-    // Fetch progress reports based on filters
+      // Add the class IDs to the query
+      query._class = { $in: classData.map((cls) => cls._id) };
+    }
+
+    // Fetch the document count
+    const totalCount = await ProgressReport.countDocuments(query);
+
+    // Fetch progress reports based on the constructed query
     const progressReports = await ProgressReport.find(query)
-        .populate("_user", "-forgotPassword -password -username") // Populate student details
-        .populate("_school", "name") // Populate only school name
-        .lean();     // Populate school name
+      .populate("_user", "-forgotPassword -password -username") // Populate student details
+      .populate("_school", "name")                              // Populate school name
+      .populate("_class", "name section")                       // Populate class details
+      .lean();
 
     // Check if any reports were found
     if (progressReports.length === 0) {
-      return res.status(404).json({ message: "No progress reports found for the specified criteria." });
+      return res.status(404).json({
+        message: "No progress reports found for the specified criteria.",
+      });
     }
 
-    // Return the found progress reports
-    res.status(200).json({ progressReports });
+    // Return the found progress reports with total count
+    res.status(200).json({ progressReports, totalCount });
   } catch (error) {
-    
-    res.status(500).json({ error: "Error retrieving progress reports", details: error.message });
+    console.error(error);
+    res.status(500).json({
+      error: "Error retrieving progress reports",
+      details: error.message,
+    });
   }
 }
+
+
+
+
 
 
 

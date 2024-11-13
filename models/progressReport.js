@@ -11,6 +11,10 @@ const progressReportSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    _class:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+    },
 
     academicYear: {
       type: String,
