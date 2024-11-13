@@ -284,119 +284,196 @@ module.exports = {
     }
   },
   /**
-   * @api {put} /admin/student/:id Edit Student Details
-   * @apiName EditStudentDetails
-   * @apiGroup Student
-   *
-   * @apiHeader {String} Authorization Bearer token of the admin|super admin.
-   *
-   * @apiParam {String} id Student's unique ID.
-   *
-   * @apiDescription This route allows only admin users to edit details of a specific student. The admin must be logged in and authorized to access this endpoint. Only the provided fields in the request body will be updated.
-   *
-   * @apiParam (Request Body) {String} [firstName] Student's first name.
-   * @apiParam (Request Body) {String} [lastName] Student's last name.
-   * @apiParam (Request Body) {String} [fullName] Student's full name.
-   * @apiParam (Request Body) {String} [email] Student's email.
-   * @apiParam (Request Body) {String} [gender] Student's gender.
-   * @apiParam (Request Body) {String} [guardian] Guardian's name.
-   * @apiParam (Request Body) {String} [phone] Student's phone number.
-   * @apiParam (Request Body) {String} [admissionYear] Admission year of the student.
-   * @apiParam (Request Body) {String} [dob] Date of birth of the student.
-   * @apiParam (Request Body) {String} [rollNo] Roll number of the student.
-   * @apiParam (Request Body) {String} [signature] Signature of the student.
-   * @apiParam (Request Body) {String} [profileImage] Profile image URL of the student.
-   *
-   * @apiError (403) Forbidden Only admins can edit student details.
-   * @apiError (404) NotFound Student not found.
-   * @apiError (500) InternalServerError An error occurred while updating student details.
-   *
-   * @apiExample {json} Request-Example:
-   *     {
-   *       "firstName": "Jane",
-   *       "lastName": "Doe",
-   *       "email": "janedoe@example.com",
-   *       "gender": "Female",
-   *       "phone": "0987654321"
-   *     }
-   *
-   * @apiExample {json} Error-Response:
-   *     {
-   *       "message": "Only admins can edit student details"
-   *     }
-   *
-   * @apiExample {json} Error-Response:
-   *     {
-   *       "message": "Student not found"
-   *     }
-   *
-   * @apiExample {json} Error-Response:
-   *     {
-   *       "message": "An error occurred while updating student details",
-   *       "error": "Error details here"
-   *     }
-   */
+ * @api {put} /admin/student/:id Edit Student Details
+ * @apiVersion 1.0.0
+ * @apiName EditStudentDetails
+ * @apiGroup Student
+ *
+ * @apiDescription Allows an admin or super admin to edit the details of an existing student.
+ *
+ * @apiParam {String} id The unique identifier of the student (in URL parameters).
+ *
+ * @apiHeader {String} Authorization Bearer token for authorization.
+ *
+ * @apiBody {String} [firstName] First name of the student.
+ * @apiBody {String} [lastName] Last name of the student.
+ * @apiBody {String} [email] Email address of the student.
+ * @apiBody {String} [gender] Gender of the student.
+ * @apiBody {String} [phone] Phone number of the student.
+ * @apiBody {Number} [admissionYear] Year the student was admitted.
+ * @apiBody {Date} [dob] Date of birth of the student.
+ * @apiBody {String} [rollNo] Roll number of the student.
+ * @apiBody {String} [signature] Signature of the student.
+ * @apiBody {String} [profileImage] URL of the student's profile image.
+ * @apiBody {Object} [address] Address of the student.
+ * @apiBody {String} [address.locality] Locality of the student's address.
+ * @apiBody {String} [address.city] City of the student's address.
+ * @apiBody {String} [address.state] State of the student's address.
+ * @apiBody {String} [address.pin] Pin code of the student's address.
+ * @apiBody {String} [address.country] Country of the student's address.
+ * @apiBody {Object} [guardian] Guardian details of the student.
+ * @apiBody {String} [guardian.fathersName] Father's name.
+ * @apiBody {String} [guardian.fathersOccupation] Father's occupation.
+ * @apiBody {String} [guardian.mothersName] Mother's name.
+ * @apiBody {String} [guardian.mothersOccupation] Mother's occupation.
+ *
+ * @apiPermission admin, superAdmin
+ *
+ * @apiError (400) BadRequest Missing required parameters or invalid data.
+ * @apiError (403) Forbidden You do not have permission to edit student details.
+ * @apiError (404) NotFound Student not found.
+ * @apiError (500) InternalServerError An error occurred while updating student details.
+ *
+ * @apiSuccess (200) {String} message Success message.
+ * @apiSuccess (200) {Object} student Updated student object excluding password, forgotpassword, and bankAdded fields.
+ *
+ * @apiExample {curl} Example usage:
+ *     curl -X PUT 'https://api.example.com/students/123456' \
+ *     -H 'Authorization: Bearer <token>' \
+ *     -d '{
+ *         "firstName": "John",
+ *         "lastName": "Doe",
+ *         "email": "john.doe@example.com",
+ *         "gender": "Male",
+ *         "phone": "1234567890",
+ *         "dob": "2000-01-01",
+ *         "rollNo": "101",
+ *         "signature": "http://example.com/signature.jpg",
+ *         "profileImage": "http://example.com/profile.jpg",
+ *         "address": {
+ *           "locality": "Downtown",
+ *           "city": "Cityville",
+ *           "state": "Stateville",
+ *           "pin": "12345",
+ *           "country": "Countryland"
+ *         },
+ *         "guardian": {
+ *           "fathersName": "Michael Doe",
+ *           "fathersOccupation": "Engineer",
+ *           "mothersName": "Jane Doe",
+ *           "mothersOccupation": "Teacher"
+ *         }
+ *     }'
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *   HTTP/1.1 200 OK
+ *   {
+ *     "message": "Student details updated successfully",
+ *     "student": {
+ *       "_id": "123456",
+ *       "firstName": "John",
+ *       "lastName": "Doe",
+ *       "fullName": "John Doe",
+ *       "email": "john.doe@example.com",
+ *       "gender": "Male",
+ *       "phone": "1234567890",
+ *       "dob": "2000-01-01T00:00:00.000Z",
+ *       "rollNo": "101",
+ *       "signature": "http://example.com/signature.jpg",
+ *       "profileImage": "http://example.com/profile.jpg",
+ *       "address": {
+ *         "locality": "Downtown",
+ *         "city": "Cityville",
+ *         "state": "Stateville",
+ *         "pin": "12345",
+ *         "country": "Countryland"
+ *       },
+ *       "guardian": {
+ *         "fathersName": "Michael Doe",
+ *         "fathersOccupation": "Engineer",
+ *         "mothersName": "Jane Doe",
+ *         "mothersOccupation": "Teacher"
+ *       },
+ *       "admissionYear": "2020",
+ *       "createdAt": "2024-01-01T12:00:00.000Z",
+ *       "updatedAt": "2024-01-02T12:00:00.000Z"
+ *     }
+ *   }
+ *
+ * @apiErrorExample {json} Error-Response:
+ *   HTTP/1.1 404 Not Found
+ *   {
+ *     "message": "Student not found"
+ *   }
+ */
+
   async editStudentDetails(req, res) {
     try {
       // Get student ID from params
       const studentId = req.params.id;
-      const { loginType, isSuperAdmin } = req.user; // Get adminId from the request body
-
+      const { loginType, isSuperAdmin } = req.user;
+  
       // Check if the user exists and has the 'admin' role
       if (!(loginType === "admin" || isSuperAdmin)) {
         return res
           .status(403)
           .json({ message: "You do not have permission to edit student details" });
       }
-
+  
       // Get editable fields from the request body
       const {
         firstName,
         lastName,
         email,
         gender,
-        guardian,
         phone,
         admissionYear,
         dob,
         rollNo,
-        _class,
         signature,
         profileImage,
+        address,
+        guardian,
       } = req.body;
-
-      // Build the update object (only update fields that are provided)
-      const updateData = {};
-      if (firstName) updateData.firstName = firstName;
-      if (lastName) updateData.lastName = lastName;
-      if(firstName || lastName) updateData.fullName = `${firstName} ${lastName}`
-      if (email) updateData.email = email;
-      if (gender) updateData.gender = gender;
-      if (guardian) updateData.guardian = guardian;
-      if (phone) updateData.phone = phone;
-      if (admissionYear) updateData.admissionYear = admissionYear;
-      if (dob) updateData.dob = dob;
-      if (rollNo) updateData.rollNo = rollNo;
-      if (_class) updateData._class = _class;
-      if (signature) updateData.signature = signature;
-      if (profileImage) updateData.profileImage = profileImage;
-
-      // Update the student record in the database
-      const updatedStudent = await users.findByIdAndUpdate(
-        { _id: studentId },
-        { $set: updateData },
-        { new: true } // Return the updated document
-      );
-
-      // If the student is not found
-      if (!updatedStudent) {
+  
+      // Fetch the existing student data
+      const user = await users.findById(studentId);
+      if (!user) {
         return res.status(404).json({ message: "Student not found" });
       }
-
+  
+      // Update fields if they are provided
+      if (firstName !== undefined) user.firstName = firstName;
+      if (lastName !== undefined) user.lastName = lastName;
+      if (firstName || lastName) user.fullName = `${firstName || user.firstName} ${lastName || user.lastName}`;
+      if (email !== undefined) user.email = email;
+      if (gender !== undefined) user.gender = gender;
+      if (phone !== undefined) user.phone = phone;
+      if (admissionYear !== undefined) user.admissionYear = admissionYear;
+      if (dob !== undefined) user.dob = dob;
+      if (rollNo !== undefined) user.rollNo = rollNo;
+      // if (_class !== undefined) user._class = _class;
+      if (signature !== undefined) user.signature = signature;
+      if (profileImage !== undefined) user.profileImage = profileImage;
+  
+      // Update guardian details if provided
+      if (guardian !== undefined) {
+        if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
+        if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
+        if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
+        if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
+      }
+  
+      // Update address if provided
+      if (address !== undefined) {
+        if (address.locality !== undefined) user.address.locality = address.locality;
+        if (address.city !== undefined) user.address.city = address.city;
+        if (address.state !== undefined) user.address.state = address.state;
+        if (address.pin !== undefined) user.address.pin = address.pin;
+        if (address.country !== undefined) user.address.country = address.country;
+      }
+  
+      // Save the updated student record
+      await user.save();
+      const studentResponse = user.toObject();
+    delete studentResponse.password;        // Remove password
+    delete studentResponse.forgotpassword;  // Remove forgotPassword
+    delete studentResponse.bankAdded;  
+  
       // Return the updated student
       res.status(200).json({
         message: "Student details updated successfully",
-        student: updatedStudent,
+        student: studentResponse,
       });
     } catch (error) {
       // Handle errors
@@ -407,6 +484,8 @@ module.exports = {
       });
     }
   },
+  
+  
 
   /**
    *@api {post} admin/students/view-students Admin will View All Students

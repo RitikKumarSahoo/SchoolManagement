@@ -151,7 +151,7 @@ module.exports = {
           signature,
           profileImage,
           email,
-          guardian: { fathersName, mothersName } = {},
+          guardian,
           address,
         } = req.body;
 
@@ -165,16 +165,18 @@ module.exports = {
         if (email !== undefined) user.email = email;
 
         // Update guardian details if provided
-        if (fathersName !== undefined) user.guardian.fathersName = fathersName;
-        if (mothersName !== undefined) user.guardian.mothersName = mothersName;
+        if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
+        if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
+        if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
+        if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
 
         // Update address if provided
         if (address !== undefined) {
-          if (locality !== undefined) user.address.locality = locality;
-          if (city !== undefined) user.address.city = city;
-          if (state !== undefined) user.address.state = state;
-          if (pin !== undefined) user.address.pin = pin;
-          if (country !== undefined) user.address.country = country;
+          if (address.locality !== undefined) user.address.locality = address.locality;
+          if (address.city !== undefined) user.address.city = address.city;
+          if (address.state !== undefined) user.address.state = address.state;
+          if (address.pin !== undefined) user.address.pin = address.pin;
+          if (address.country !== undefined) user.address.country = address.country;
         }
       } else {
         return res
