@@ -3,6 +3,97 @@ const User = require("../../models/user/index");
 
 module.exports = {
   /**
+   * @api {post} /leavestatus/:id Update Leave Status
+   * @apiName UpdateLeaveStatus
+   * @apiGroup Leave
+   * @apiPermission Admin
+   *
+   * @apiDescription Update the status of a leave request. Only admins can perform this action.
+   *
+   * @apiParam {String} id Leave request ID.
+   *
+   * @apiBody {String} status Status of the leave request. Must be one of "approved", "rejected", or "cancelled".
+   *
+   * @apiExample {json} Request Example:
+   *     PUT /leave/12345
+   *     {
+   *       "status": "approved"
+   *     }
+   *
+   * @apiSuccessExample {json} Success Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "error": false,
+   *       "leave": {
+   *         "_id": "673356750726b5a7972c4516",
+   *         "_school": "670cc3c55aa29e2e31348c7e",
+   *         "_teacher": "670cf24bdbb09a7c2b2af9a0",
+   *         "leaveType": "SL",
+   *         "startDate": "2024-11-06T00:00:00.000Z",
+   *         "endDate": "2024-11-15T00:00:00.000Z",
+   *         "reason": "All Test",
+   *         "status": "approved",
+   *         "appliedDate": "2024-11-12T13:21:57.549Z",
+   *         "createdAt": "2024-11-12T13:21:57.550Z",
+   *         "updatedAt": "2024-11-13T08:05:01.360Z",
+   *         "__v": 0
+   *       }
+   *     }
+   *
+   * @apiErrorExample {json} Error Response (Not Admin):
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "reason": "You are not admin"
+   *     }
+   *
+   * @apiErrorExample {json} Error Response (Invalid Status):
+   *     HTTP/1.1 400 Bad Request
+   *     {
+   *       "error": true,
+   *       "message": "Invalid leave type. Must be one of approved, rejected, or cancelled"
+   *     }
+   */
+
+  async leaveStatus(req, res) {
+    try {
+      const { loginType, _school } = req.user;
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You are not admin" });
+      }
+      if (status === undefined || status === "" || status === null) {
+        return res
+          .status(400)
+          .json({ error: false, reason: `Field 'status' is required` });
+      }
+
+      const leave = await Leave.findOne({ _id: id });
+      if (leave === null) {
+        return res.status(400).json({ error: true, reason: "Leave not found" });
+      }
+
+      if (!["approved", "rejected", "cancelled"].includes(status)) {
+        return res.status(400).json({
+          error: true,
+          message:
+            "Invalid leave type. Must be one of approved, rejected, or cancelled",
+        });
+      }
+
+      leave.status = status;
+      await leave.save();
+
+      return res.status(200).json({ error: false, leave });
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message });
+    }
+  },
+  /**
    * @api {get} /leave/:id Retrieve Leave by ID
    * @apiName GetLeave
    * @apiGroup Leave
