@@ -74,7 +74,6 @@ module.exports = {
  *       "error": "Error processing the data",
  *       "details": "Detailed error message"
  *     }
- * @apiFileName progressReportRoute.js
  */
 
 
