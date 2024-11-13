@@ -448,7 +448,7 @@ async getAllProgressReport(req, res) {
 
     if (academicYear) query.academicYear = academicYear;
     if (className) {
-      const classData = await Class.findOne({ name: className, section:section, academicYear:academicYear });
+      const classData = await Class.findOne({ name: className, section:section, academicYear:academicYear, _school: req.user._school });
       if (!classData) {
         return res.status(404).json({ message: "Class not found." });
       }
@@ -458,9 +458,9 @@ async getAllProgressReport(req, res) {
 
     // Fetch progress reports based on filters
     const progressReports = await ProgressReport.find(query)
-      .populate('_user', 'fullName rollNo ')    // Populate student details (name, rollNo)
-      .populate('_user._class', 'name section -_id')          // Populate class name
-      .populate('_school', 'name -_id');        // Populate school name
+        .populate("_user", "-forgotPassword -password -username") // Populate student details
+        .populate("_school", "name") // Populate only school name
+        .lean();     // Populate school name
 
     // Check if any reports were found
     if (progressReports.length === 0) {
@@ -470,10 +470,11 @@ async getAllProgressReport(req, res) {
     // Return the found progress reports
     res.status(200).json({ progressReports });
   } catch (error) {
-    console.error(`Error fetching progress reports: ${error.message}`);
+    
     res.status(500).json({ error: "Error retrieving progress reports", details: error.message });
   }
 }
+
 
 
 };
