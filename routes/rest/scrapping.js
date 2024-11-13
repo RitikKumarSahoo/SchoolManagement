@@ -7,7 +7,7 @@ puppeteer.use(Stealth());
 module.exports = {
   async getScrapData(req, res) {
     try {
-      const url = "https://www.podchaser.com/charts/apple/us/science?date=2024-11-11";
+      const url = "https://www.podchaser.com/charts/apple/ug/religion%20&%20spirituality/hinduism?date=2024-11-12";
 
       // Launch Puppeteer
       const browser = await puppeteer.launch();
@@ -43,11 +43,12 @@ module.exports = {
       // Extract table rows (for podcast data)
       const podcastData = [];
       $('tbody tr').each((i, row) => {
+        if(i>=10) return false;
         // const rank = $(row).find('td').eq(0).find('span._sn01r5').text().trim() || "N/A"; // Default to "N/A" if rank is missing
         const rank = $(row).find('._sn01r5').text().trim()
-        const podcastLink = $(row).find('td').eq(1).find('a').attr('href');
-        const podcastTitle = $(row).find('td').eq(1).find('a').text().trim();
-        const podcastDescription = $(row).find('td').eq(1).find('p').text().trim();
+        const podcastLink = $(row).find('._1x1973c').attr('href');
+        const podcastTitle = $(row).find('._1x1973c').text().trim();
+        const podcastDescription = $(row).find('div._1xligvk').find('p._15pjoyp').text().trim(); // Extract description
         
         const categoryLinks = [];
         $(row).find('td').eq(2).find('a').each((i, category) => {
