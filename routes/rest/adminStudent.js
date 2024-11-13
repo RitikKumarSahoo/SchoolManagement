@@ -419,7 +419,7 @@ module.exports = {
         phone,
         admissionYear,
         dob,
-        rollNo,
+        // rollNo,
         signature,
         profileImage,
         address,
@@ -441,7 +441,7 @@ module.exports = {
       if (phone !== undefined) user.phone = phone;
       if (admissionYear !== undefined) user.admissionYear = admissionYear;
       if (dob !== undefined) user.dob = dob;
-      if (rollNo !== undefined) user.rollNo = rollNo;
+      // if (rollNo !== undefined) user.rollNo = rollNo;
       // if (_class !== undefined) user._class = _class;
       if (signature !== undefined) user.signature = signature;
       if (profileImage !== undefined) user.profileImage = profileImage;
@@ -473,7 +473,7 @@ module.exports = {
       // Return the updated student
       res.status(200).json({
         message: "Student details updated successfully",
-        student: studentResponse,
+        // student: studentResponse,
       });
     } catch (error) {
       // Handle errors
