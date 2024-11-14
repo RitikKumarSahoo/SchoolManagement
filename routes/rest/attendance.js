@@ -88,7 +88,7 @@ module.exports = {
       }
 
       if(academicYear === undefined){
-        return res.status(400).jsonn({error:true,reason:"Field 'academicYear' is required"})
+        return res.status(400).json({error:true,reason:"Field 'academicYear' is required"})
       }
 
 
