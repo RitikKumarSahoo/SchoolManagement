@@ -80,15 +80,15 @@ module.exports = {
       }
 
       if(classname === undefined){
-        return res.status(400).josn({error:true,reason:"Field 'classname' is required"})
+        return res.status(400).json({error:true,reason:"Field 'classname' is required"})
       }
 
       if(section === undefined){
-        return res.status(400).josn({error:true,reason:"Field 'section' is required"})
+        return res.status(400).json({error:true,reason:"Field 'section' is required"})
       }
 
       if(academicYear === undefined){
-        return res.status(400).josn({error:true,reason:"Field 'academicYear' is required"})
+        return res.status(400).jsonn({error:true,reason:"Field 'academicYear' is required"})
       }
 
 
