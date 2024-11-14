@@ -130,55 +130,47 @@ module.exports = {
   async editData(req, res) {
     try {
       const { loginType, id } = req.user; // loginType can be either "student", "teacher", or "admin"
-
+  
       // Find the user by ID
       const user = await User.findOne({ _id: id });
       if (user === null) {
         return res.status(404).json({ message: "User not found" });
       }
-
+  
       // Check loginType and validate fields
       if (
         loginType === "teacher" ||
         loginType === "admin" ||
         loginType === "student"
       ) {
-        const {
-          firstName,
-          lastName,
-          phone,
-          dob,
-          signature,
-          profileImage,
-          email,
-          guardian,
-          address,
-        } = req.body;
-
-        // Update only if the fields are provided
-        if (firstName !== undefined) user.firstName = firstName;
-        if (lastName !== undefined) user.lastName = lastName;
-        if (phone !== undefined) user.phone = phone;
-        if (dob !== undefined) user.dob = dob;
-        if (signature !== undefined) user.signature = signature;
-        if (profileImage !== undefined) user.profileImage = profileImage;
-        if (email !== undefined) user.email = email;
-
-        // Update guardian details if provided
-        if (guardian) {
-          if (guardian.fathersName !== undefined) user.guardian.fathersName = guardian.fathersName;
-          if (guardian.fathersOccupation !== undefined) user.guardian.fathersOccupation = guardian.fathersOccupation;
-          if (guardian.mothersName !== undefined) user.guardian.mothersName = guardian.mothersName;
-          if (guardian.mothersOccupation !== undefined) user.guardian.mothersOccupation = guardian.mothersOccupation;
+        // Update fields only if provided
+        if (req.body.firstName) user.firstName = req.body.firstName;
+        if (req.body.lastName) user.lastName = req.body.lastName;
+        if (req.body.firstName || req.body.lastName) 
+          user.fullName = `${req.body.firstName || user.firstName} ${req.body.lastName || user.lastName}`;
+        if (req.body.email) user.email = req.body.email;
+        if (req.body.gender) user.gender = req.body.gender;
+        if (req.body.phone) user.phone = req.body.phone;
+        if (req.body.admissionYear) user.admissionYear = req.body.admissionYear;
+        if (req.body.dob) user.dob = req.body.dob;
+        if (req.body.signature) user.signature = req.body.signature;
+        if (req.body.profileImage) user.profileImage = req.body.profileImage;
+  
+        // Update guardian details if provided and not empty
+        if (req.body.guardian) {
+          if (req.body.guardian.fathersName) user.guardian.fathersName = req.body.guardian.fathersName;
+          if (req.body.guardian.fathersOccupation) user.guardian.fathersOccupation = req.body.guardian.fathersOccupation;
+          if (req.body.guardian.mothersName) user.guardian.mothersName = req.body.guardian.mothersName;
+          if (req.body.guardian.mothersOccupation) user.guardian.mothersOccupation = req.body.guardian.mothersOccupation;
         }
-
-        // Update address if provided
-        if (address !== undefined) {
-          if (address.locality !== undefined) user.address.locality = address.locality;
-          if (address.city !== undefined) user.address.city = address.city;
-          if (address.state !== undefined) user.address.state = address.state;
-          if (address.pin !== undefined) user.address.pin = address.pin;
-          if (address.country !== undefined) user.address.country = address.country;
+  
+        // Update address if provided and not empty
+        if (req.body.address) {
+          if (req.body.address.locality) user.address.locality = req.body.address.locality;
+          if (req.body.address.city) user.address.city = req.body.address.city;
+          if (req.body.address.state) user.address.state = req.body.address.state;
+          if (req.body.address.pin) user.address.pin = req.body.address.pin;
+          if (req.body.address.country) user.address.country = req.body.address.country;
         }
       } else {
         return res
@@ -188,10 +180,10 @@ module.exports = {
             reason: "User must be Admin, Teacher or Student",
           });
       }
-
+  
       // Save the updated user to the database
       await user.save();
-
+  
       // Send the response with updated user data
       return res.status(200).json({
         message: "User details updated successfully",
@@ -201,4 +193,5 @@ module.exports = {
       return res.status(500).json({ message: "Server error" });
     }
   },
+  
 };
