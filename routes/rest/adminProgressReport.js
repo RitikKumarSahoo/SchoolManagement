@@ -386,7 +386,7 @@ async get(req, res) {
 },
 
 /**
- * @api {post} /api/v1/progress-report/get-all Get All Progress Reports
+ * @api {post} /getallprogressreport Get All Progress Reports
  * @apiName GetAllProgressReports
  * @apiGroup ProgressReport
  * @apiVersion 1.0.0

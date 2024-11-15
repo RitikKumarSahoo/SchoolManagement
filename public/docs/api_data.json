@@ -4447,12 +4447,12 @@
     "title": "Get All Progress Reports",
     "name": "GetAllProgressReports",
     "group": "ProgressReport",
+    "version": "1.0.0",
     "permission": [
       {
         "name": "Admin, Teacher, SuperAdmin"
       }
     ],
-    "description": "<p>Retrieves all progress reports for students based on filters provided in the request body. Only users with the roles of admin, teacher, or super admin are authorized to access this endpoint.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -4461,7 +4461,7 @@
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>JWT token.</p>"
+            "description": "<p>Bearer token for authentication.</p>"
           }
         ]
       }
@@ -4470,115 +4470,88 @@
       {
         "group": "Body",
         "type": "String",
-        "optional": false,
+        "optional": true,
         "field": "academicYear",
-        "description": "<p>The academic year of the reports (e.g., &quot;2024-2025&quot;).</p>"
+        "description": "<p>Filter by academic year (optional).</p>"
       },
       {
         "group": "Body",
         "type": "String",
         "optional": true,
         "field": "className",
-        "description": "<p>The name of the class (e.g., &quot;10&quot;).</p>"
+        "description": "<p>Filter by class name (optional).</p>"
       },
       {
         "group": "Body",
         "type": "String",
         "optional": true,
         "field": "section",
-        "description": "<p>The section of the class (e.g., &quot;A&quot;).</p>"
+        "description": "<p>Filter by section name (optional).</p>"
       }
     ],
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Object[]",
-            "optional": false,
-            "field": "progressReports",
-            "description": "<p>List of progress reports matching the specified criteria.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "progressReports._user.fullName",
-            "description": "<p>Name of the student.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "progressReports._user.rollNo",
-            "description": "<p>Roll number of the student.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "progressReports._class.name",
-            "description": "<p>Class name.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "progressReports._class.section",
-            "description": "<p>Class section.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "progressReports._school.name",
-            "description": "<p>Name of the school.</p>"
-          }
-        ]
-      }
-    },
     "error": {
       "fields": {
-        "Error 4xx": [
+        "403": [
           {
-            "group": "Error 4xx",
+            "group": "403",
             "optional": false,
             "field": "Unauthorized",
-            "description": "<p>Only admin, teacher, or super admin can access this endpoint.</p>"
+            "description": "<p>User does not have permission to access this resource.</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "ClassNotFound",
+            "description": "<p>No class was found for the specified filters.</p>"
           },
           {
-            "group": "Error 4xx",
+            "group": "404",
             "optional": false,
-            "field": "NotFound",
-            "description": "<p>No progress reports found for the specified criteria.</p>"
-          },
+            "field": "ProgressReportNotFound",
+            "description": "<p>No progress reports were found for the specified filters.</p>"
+          }
+        ],
+        "500": [
           {
-            "group": "Error 4xx",
+            "group": "500",
             "optional": false,
-            "field": "ErrorRetrievingProgressReports",
-            "description": "<p>An error occurred while retrieving the progress reports.</p>"
+            "field": "InternalServerError",
+            "description": "<p>Unexpected server error occurred.</p>"
           }
         ]
       },
       "examples": [
         {
-          "title": "Unauthorized Response:",
-          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized. Access restricted to admin, teacher, or super admin.\"\n}",
+          "title": "Error Response (Class Not Found):",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"Class not found.\"\n}",
           "type": "json"
         },
         {
-          "title": "Not Found Response:",
+          "title": "Error Response (No Progress Reports Found):",
           "content": "HTTP/1.1 404 Not Found\n{\n  \"message\": \"No progress reports found for the specified criteria.\"\n}",
           "type": "json"
         },
         {
-          "title": "Server Error Response:",
-          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Error retrieving progress reports\",\n  \"details\": \"Error message details here\"\n}",
+          "title": "Error Response (Unauthorized):",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": \"Unauthorized. Access restricted to admin, teacher, or super admin.\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "Error Response (Server Error):",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": \"Error retrieving progress reports\",\n  \"details\": \"Error message here.\"\n}",
           "type": "json"
         }
       ]
     },
-    "version": "0.0.0",
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "POST /api/v1/progress-report/get-all\n{\n  \"academicYear\": \"2024-2025\",\n  \"className\": \"10th Grade\",\n  \"section\": \"A\"\n}",
+        "type": "json"
+      }
+    ],
     "filename": "routes/rest/adminProgressReport.js",
     "groupTitle": "ProgressReport"
   },

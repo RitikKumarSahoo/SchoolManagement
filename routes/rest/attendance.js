@@ -79,6 +79,21 @@ module.exports = {
         });
       }
 
+      if(classname === undefined || classname === "" || classname === null){
+        return res.status(400).json({error:true,reason:"Field 'classname' is required"})
+      }
+
+      if(section === undefined || section === "" || section === null){
+        return res.status(400).json({error:true,reason:"Field 'section' is required"})
+      }
+
+      if(academicYear === undefined || academicYear === "" || academicYear === null){
+        return res.status(400).json({error:true,reason:"Field 'academicYear' is required"})
+      }
+
+
+      
+
       const classExist = await Class.findOne({
         name: classname,
         section,
@@ -207,6 +222,14 @@ module.exports = {
           reason: "you do not have permission to take attendance",
         });
       }
+
+      if(studentIds === undefined || studentIds.length === 0){
+        return res.status(400).json({error:true,reason:"Field 'studentIds' is required"})
+      }
+      if(_class === undefined || _class === ""){
+        return res.status(400).json({error:true,reason:"Field '_class' is required"})
+      }
+
       const classExist = await Class.findOne({
         _id: _class,
         _school: req.user._school,
@@ -226,6 +249,10 @@ module.exports = {
         _school: req.user._school,
       });
 
+      if(attendance !== null){
+        return res.status(400).json({error:true,reason:"Attendance has already been taken for today."})
+      }
+
       const classStudents = await User.find({ _class }).select("_id rollNo");
 
       const attendanceRecord = classStudents.map((student) => ({
@@ -234,10 +261,7 @@ module.exports = {
         isPresent: studentIds.includes(student._id.toString()),
       }));
 
-      if (attendance !== null) {
-        attendance.presentIds = studentIds;
-        await attendance.save();
-      } else {
+      
         attendance = await Attendance.create({
           _school: req.user._school,
           _class,
@@ -248,7 +272,7 @@ module.exports = {
 
         classExist.totalClassTill += 1;
         await classExist.save();
-      }
+      
 
       return res
         .status(200)
