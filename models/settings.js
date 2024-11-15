@@ -4,7 +4,7 @@ const settingSchema = new mongoose.Schema({
   availableClasses: [
     {
       grade: { type: String },
-      section: [String],
+      sections: [String],
       monthlyFee: { type: Number }, // student Fee
     },
   ],
@@ -17,8 +17,8 @@ const settingSchema = new mongoose.Schema({
   academicYear: { type: String },
 
   busFee: {
-    type: Map,
-    of: Number,
+    range:{type:String},
+    fee: {type:Number},
   },
   salaryRange: [
     {
