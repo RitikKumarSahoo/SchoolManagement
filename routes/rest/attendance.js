@@ -79,15 +79,15 @@ module.exports = {
         });
       }
 
-      if(classname === undefined){
+      if(classname === undefined || classname === "" || classname === null){
         return res.status(400).json({error:true,reason:"Field 'classname' is required"})
       }
 
-      if(section === undefined){
+      if(section === undefined || section === "" || section === null){
         return res.status(400).json({error:true,reason:"Field 'section' is required"})
       }
 
-      if(academicYear === undefined){
+      if(academicYear === undefined || academicYear === "" || academicYear === null){
         return res.status(400).json({error:true,reason:"Field 'academicYear' is required"})
       }
 
