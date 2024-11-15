@@ -4,7 +4,7 @@ const settingSchema = new mongoose.Schema({
   availableClasses: [
     {
       grade: { type: String },
-      section: [String],
+      sections: [String],
       monthlyFee: { type: Number }, // student Fee
     },
   ],
@@ -16,20 +16,23 @@ const settingSchema = new mongoose.Schema({
 
   academicYear: { type: String },
 
-  busFee: {
-    type: Map,
-    of: Number,
-  },
+  busFee: [
+    {
+      range: { type: String }, // e.g., "1-5", "6-10"
+      fee: { type: Number },  
+    }
+  ],
+
   salaryRange: [
     {
-      classRange: { type: String }, //"1-4", "5-7", "8-10"
+      experienceRange: { type: String }, //"1-4", "5-7", "8-10"
       salary: { type: Number },
     },
   ],
 
   holidays: [
     {
-      name: { type: String }, // Name of the holiday, e.g., "Diwali"
+      occasion: { type: String }, // Name of the holiday, e.g., "Diwali"
       date: { type: Date }, // Specific date of the holiday
     },
   ],
@@ -82,6 +85,8 @@ const settingSchema = new mongoose.Schema({
       }, { _id: false })
     },
   },
-});
+},
+{timestamps:true}
+);
 
 module.exports = mongoose.model("Setting", settingSchema);
