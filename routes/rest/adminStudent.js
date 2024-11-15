@@ -714,7 +714,7 @@ module.exports = {
         .findOne({ _id: id, loginType: "student" })
         .select("-password")
         .populate("_school", "-_id")
-        .populate("_class", "-_id name section")
+        .populate("_class", "-_id name section academic year")
         .populate("_addedBy", "fullName")
         .exec();
 
