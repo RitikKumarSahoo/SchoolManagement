@@ -685,7 +685,8 @@ module.exports = {
    *          "schoolType": "highSchool"
    *      }
    *     "_class": {
-   *       "name": "10th Grade"
+   *       "name": "10",
+   *       "section": "A"
    *     },
    *     "gender": "Male",
    *     "address": "123 Main St",
