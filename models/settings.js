@@ -17,8 +17,8 @@ const settingSchema = new mongoose.Schema({
   academicYear: { type: String },
 
   busFee: {
-    range:{type:String},
-    fee: {type:Number},
+    range: { type: String },
+    fee: { type: Number },
   },
   salaryRange: [
     {
@@ -39,43 +39,43 @@ const settingSchema = new mongoose.Schema({
   isActive: { type: Boolean },
 
   weekSchedule: {
-    mon: { 
-      type: Map, 
+    mon: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
       }, { _id: false })
     },
-    tue: { 
-      type: Map, 
+    tue: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
       }, { _id: false })
     },
-    wed: { 
-      type: Map, 
+    wed: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
       }, { _id: false })
     },
-    thu: { 
-      type: Map, 
+    thu: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
       }, { _id: false })
     },
-    fri: { 
-      type: Map, 
+    fri: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
       }, { _id: false })
     },
-    sat: { 
-      type: Map, 
+    sat: {
+      type: Map,
       of: new mongoose.Schema({
         startTime: { type: String },
         endTime: { type: String },
