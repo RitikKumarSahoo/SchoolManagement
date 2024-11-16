@@ -147,6 +147,18 @@ const UserSchema = new mongoose.Schema({
   experience: {
     type: String,
   },
+
+  remainingLeave: {
+    CL: {
+      type: Number,
+    },
+    PL: {
+      type: Number,
+    },
+    SL: {
+      type: Number,
+    },
+  },
 });
 
 // UserSchema.pre("validate", function (next) {
