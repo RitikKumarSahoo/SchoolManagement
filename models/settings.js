@@ -16,10 +16,12 @@ const settingSchema = new mongoose.Schema({
 
   academicYear: { type: String },
 
-  busFee: {
-    range: { type: String },
+  busFee: [
+   { range: { type: String },
     fee: { type: Number },
-  },
+  }
+  
+  ],
   salaryRange: [
     {
       classRange: { type: String }, //"1-4", "5-7", "8-10"
