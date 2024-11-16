@@ -5,7 +5,7 @@ const settingSchema = new mongoose.Schema({
     {
       grade: { type: String },
       sections: [String],
-      monthlyFee: { type: Number }, // student Fee
+      monthlyFee: { type: Number }, // student Fee  
     },
   ],
 
@@ -20,20 +20,27 @@ const settingSchema = new mongoose.Schema({
    { range: { type: String },
     fee: { type: Number },
   }
-  
   ],
-  salaryRange: [
+
+  salary: [
     {
-      classRange: { type: String }, //"1-4", "5-7", "8-10"
-      salary: { type: Number },
+      range: { type: String },
+      amount: { type: Number },
     },
   ],
 
   holidays: [
     {
       name: { type: String }, // Name of the holiday, e.g., "Diwali"
-      date: { type: Date }, // Specific date of the holiday
+      date: { type: String }, // Specific date of the holiday
     },
+  ],
+
+  leave: [
+    {
+      type:{ type:String , enum:["PL","CL","SL"] },
+      days:{ type: Number, min:0 }
+    }
   ],
 
   date: { type: Date, default: Date.now() },
