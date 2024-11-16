@@ -53,35 +53,16 @@ module.exports = {
 
   async get(req, res) {
     try {
-      const { _school, isSuperAdmin, loginType } = req.user;
-      const schoolId = isSuperAdmin === true ? req.query.schoolId : _school;
-      const { academicYear, isActive } = req.body;
+      const { loginType, _school } = req.user
 
-      if (!(loginType === "admin" || isSuperAdmin === true)) {
-        return res.status(400).json({
-          error: true,
-          reason: "You do not have permission",
-        });
+      if (loginType !== "admin") {
+        return res.status(400).json({ error: true, reason: "You are not admin" })
       }
 
-      const query = { _school: schoolId };
-
-      if (academicYear !== undefined) {
-        query.academicYear = academicYear;
-      }
-
-      if (isActive !== undefined) {
-        query.isActive = isActive;
-      }
-      console.log(query);
-
-      const settings = await Settings.find(query);
+      const settings = await Settings.findOne({ _school }).exec()
 
       if (settings === null) {
-        return res.status(404).json({
-          error: true,
-          message: "Settings not found",
-        });
+        return res.staus(400).json({ error: true, reason: "settings not found" })
       }
 
       return res.status(200).json({
@@ -91,7 +72,7 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({
         error: true,
-        message: error.message,
+        Error: error.message,
       });
     }
   },
@@ -195,26 +176,26 @@ module.exports = {
 
   async settings(req, res) {
     try {
-      const { availableClasses, busFee, salary, holidays, leave, setField} = req.body;
+      const { availableClasses, busFee, salary, holidays, leave, setField } = req.body;
       const { loginType, _school } = req.user;
-  
+
       const fixedSections = ["A", "B", "C", "D"];
       const currentYear = moment().year();
       const nextYear = currentYear + 1;
       const academicYear = `${currentYear}-${nextYear}`;
-  
+
       if (loginType !== "admin") {
         return res.status(400).json({ error: true, reason: "You are not admin" });
       }
 
       let settings = await Settings.findOne({ _school });
 
-      if(setField === undefined || setField === ""){
-        return res.status(400).json({error:true,reason:" Field 'setField' is required "})
+      if (setField === undefined || setField === "") {
+        return res.status(400).json({ error: true, reason: " Field 'setField' is required " })
       }
 
       // set Class
-      if(setField === "class"){
+      if (setField === "class") {
         if (availableClasses === undefined || availableClasses.length === 0) {
           return res.status(400).json({ error: true, reason: "Field 'availableClasses' is required" });
         }
@@ -227,13 +208,13 @@ module.exports = {
               monthlyFee: classInfo.monthlyFee,
             };
           });
-    
+
           settings = await Settings.create({
             _school,
             availableClasses: classesToSave,
             academicYear,
           });
-    
+
           // Create Class documents for each grade and section
           for (const classInfo of classesToSave) {
             for (const section of fixedSections) {
@@ -245,12 +226,12 @@ module.exports = {
               });
             }
           }
-    
-          return res.status(200).json({ error: false,settings });
+
+          return res.status(200).json({ error: false, settings });
         } else {
           // Update existing settings
           const existingClasses = settings.availableClasses.map((c) => c.grade);
-    
+
           for (const classInfo of availableClasses) {
             if (!existingClasses.includes(classInfo.grade)) {
               // Add new class to settings
@@ -259,7 +240,7 @@ module.exports = {
                 sections: fixedSections,
                 monthlyFee: classInfo.monthlyFee,
               });
-    
+
               // Create Class documents for the new grade
               for (const section of fixedSections) {
                 await Class.create({
@@ -278,7 +259,7 @@ module.exports = {
             }
           }// Update busFee if provided
           await settings.save();
-          return res.status(200).json({ error: false,settings });
+          return res.status(200).json({ error: false, settings });
         }
       }
 
@@ -287,7 +268,7 @@ module.exports = {
         if (busFee === undefined || !Array.isArray(busFee)) {
           return res.status(400).json({ error: true, reason: "Field 'busFee' is required and should be a valid array" });
         }
-      
+
         // Validate each busFee entry to ensure it contains range and fee
         for (const entry of busFee) {
           if (!entry.range || !entry.fee) {
@@ -296,24 +277,24 @@ module.exports = {
           if (typeof entry.range !== "string" || typeof entry.fee !== "number") {
             return res.status(400).json({ error: true, reason: "Each busFee entry must have 'range' (string) and 'fee' (number)" });
           }
-  
+
           const rangePattern = /^\d+-\d+$/;
           if (!rangePattern.test(entry.range)) {
             return res.status(400).json({ error: true, reason: `Invalid range format for '${entry.range}'. Use 'start-end' format.` });
           }
         }
-      
+
         // Validate sequential ranges
         const sortedBusFee = [...busFee].sort((a, b) => {
           const [startA] = a.range.split("-").map(Number);
           const [startB] = b.range.split("-").map(Number);
           return startA - startB;
         });
-      
+
         for (let i = 0; i < sortedBusFee.length - 1; i++) {
           const [startCurrent, endCurrent] = sortedBusFee[i].range.split("-").map(Number);
           const [startNext] = sortedBusFee[i + 1].range.split("-").map(Number);
-      
+
           if (endCurrent + 1 !== startNext) {
             return res.status(400).json({
               error: true,
@@ -322,7 +303,7 @@ module.exports = {
           }
         }
         let settings = await Settings.findOne({ _school });
-      
+
         if (settings === null) {
           settings = await Settings.create({
             _school,
@@ -335,7 +316,7 @@ module.exports = {
           return res.status(200).json({ error: false, settings });
         }
       }
-      
+
 
       // SALARY
       if (setField === "salary") {
@@ -345,7 +326,7 @@ module.exports = {
             reason: "Field 'salary' is required and should be a valid array",
           });
         }
-  
+
         for (const entry of salary) {
           if (!entry.range || typeof entry.amount !== "number") {
             return res.status(400).json({
@@ -353,7 +334,7 @@ module.exports = {
               reason: "Each salary entry must have 'range' (string) and 'amount' (number)",
             });
           }
-  
+
           if (!/^\d+-\d+$/.test(entry.range)) {
             return res.status(400).json({
               error: true,
@@ -361,11 +342,11 @@ module.exports = {
             });
           }
         }
-  
+
         // Ensure salary ranges are sequential
         const ranges = salary.map((entry) => entry.range.split('-').map(Number));
         ranges.sort((a, b) => a[0] - b[0]); // Sort ranges by start value
-  
+
         for (let i = 1; i < ranges.length; i++) {
           if (ranges[i][0] !== ranges[i - 1][1] + 1) {
             return res.status(400).json({
@@ -374,7 +355,7 @@ module.exports = {
             });
           }
         }
-  
+
         if (!settings) {
           settings = await Settings.create({
             _school,
@@ -387,7 +368,7 @@ module.exports = {
           return res.status(200).json({ error: false, settings })
         }
       }
-  
+
 
 
       // Holidays
@@ -395,25 +376,25 @@ module.exports = {
         if (holidays === undefined || !Array.isArray(holidays)) {
           return res.status(400).json({ error: true, reason: "Field 'holidays' is required and should be a valid array" });
         }
-      
+
 
         let settings = await Settings.findOne({ _school });
-      
+
         if (!settings) {
           settings = await Settings.create({
             _school,
             holidays: holidays,
           });
-      
+
           return res.status(200).json({ error: false, settings });
         } else {
           settings.holidays = holidays
           await settings.save();
-      
+
           return res.status(200).json({ error: false, settings });
         }
       }
-      
+
       // Leave
       if (setField === "leave") {
         if (!Array.isArray(leave) || leave.length === 0) {
@@ -422,7 +403,7 @@ module.exports = {
             reason: "Field 'leave' is required and should be a valid array",
           });
         }
-  
+
         // Validate each leave entry
         const validLeaveTypes = ["CL", "PL", "SL"];
         for (const entry of leave) {
@@ -432,14 +413,14 @@ module.exports = {
               reason: "Each leave entry must have 'type' (string) and 'days' (number)",
             });
           }
-  
+
           if (!validLeaveTypes.includes(entry.type)) {
             return res.status(400).json({
               error: true,
               reason: `'type' must be one of ${validLeaveTypes.join(", ")}`,
             });
           }
-  
+
           if (entry.days < 0) {
             return res.status(400).json({
               error: true,
@@ -447,7 +428,7 @@ module.exports = {
             });
           }
         }
-  
+
         if (!settings) {
           settings = await Settings.create({
             _school,
@@ -457,10 +438,10 @@ module.exports = {
         } else {
           settings.leave = leave;
           await settings.save();
-          return res.status(200).json({ error: false,  settings });
+          return res.status(200).json({ error: false, settings });
         }
       }
-  
+
 
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
@@ -717,93 +698,93 @@ module.exports = {
     }
   },
 
-// Adjust the import based on your directory structure
+  // Adjust the import based on your directory structure
 
-async setScheduleTime(req, res) {
-  try {
-    const { loginType, isSuperadmin } = req.user;
+  async setScheduleTime(req, res) {
+    try {
+      const { loginType, isSuperadmin } = req.user;
 
-    if (loginType !== 'admin' || isSuperadmin === true) {
-      return res.status(401).json({ error: true, message: 'Unauthorized access' });
-    }
-
-    const { academicYear, availableClasses, weekSchedule } = req.body;
-    const scheduleData = {};
-
-    for (const day in weekSchedule) {
-      const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
-
-      let currentTime = moment(startTime, 'HH:mm');
-      let end = moment(endTime, 'HH:mm');
-      let totalMinutes = end.diff(currentTime, 'minutes');
-
-      // Only subtract break time for weekdays (Monday to Friday)
-      if (day !== 'sat') {
-        totalMinutes -= parseInt(breakTime);  // Deduct 30 minutes for weekdays
+      if (loginType !== 'admin' || isSuperadmin === true) {
+        return res.status(401).json({ error: true, message: 'Unauthorized access' });
       }
 
-      let periodCount = Math.floor(totalMinutes / periodDuration);
-      let periods = {};
-      let periodNumber = 1;
+      const { academicYear, availableClasses, weekSchedule } = req.body;
+      const scheduleData = {};
 
-      // Calculate periods for the given day
-      while (currentTime.isBefore(end) && periodNumber <= periodCount) {
-        let periodStart = moment(currentTime);
-        let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
+      for (const day in weekSchedule) {
+        const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
 
-        // Use string keys for period numbers
-        periods[`period ${periodNumber}`] = {
-          startTime: periodStart.format('HH:mm'),
-          endTime: periodEnd.format('HH:mm'),
-        };
+        let currentTime = moment(startTime, 'HH:mm');
+        let end = moment(endTime, 'HH:mm');
+        let totalMinutes = end.diff(currentTime, 'minutes');
 
-        // Add a 30-minute break after the 3rd period for weekdays only
-        if (periodNumber === 3 && day !== 'sat') {
-          // Insert break time after the 3rd period
-          const breakStart = periodEnd; // Break starts after the 3rd period
-          const breakEnd = moment(breakStart).add(parseInt(breakTime), 'minutes');
-
-          periods["breakTime"] = {
-            startTime: breakStart.format('HH:mm'),
-            endTime: breakEnd.format('HH:mm'),
-          };
-
-          // Update currentTime to be after the break
-          currentTime = breakEnd;
-        } else {
-          // Move to the start time of the next period
-          currentTime = periodEnd;
+        // Only subtract break time for weekdays (Monday to Friday)
+        if (day !== 'sat') {
+          totalMinutes -= parseInt(breakTime);  // Deduct 30 minutes for weekdays
         }
 
-        periodNumber++;
+        let periodCount = Math.floor(totalMinutes / periodDuration);
+        let periods = {};
+        let periodNumber = 1;
+
+        // Calculate periods for the given day
+        while (currentTime.isBefore(end) && periodNumber <= periodCount) {
+          let periodStart = moment(currentTime);
+          let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
+
+          // Use string keys for period numbers
+          periods[`period ${periodNumber}`] = {
+            startTime: periodStart.format('HH:mm'),
+            endTime: periodEnd.format('HH:mm'),
+          };
+
+          // Add a 30-minute break after the 3rd period for weekdays only
+          if (periodNumber === 3 && day !== 'sat') {
+            // Insert break time after the 3rd period
+            const breakStart = periodEnd; // Break starts after the 3rd period
+            const breakEnd = moment(breakStart).add(parseInt(breakTime), 'minutes');
+
+            periods["breakTime"] = {
+              startTime: breakStart.format('HH:mm'),
+              endTime: breakEnd.format('HH:mm'),
+            };
+
+            // Update currentTime to be after the break
+            currentTime = breakEnd;
+          } else {
+            // Move to the start time of the next period
+            currentTime = periodEnd;
+          }
+
+          periodNumber++;
+        }
+
+        // Save the periods for the day in the scheduleData object
+        scheduleData[day] = periods;
       }
 
-      // Save the periods for the day in the scheduleData object
-      scheduleData[day] = periods;
+      // Create and save the new schedule in the database
+      const newSchedule = new Settings({
+        academicYear,
+        availableClasses,
+        weekSchedule: scheduleData,
+        _school: req.user._school
+      });
+
+      await newSchedule.save();
+
+      // Return a success response with the saved schedule
+      res.json({
+        message: 'Schedule created successfully',
+        weekSchedule: newSchedule.weekSchedule,
+        _school: req.user._school
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-
-    // Create and save the new schedule in the database
-    const newSchedule = new Settings({
-      academicYear,
-      availableClasses,
-      weekSchedule: scheduleData,
-      _school: req.user._school 
-    });
-
-    await newSchedule.save();
-
-    // Return a success response with the saved schedule
-    res.json({
-      message: 'Schedule created successfully',
-      weekSchedule: newSchedule.weekSchedule,
-      _school: req.user._school
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
-}
 
 
 
