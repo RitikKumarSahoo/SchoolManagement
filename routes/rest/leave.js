@@ -1,5 +1,7 @@
 const Leave = require("../../models/leave");
 const User = require("../../models/user/index");
+const Settings = require("../../models/settings")
+const moment = require("moment")
 
 module.exports = {
   /**
@@ -384,65 +386,142 @@ module.exports = {
    *     }
    */
 
+
+
   async applyLeave(req, res) {
     try {
-      const { leaveType, startDate, endDate, reason, isHalfDay } = req.body;
-      const { loginType, _school } = req.user;
+      const { leaveType, startDate, endDate, reason } = req.body;
+      const { id: teacherId, loginType, _school } = req.user;
 
-      if (loginType !== "teacher")
-        return res
-          .status(400)
-          .json({ error: true, reason: "you are not teacher" });
-
-      if (startDate === undefined) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "startDate is required" });
-      }
-      if (endDate === undefined) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "endDate is required" });
-      }
-      if (reason === undefined) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "reason is required" });
+      if (loginType !== "teacher") {
+        return res.status(403).json({ error: true, message: "Access restricted to teachers only." });
       }
 
-      if (!(leaveType === undefined || isHalfDay === undefined)) {
+      if (!leaveType || !startDate || !endDate || !reason) {
+        return res.status(400).json({ error: true, message: "Missing required fields." });
+      }
+
+      if (!["PL", "CL", "SL"].includes(leaveType)) {
+        return res.status(400).json({ error: true, message: "Invalid leave type." });
+      }
+
+      const start = moment(startDate, "DD/MM/YYYY");
+      const end = moment(endDate, "DD/MM/YYYY");
+      const today = moment();
+
+      
+
+      if (!start.isValid() || !end.isValid()) {
+        return res.status(400).json({ error: true, message: "Invalid date format. Use DD/MM/YYYY." });
+      }
+      if (start.isBefore(today, "day")) {
+        return res.status(400).json({ error: true, message: "Cannot apply for past dates." });
+      }
+      if (start.isAfter(end)) {
+        return res.status(400).json({ error: true, message: "Start date cannot be after end date." });
+      }
+
+      const teacher = await User.findOne({ _id: teacherId });
+      if (!teacher) {
+        return res.status(404).json({ error: true, message: "Teacher not found." });
+      }
+
+      const settings = await Settings.findOne({ _school });
+      if (!settings) {
+        return res.status(404).json({ error: true, message: "School settings not found." });
+      }
+
+      const { holidays, leave } = settings;
+      const holidayDates = holidays.map((h) => moment(h.date, "DD/MM/YYYY").format("YYYY-MM-DD"));
+
+      const leaveQuota = leave.find((l) => l.type === leaveType)?.days || 0;
+      const remainingLeave = teacher.remainingLeave?.[leaveType] || 0;
+
+      if (remainingLeave <= 0) {
         return res.status(400).json({
           error: true,
-          reason: "'leaveType' or 'isHalfDay' is required",
+          message: `No remaining ${leaveType} leave available.`,
         });
       }
-      if (leaveType)
-        if (!["PL", "CL", "SL"].includes(leaveType)) {
-          return res.status(400).json({
-            error: true,
-            message: "Invalid leave type. Must be one of CL, PL, or SL",
-          });
-        }
 
-      const leave = new Leave({
-        _school,
-        _teacher: req.user._id,
-        leaveType,
-        startDate,
-        endDate,
-        reason,
-        isHalfDay,
-        appliedDate: new Date(),
+      // Check for overlapping leaves
+      const overlappingLeaves = await Leave.findOne({
+        _teacher: teacherId,
+        $or: [
+          { startDate: { $lte: end.toDate() }, endDate: { $gte: start.toDate() } },
+        ],
       });
 
-      await leave.save();
-      return res
-        .status(201)
-        .json({ error: false, message: "Leave applied successfully", leave });
+      if (overlappingLeaves) {
+        return res.status(400).json({
+          error: true,
+          message: "You have already applied for leave during this period.",
+        });
+      }
+
+      let validLeaveDays = 0;
+
+      for (let date = moment(start); date.isSameOrBefore(end); date.add(1, "days")) {
+        const isSunday = date.isoWeekday() === 7;
+        const isHoliday = holidayDates.includes(date.format("YYYY-MM-DD"));
+
+        if (!isSunday && !isHoliday) {
+          validLeaveDays++;
+        }
+      }
+
+      if (validLeaveDays === 0) {
+        return res.status(400).json({
+          error: true,
+          message: "All selected dates are Sundays or holidays. No valid leave days.",
+        });
+      }
+
+      if (validLeaveDays > remainingLeave) {
+        return res.status(400).json({
+          error: true,
+          message: `Insufficient leave. You have ${remainingLeave} ${leaveType} days remaining.`,
+        });
+      }
+
+      const newLeave = new Leave({
+        _teacher: teacherId,
+        _school,
+        leaveType,
+        startDate: start.toDate(),
+        endDate: end.toDate(),
+        reason,
+        appliedDate: new Date(),
+        totalLeaves: validLeaveDays, // Include total leave days
+      });
+
+      await newLeave.save();
+
+      teacher.remainingLeave[leaveType] -= validLeaveDays;
+      await teacher.save();
+
+      return res.status(201).json({
+        error: false,
+        message: "Leave applied successfully.",
+        leaveDetails: {
+          _id: newLeave._id,
+          _teacher: newLeave._teacher,
+          _school: newLeave._school,
+          leaveType: newLeave.leaveType,
+          startDate: newLeave.startDate,
+          endDate: newLeave.endDate,
+          reason: newLeave.reason,
+          appliedDate: newLeave.appliedDate,
+          totalLeaves: newLeave.totalLeaves,
+        },
+        remainingLeave: teacher.remainingLeave,
+      });
     } catch (error) {
-      return res.status(500).json({ error: true, message: error.message });
+      console.error("Error in applyLeave:", error);
+      return res.status(500).json({ error: true, message: "Internal server error." });
     }
   },
+
 
   /**
    * @api {post} /leave/get Get Leaves
