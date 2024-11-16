@@ -209,6 +209,10 @@ module.exports = {
 
       let settings = await Settings.findOne({ _school });
 
+      if(setField === undefined || setField === ""){
+        return res.status(400).json({error:true,reason:" Field 'setField' is required "})
+      }
+
       // set Class
       if(setField === "class"){
         if (availableClasses === undefined || availableClasses.length === 0) {
