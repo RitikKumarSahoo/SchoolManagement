@@ -4,6 +4,65 @@ const Settings = require("../../models/settings")
 const moment = require("moment")
 
 module.exports = {
+
+  /**
+ * @api {get} /remainingleave Get Teacher Remaining Leave
+ * @apiName GetRemainingLeave
+ * @apiGroup Leave
+ * @apiPermission Teacher
+ * 
+ * @apiDescription Retrieve the remaining leave for the logged-in teacher.
+ *
+ * @apiHeader {String} Authorization Bearer token for authentication.
+ *
+ * @apiSuccess {Object} user User object containing remaining leave details.
+ * @apiSuccess {Object} user.remainingLeave Leave balance details.
+ * @apiSuccess {Number} user.remainingLeave.CL Casual Leave balance.
+ * @apiSuccess {Number} user.remainingLeave.PL Privilege Leave balance.
+ * @apiSuccess {Number} user.remainingLeave.SL Sick Leave balance.
+ *
+ * @apiSuccessExample {json} Success Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "error": false,
+ *       "user": {
+ *         "remainingLeave": {
+ *           "CL": 2,
+ *           "PL": 7,
+ *           "SL": 6
+ *         }
+ *       }
+ *     }
+ *
+ * @apiErrorExample {json} Unauthorized (Not a Teacher):
+ *     HTTP/1.1 400 Bad Request
+ *     {
+ *       "error": true,
+ *       "reason": "You are not teacher"
+ *     }
+ *
+ * @apiErrorExample {json} Internal Server Error:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "error": true,
+ *       "Error": "Some internal error message"
+ *     }
+ */
+
+  async remainingLeave(req, res) {
+    const { _id, loginType } = req.user
+    try {
+      if (loginType !== "teacher") {
+        return res.status(400).json({ error: true, reason: "You are not teacher" })
+      }
+      const user = await User.findOne({ _id: req.user._id }).select("remainingLeave").exec()
+
+      return res.status(200).json({ error: false, user })
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message })
+    }
+  },
+
   /**
    * @api {post} /leavestatus/:id Update Leave Status
    * @apiName UpdateLeaveStatus
@@ -246,7 +305,7 @@ module.exports = {
   /**
    * @api {post} /leave/find Find Teacher Leaves
    * @apiName FindTeacherLeaves
-   * @apiGroup Leaves
+   * @apiGroup Leave
    * @apiPermission Teacher
    *
    * @apiDescription This endpoint allows teachers to retrieve their leave requests with optional filtering by leave type, reason, or status.
@@ -325,7 +384,7 @@ module.exports = {
    * @api {post} /teacher/leave Apply Leave
    * @apiDescription Allows teachers to apply for leave by providing the necessary details.
    * @apiVersion 1.0.0
-   * @apiGroup Leaves
+   * @apiGroup Leave
    *
    * @apiHeader {String} Authorization Bearer token for authentication
    *
@@ -527,7 +586,7 @@ module.exports = {
    * @api {post} /leave/get Get Leaves
    * @apiDescription Fetches leave applications for teachers or all teachers by admin. Teachers can filter their leaves based on leave type and status, while admins can view leaves for specific teachers or filter by leave type and status.
    * @apiVersion 1.0.0
-   * @apiGroup Leaves
+   * @apiGroup Leave
    *
    * @apiHeader {String} Authorization Bearer token for authentication
    *

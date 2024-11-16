@@ -197,5 +197,6 @@ router.post("/leave/get", leave.getLeaves);
 router.post("/leave/find", leave.find);
 router.post("/leaves", leave.allLeaves);
 router.post("/leavestatus/:id", leave.leaveStatus);
+router.get("/remainingleave", leave.remainingLeave)
 
 module.exports = router;
