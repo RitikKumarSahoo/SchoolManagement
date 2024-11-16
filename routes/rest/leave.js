@@ -16,10 +16,10 @@ module.exports = {
  * @apiHeader {String} Authorization Bearer token for authentication.
  *
  * @apiSuccess {Object} user User object containing remaining leave details.
- * @apiSuccess {Object} user.remainingLeave Leave balance details.
- * @apiSuccess {Number} user.remainingLeave.CL Casual Leave balance.
- * @apiSuccess {Number} user.remainingLeave.PL Privilege Leave balance.
- * @apiSuccess {Number} user.remainingLeave.SL Sick Leave balance.
+ * @apiSuccess {Object} user.remainingLeave Leave details.
+ * @apiSuccess {Number} user.remainingLeave.CL Casual Leave .
+ * @apiSuccess {Number} user.remainingLeave.PL Privilege Leave.
+ * @apiSuccess {Number} user.remainingLeave.SL Sick Leave .
  *
  * @apiSuccessExample {json} Success Response:
  *     HTTP/1.1 200 OK
