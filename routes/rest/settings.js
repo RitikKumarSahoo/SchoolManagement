@@ -377,21 +377,20 @@ module.exports = {
           }
         }
         let settings = await Settings.findOne({ _school });
-        if (!settings) {
+        if (settings === null) {
           settings = await Settings.create({
             _school,
-            busFee: busFee,
+            busFee
           });
-  
           return res.status(200).json({ error: false,settings });
         } else {
           settings.busFee = busFee;
-          await settings.save();
-  
-          return res.status(200).json({ error: false, settings });
+          await settings.save()
+          return res.status(200).json({ error: false, settings })
         }
       }
 
+      // Holidays
       if (setField === "holidays") {
         if (holidays === undefined || !Array.isArray(holidays)) {
           return res.status(400).json({ error: true, reason: "Field 'holidays' is required and should be a valid array" });
