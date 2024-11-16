@@ -185,7 +185,7 @@ router.get("/admin/class/get/:id", adminClassRoute.get);
 router.post("/admin/class/assignclass", adminClassRoute.assignClass);
 
 //settings
-router.post("/admin/settings", settings.get);
+router.get("/admin/settings", settings.get);
 router.post("/admin/setsettings", settings.settings);
 router.put("/admin/updatesettings", settings.updateClassSettings);
 router.delete("/admin/deletesetting", settings.deleteSetting);
