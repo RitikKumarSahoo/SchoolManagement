@@ -9,6 +9,7 @@ const csv = require("csv-parser");
 const stripe = require("stripe")(
   "sk_test_51Pt2xx1xyS6eHcGHSrfLdSfyQQESKMatwXTA28TYmUMCXpnI2zjv1auMtdIZSyV771lqArWjZlXzFXE9yt87mbdS00ypiNeR0x"
 );
+const Settings = require("../../models/settings")
 
 function generateCustomPassword() {
   const upperCaseLetter = randomstring.generate({
@@ -639,6 +640,16 @@ module.exports = {
         }
       }
 
+      // Fetch leave settings from the Settings model
+      const leaveSettings = await Settings.findOne({ _school: req.user._school })
+        .select("leave")
+        .exec();
+
+      const remainingLeave = leaveSettings.leave.reduce((acc, leave) => {
+        acc[leave.type] = leave.days; 
+        return acc;
+      }, {});
+
       const user = await User.create({
         firstName,
         lastName,
@@ -661,6 +672,7 @@ module.exports = {
         profileImage,
         qualification,
         experience,
+        remainingLeave
       });
 
       const schoolName = await School.findOne({ _id: req.user._school })
@@ -1110,8 +1122,8 @@ module.exports = {
               const subjectArray = subject
                 ? subject.includes("|")
                   ? subject
-                      .split("|")
-                      .map((s) => s.trim().replace(/^'|'$/g, ""))
+                    .split("|")
+                    .map((s) => s.trim().replace(/^'|'$/g, ""))
                   : [subject.trim().replace(/^'|'$/g, "")]
                 : [];
 
