@@ -193,94 +193,9 @@ module.exports = {
    *     }
    */
 
-  async setSettings(req, res) {
-    try {
-      const { availableClasses, academicYear, busFee, schoolId } = req.body;
-      const { _id, _school, loginType, isSuperAdmin } = req.user;
-
-      if (!(loginType === "admin" || isSuperAdmin === true)) {
-        return res
-          .status(400)
-          .json({ error: true, reason: "You do not have permission" });
-      }
-
-      const fixedSections = ["A", "B", "C", "D"];
-
-      let settings = await Settings.findOne({
-        _school: isSuperAdmin === true ? schoolId : _school,
-        academicYear,
-      });
-
-      if (settings === null) {
-        settings = await Settings.create({
-          _school,
-          academicYear,
-          availableClasses: availableClasses.map((classInfo) => ({
-            grade: classInfo.grade,
-            section: fixedSections,
-            monthlyFee: classInfo.monthlyFee,
-            salary: classInfo.salary,
-          })),
-          busFee: busFee,
-          isActive: true,
-        });
-      } else {
-        availableClasses.forEach((classInfo) => {
-          if (
-            !settings.availableClasses.some((c) => c.grade === classInfo.grade)
-          ) {
-            settings.availableClasses.push({
-              grade: classInfo.grade,
-              section: fixedSections,
-              monthlyFee: classInfo.monthlyFee,
-              salary: classInfo.salary,
-            });
-          }
-        });
-
-        if (busFee) {
-          settings.busFee = busFee;
-        }
-        await settings.save();
-      }
-
-      const classPromises = [];
-      for (const classInfo of availableClasses) {
-        const { grade } = classInfo;
-
-        for (const section of fixedSections) {
-          const existingClass = await Class.findOne({
-            name: grade,
-            section,
-            academicYear,
-            _school,
-          });
-
-          if (!existingClass) {
-            classPromises.push(
-              Class.create({
-                name: grade,
-                section,
-                academicYear,
-                _school,
-              })
-            );
-          }
-        }
-      }
-      const classes = await Promise.all(classPromises);
-
-      return res
-        .status(200)
-        .json({ error: false, settingsClass: settings, AllClass: classes });
-    } catch (error) {
-      return res.status(500).json({ error: true, Error: error.message });
-    }
-  },
-
   async settings(req, res) {
     try {
-      const { availableClasses, busFee, salaryRange, holidays, setField} = req.body;
+      const { availableClasses, busFee, salary, holidays, leave, setField} = req.body;
       const { loginType, _school } = req.user;
   
       const fixedSections = ["A", "B", "C", "D"];
@@ -368,6 +283,8 @@ module.exports = {
         if (busFee === undefined || !Array.isArray(busFee)) {
           return res.status(400).json({ error: true, reason: "Field 'busFee' is required and should be a valid array" });
         }
+      
+        // Validate each busFee entry to ensure it contains range and fee
         for (const entry of busFee) {
           if (!entry.range || !entry.fee) {
             return res.status(400).json({ error: true, reason: "Each busFee entry must have 'range' and 'fee' properties" });
@@ -375,20 +292,99 @@ module.exports = {
           if (typeof entry.range !== "string" || typeof entry.fee !== "number") {
             return res.status(400).json({ error: true, reason: "Each busFee entry must have 'range' (string) and 'fee' (number)" });
           }
+  
+          const rangePattern = /^\d+-\d+$/;
+          if (!rangePattern.test(entry.range)) {
+            return res.status(400).json({ error: true, reason: `Invalid range format for '${entry.range}'. Use 'start-end' format.` });
+          }
+        }
+      
+        // Validate sequential ranges
+        const sortedBusFee = [...busFee].sort((a, b) => {
+          const [startA] = a.range.split("-").map(Number);
+          const [startB] = b.range.split("-").map(Number);
+          return startA - startB;
+        });
+      
+        for (let i = 0; i < sortedBusFee.length - 1; i++) {
+          const [startCurrent, endCurrent] = sortedBusFee[i].range.split("-").map(Number);
+          const [startNext] = sortedBusFee[i + 1].range.split("-").map(Number);
+      
+          if (endCurrent + 1 !== startNext) {
+            return res.status(400).json({
+              error: true,
+              reason: `Ranges are not sequential. Found gap or overlap between '${sortedBusFee[i].range}' and '${sortedBusFee[i + 1].range}'.`,
+            });
+          }
         }
         let settings = await Settings.findOne({ _school });
+      
         if (settings === null) {
           settings = await Settings.create({
             _school,
-            busFee
+            busFee,
           });
-          return res.status(200).json({ error: false,settings });
+          return res.status(200).json({ error: false, settings });
         } else {
           settings.busFee = busFee;
+          await settings.save();
+          return res.status(200).json({ error: false, settings });
+        }
+      }
+      
+
+      // SALARY
+      if (setField === "salary") {
+        if (salary === undefined || !Array.isArray(salary)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Field 'salary' is required and should be a valid array",
+          });
+        }
+  
+        for (const entry of salary) {
+          if (!entry.range || typeof entry.amount !== "number") {
+            return res.status(400).json({
+              error: true,
+              reason: "Each salary entry must have 'range' (string) and 'amount' (number)",
+            });
+          }
+  
+          if (!/^\d+-\d+$/.test(entry.range)) {
+            return res.status(400).json({
+              error: true,
+              reason: "Range must be in the format '12-24' (months)",
+            });
+          }
+        }
+  
+        // Ensure salary ranges are sequential
+        const ranges = salary.map((entry) => entry.range.split('-').map(Number));
+        ranges.sort((a, b) => a[0] - b[0]); // Sort ranges by start value
+  
+        for (let i = 1; i < ranges.length; i++) {
+          if (ranges[i][0] !== ranges[i - 1][1] + 1) {
+            return res.status(400).json({
+              error: true,
+              reason: "Salary ranges must be sequential, with no gaps between them.",
+            });
+          }
+        }
+  
+        if (!settings) {
+          settings = await Settings.create({
+            _school,
+            salary,
+          });
+          return res.status(200).json({ error: false, settings })
+        } else {
+          settings.salary = salary
           await settings.save()
           return res.status(200).json({ error: false, settings })
         }
       }
+  
+
 
       // Holidays
       if (setField === "holidays") {
@@ -414,10 +410,54 @@ module.exports = {
         }
       }
       
+      // Leave
+      if (setField === "leave") {
+        if (!Array.isArray(leave) || leave.length === 0) {
+          return res.status(400).json({
+            error: true,
+            reason: "Field 'leave' is required and should be a valid array",
+          });
+        }
   
-      
-      
+        // Validate each leave entry
+        const validLeaveTypes = ["CL", "PL", "SL"];
+        for (const entry of leave) {
+          if (!entry.type || typeof entry.days !== "number") {
+            return res.status(400).json({
+              error: true,
+              reason: "Each leave entry must have 'type' (string) and 'days' (number)",
+            });
+          }
   
+          if (!validLeaveTypes.includes(entry.type)) {
+            return res.status(400).json({
+              error: true,
+              reason: `'type' must be one of ${validLeaveTypes.join(", ")}`,
+            });
+          }
+  
+          if (entry.days < 0) {
+            return res.status(400).json({
+              error: true,
+              reason: "'days' must be a non-negative number",
+            });
+          }
+        }
+  
+        if (!settings) {
+          settings = await Settings.create({
+            _school,
+            leave,
+          });
+          return res.status(200).json({ error: false, settings });
+        } else {
+          settings.leave = leave;
+          await settings.save();
+          return res.status(200).json({ error: false,  settings });
+        }
+      }
+  
+
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
     }
