@@ -23,6 +23,8 @@ const leaveSchema = new mongoose.Schema(
 
     reason: { type: String },
 
+    totalLeaves: { type: Number}, 
+
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "cancelled"],
