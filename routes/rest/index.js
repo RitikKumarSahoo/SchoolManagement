@@ -187,7 +187,7 @@ router.post("/admin/class/assignclass", adminClassRoute.assignClass);
 //settings
 router.get("/admin/settings", settings.get);
 router.post("/admin/setsettings", settings.settings);
-router.put("/admin/updatesettings", settings.updateClassSettings);
+router.put("/admin/updatesettings", settings.updateSettings);
 router.delete("/admin/deletesetting", settings.deleteSetting);
 router.post("/admin/setscheduletime",settings.setScheduleTime);
 
