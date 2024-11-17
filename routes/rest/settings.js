@@ -529,98 +529,176 @@ module.exports = {
    *     }
    */
 
-  async updateClassSettings(req, res) {
+  async updateSettings(req, res) {
     try {
-      const { availableClasses, busFee, isActive, academicYear } = req.body;
-      const { _school, loginType, isSuperAdmin } = req.user;
-      let fixedSections = ["A", "B", "C", "D"];
-
-      if (!(loginType === "admin" || isSuperAdmin === true)) {
-        return res.status(400).json({ error: true, reason: "" });
+      const { availableClasses, busFee, salary, holidays, leave, setField } = req.body;
+      const { loginType, _school } = req.user;
+  
+      if (loginType !== "admin") {
+        return res.status(403).json({ error: true, reason: "You are not authorized to perform this action." });
       }
-
-      let settings = await Settings.findOne({
-        _school,
-        academicYear,
-      });
-
+  
+      if (setField === undefined || setField === "") {
+        return res.status(400).json({ error: true, reason: "Field 'setField' is required" });
+      }
+  
+      let settings = await Settings.findOne({ _school });
       if (settings === null) {
-        return res.status(404).json({
-          error: true,
-          message: "Settings not found",
-        });
+        return res.status(404).json({ error: true, reason: "Settings not found for the school." });
       }
-
-      if (busFee) {
-        Object.keys(busFee).forEach((key) => {
-          settings.busFee.set(key, busFee[key]);
-        });
-      }
-
-      if (typeof isActive === "boolean") {
-        settings.isActive = isActive;
-      }
-
-      if (academicYear !== undefined) {
-        settings.academicYear = academicYear;
-      }
-
-      const classPromises = [];
-      if (availableClasses !== undefined && availableClasses.length > 0) {
-        availableClasses.forEach((classInfo) => {
-          const existingClass = settings.availableClasses.find(
-            (c) => c.grade === classInfo.grade
-          );
-
+  
+      if (setField === "class") {
+        if (!availableClasses || !Array.isArray(availableClasses) || availableClasses.length === 0) {
+          return res.status(400).json({ error: true, reason: "Field 'availableClasses' is required and must be a non-empty array." });
+        }
+        const fixedSections = ["A", "B", "C", "D"];
+  
+        for (const classInfo of availableClasses) {
+          const existingClass = settings.availableClasses.find(c => c.grade === classInfo.grade);
+  
           if (existingClass) {
-            if (classInfo.section) {
-              existingClass.section = classInfo.section;
-            }
-
-            if (classInfo.monthlyFee !== undefined) {
+            if (classInfo.monthlyFee) {
               existingClass.monthlyFee = classInfo.monthlyFee;
-            }
-
-            if (classInfo.salary !== undefined) {
-              existingClass.salary = classInfo.salary;
             }
           } else {
             settings.availableClasses.push({
               grade: classInfo.grade,
-              section: ["A", "B", "C", "D"],
+              sections: fixedSections,
               monthlyFee: classInfo.monthlyFee,
-              salary: classInfo.salary,
             });
-
-            for (const section of fixedSections) {
-              classPromises.push(
-                Class.create({
-                  name: classInfo.grade,
-                  section,
-                  academicYear: settings.academicYear,
-                  _school,
-                })
-              );
-            }
           }
-        });
+        }
       }
-
+  
+      // Handling "busFee" update: Update bus fees
+      if (setField === "busFee") {
+        if (!busFee || !Array.isArray(busFee)) {
+          return res.status(400).json({ error: true, reason: "Field 'busFee' is required and should be a valid array." });
+        }
+  
+        // Validate bus fee entries
+        for (const entry of busFee) {
+          if (!entry.range || !entry.fee) {
+            return res.status(400).json({ error: true, reason: "Each busFee entry must have 'range' and 'fee' properties." });
+          }
+          if (typeof entry.range !== "string" || typeof entry.fee !== "number") {
+            return res.status(400).json({ error: true, reason: "Each busFee entry must have 'range' (string) and 'fee' (number)." });
+          }
+          const rangePattern = /^\d+-\d+$/;
+          if (!rangePattern.test(entry.range)) {
+            return res.status(400).json({ error: true, reason: `Invalid range format for '${entry.range}'. Use 'start-end' format.` });
+          }
+        }
+  
+        // Update the bus fee
+        settings.busFee = busFee;
+      }
+  
+      // Handling "salary" update: Update salary ranges
+      if (setField === "salary") {
+        if (!salary || !Array.isArray(salary)) {
+          return res.status(400).json({ error: true, reason: "Field 'salary' is required and should be a valid array." });
+        }
+  
+        // Validate salary entries
+        for (const entry of salary) {
+          if (!entry.range || typeof entry.amount !== "number") {
+            return res.status(400).json({ error: true, reason: "Each salary entry must have 'range' (string) and 'amount' (number)." });
+          }
+          if (!/^\d+-\d+$/.test(entry.range)) {
+            return res.status(400).json({ error: true, reason: "Range must be in the format '12-24' (months)." });
+          }
+        }
+  
+        // Ensure salary ranges are sequential
+        const ranges = salary.map(entry => entry.range.split('-').map(Number));
+        ranges.sort((a, b) => a[0] - b[0]);
+  
+        for (let i = 1; i < ranges.length; i++) {
+          if (ranges[i][0] !== ranges[i - 1][1] + 1) {
+            return res.status(400).json({ error: true, reason: "Salary ranges must be sequential, with no gaps between them." });
+          }
+        }
+  
+        // Update salary
+        settings.salary = salary;
+      }
+  
+      // Handling "holidays" update: Update holidays (can update name and date)
+      if (setField === "holidays") {
+        if (!holidays || !Array.isArray(holidays)) {
+          return res.status(400).json({
+            error: true,
+            reason: "Field 'holidays' is required and should be a valid array."
+          });
+        }
+  
+        // Validate each holiday entry
+        for (const holiday of holidays) {
+          if (!holiday.name || typeof holiday.name !== "string") {
+            return res.status(400).json({
+              error: true,
+              reason: "Each holiday entry must have a 'name' property of type string."
+            });
+          }
+  
+          if (!holiday.date || typeof holiday.date !== "string") {
+            return res.status(400).json({
+              error: true,
+              reason: "Each holiday entry must have a 'date' property of type string."
+            });
+          }
+  
+          // Validate date format using moment
+          if (!moment(holiday.date, "DD/MM/YYYY", true).isValid()) {
+            return res.status(400).json({
+              error: true,
+              reason: `Invalid date format for holiday '${holiday.name}'. Please use the format 'DD/MM/YYYY'.`
+            });
+          }
+        }
+  
+        // Update holidays
+        settings.holidays = holidays;
+      }
+  
+      // Handling "leave" update: Update leave types
+      if (setField === "leave") {
+        if (!leave || !Array.isArray(leave)) {
+          return res.status(400).json({ error: true, reason: "Field 'leave' is required and should be a valid array." });
+        }
+  
+        const validLeaveTypes = ["CL", "PL", "SL"];
+  
+        // Validate each leave entry
+        for (const entry of leave) {
+          if (!entry.type || typeof entry.days !== "number") {
+            return res.status(400).json({ error: true, reason: "Each leave entry must have 'type' (string) and 'days' (number)." });
+          }
+  
+          if (!validLeaveTypes.includes(entry.type)) {
+            return res.status(400).json({ error: true, reason: `'type' must be one of ${validLeaveTypes.join(", ")}` });
+          }
+  
+          if (entry.days < 0) {
+            return res.status(400).json({ error: true, reason: "'days' must be a non-negative number" });
+          }
+        }
+  
+        // Update leave
+        settings.leave = leave;
+      }
+  
+      // Save the updated settings
       await settings.save();
-      if (classPromises.length > 0) await Promise.all(classPromises);
-
-      return res.status(200).json({
-        error: false,
-        message: "Class settings updated successfully",
-        updatedSettings: settings,
-      });
+  
+      return res.status(200).json({ error: false, settings });
+  
     } catch (error) {
-      return res.status(500).json({
-        error: true,
-        message: error.message,
-      });
+      return res.status(500).json({ error: true, message: error.message });
     }
   },
+  
 
   /**
    * @api {delete} /admin/deletesetting Delete Setting
