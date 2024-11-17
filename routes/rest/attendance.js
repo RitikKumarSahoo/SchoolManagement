@@ -48,7 +48,7 @@ module.exports = {
 
   async getClassStudentsForAttendance(req, res) {
     try {
-      const { classname, section, academicYear, schoolId } = req.body;
+      const { classname, section, schoolId } = req.body;
       const { loginType, isSuperAdmin } = req.user;
       let { pageNumber, pageSize } = req.body;
 
@@ -79,20 +79,20 @@ module.exports = {
         });
       }
 
-      if(classname === undefined || classname === "" || classname === null){
-        return res.status(400).json({error:true,reason:"Field 'classname' is required"})
+      if (classname === undefined || classname === "" || classname === null) {
+        return res.status(400).json({ error: true, reason: "Field 'classname' is required" })
       }
 
-      if(section === undefined || section === "" || section === null){
-        return res.status(400).json({error:true,reason:"Field 'section' is required"})
+      if (section === undefined || section === "" || section === null) {
+        return res.status(400).json({ error: true, reason: "Field 'section' is required" })
       }
 
-      if(academicYear === undefined || academicYear === "" || academicYear === null){
-        return res.status(400).json({error:true,reason:"Field 'academicYear' is required"})
-      }
+      const currentYear = currentDate.year();
+      const academicYear =
+        currentDate.month() >= 2
+          ? `${currentYear}-${currentYear + 1}` // From March current year to next March
+          : `${currentYear - 1}-${currentYear}`; // Before March previous year to current Year
 
-
-      
 
       const classExist = await Class.findOne({
         name: classname,
@@ -223,11 +223,11 @@ module.exports = {
         });
       }
 
-      if(studentIds === undefined || studentIds.length === 0){
-        return res.status(400).json({error:true,reason:"Field 'studentIds' is required"})
+      if (studentIds === undefined || studentIds.length === 0) {
+        return res.status(400).json({ error: true, reason: "Field 'studentIds' is required" })
       }
-      if(_class === undefined || _class === ""){
-        return res.status(400).json({error:true,reason:"Field '_class' is required"})
+      if (_class === undefined || _class === "") {
+        return res.status(400).json({ error: true, reason: "Field '_class' is required" })
       }
 
       const classExist = await Class.findOne({
@@ -249,8 +249,8 @@ module.exports = {
         _school: req.user._school,
       });
 
-      if(attendance !== null){
-        return res.status(400).json({error:true,reason:"Attendance has already been taken for today."})
+      if (attendance !== null) {
+        return res.status(400).json({ error: true, reason: "Attendance has already been taken for today." })
       }
 
       const classStudents = await User.find({ _class }).select("_id rollNo");
@@ -261,18 +261,18 @@ module.exports = {
         isPresent: studentIds.includes(student._id.toString()),
       }));
 
-      
-        attendance = await Attendance.create({
-          _school: req.user._school,
-          _class,
-          _teacher: id,
-          presentIds: studentIds,
-          date: today.toDate(),
-        });
 
-        classExist.totalClassTill += 1;
-        await classExist.save();
-      
+      attendance = await Attendance.create({
+        _school: req.user._school,
+        _class,
+        _teacher: id,
+        presentIds: studentIds,
+        date: today.toDate(),
+      });
+
+      classExist.totalClassTill += 1;
+      await classExist.save();
+
 
       return res
         .status(200)
@@ -738,9 +738,8 @@ module.exports = {
         error: false,
         message: `Attendance for ${targetDate.format(
           "MMMM Do YYYY"
-        )} successfully updated. Student ${
-          action === "add" ? "added to" : "removed from"
-        } attendance`,
+        )} successfully updated. Student ${action === "add" ? "added to" : "removed from"
+          } attendance`,
         attendance: attendanceRecord,
       });
     } catch (error) {
@@ -834,14 +833,14 @@ module.exports = {
       const isWithinDistance = checkInRecord
         ? true
         : await School.findOne({
-            _id: schoolId,
-            location: {
-              $nearSphere: {
-                $geometry: { type: "Point", coordinates: coordinates },
-                $maxDistance: 5000,
-              },
+          _id: schoolId,
+          location: {
+            $nearSphere: {
+              $geometry: { type: "Point", coordinates: coordinates },
+              $maxDistance: 5000,
             },
-          });
+          },
+        });
 
       if (isWithinDistance === null) {
         return res.status(400).json({
