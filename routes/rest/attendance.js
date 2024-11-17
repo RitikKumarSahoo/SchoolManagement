@@ -226,8 +226,8 @@ module.exports = {
         });
       }
 
-      if (studentIds === undefined || studentIds.length === 0) {
-        return res.status(400).json({ error: true, reason: "Field 'studentIds' is required" })
+      if (studentIds === undefined || studentIds.length === 0 || !Array.isArray(studentIds)) {
+        return res.status(400).json({ error: true, reason: "Field 'studentIds' is required and must be type Array" })
       }
       if (_class === undefined || _class === "") {
         return res.status(400).json({ error: true, reason: "Field '_class' is required" })
@@ -645,12 +645,120 @@ module.exports = {
    *     }
    */
 
+  // async updateAttendance(req, res) {
+  //   try {
+  //     const { _class, studentId, action, date } = req.body;
+  //     const { id } = req.user;
+
+  //     // Check if the user is a teacher
+  //     const teacher = await User.findOne({
+  //       _id: id,
+  //       loginType: { $in: ["teacher", "admin"] },
+  //     }).exec();
+
+  //     if (!teacher) {
+  //       return res.status(400).json({
+  //         error: true,
+  //         reason: "You do not have permission to update",
+  //       });
+  //     }
+
+  //     const targetDate = date
+  //       ? moment(date).startOf("day")
+  //       : moment().startOf("day");
+
+  //     if (!targetDate.isValid()) {
+  //       return res.status(400).json({
+  //         error: true,
+  //         reason: "Invalid date provided",
+  //       });
+  //     }
+
+  //     // Find the attendance record for the target date
+  //     let attendanceRecord = await Attendance.findOne({
+  //       _class,
+  //       date: {
+  //         $gte: targetDate.toDate(),
+  //         $lte: moment(targetDate).endOf("day").toDate(),
+  //       },
+  //       _school: teacher._school,
+  //     }).exec();
+
+  //     if (!attendanceRecord) {
+  //       return res.status(404).json({
+  //         error: true,
+  //         reason: `No attendance record found for ${targetDate.format(
+  //           "MMMM Do YYYY"
+  //         )}`,
+  //       });
+  //     }
+
+  //     // Check if the student is assigned to the class
+  //     const student = await User.findOne({
+  //       _id: studentId,
+  //       _class,
+  //       loginType: "student",
+  //       _school: teacher._school,
+  //     }).exec();
+
+  //     if (!student) {
+  //       return res.status(400).json({
+  //         error: true,
+  //         reason: "Student is not assigned to this class",
+  //       });
+  //     }
+
+  //     if (action === "add") {
+  //       if (attendanceRecord.presentIds.includes(studentId)) {
+  //         return res.status(400).json({
+  //           error: true,
+  //           reason: "Student has already been marked present",
+  //         });
+  //       }
+
+  //       attendanceRecord.presentIds.push(studentId);
+  //     } else if (action === "remove") {
+  //       if (!attendanceRecord.presentIds.includes(studentId)) {
+  //         return res.status(400).json({
+  //           error: true,
+  //           reason: "Student was not marked present",
+  //         });
+  //       }
+
+  //       attendanceRecord.presentIds = attendanceRecord.presentIds.filter(
+  //         (id) => id.toString() !== studentId
+  //       );
+  //     } else {
+  //       return res.status(400).json({
+  //         error: true,
+  //         reason: "Invalid action provided. Use 'add' or 'remove'",
+  //       });
+  //     }
+
+  //     await attendanceRecord.save();
+
+  //     return res.status(200).json({
+  //       error: false,
+  //       message: `Attendance for ${targetDate.format(
+  //         "MMMM Do YYYY"
+  //       )} successfully updated. Student ${action === "add" ? "added to" : "removed from"
+  //         } attendance`,
+  //       attendance: attendanceRecord,
+  //     });
+  //   } catch (error) {
+  //     return res.status(500).json({
+  //       error: true,
+  //       reason: error.message,
+  //     });
+  //   }
+  // },
+
   async updateAttendance(req, res) {
     try {
-      const { _class, studentId, action, date } = req.body;
+      const { _class, studentIds, action, date } = req.body;
       const { id } = req.user;
 
-      // Check if the user is a teacher
+      // Check if the user is a teacher or admin
       const teacher = await User.findOne({
         _id: id,
         loginType: { $in: ["teacher", "admin"] },
@@ -663,18 +771,16 @@ module.exports = {
         });
       }
 
-      const targetDate = date
-        ? moment(date).startOf("day")
-        : moment().startOf("day");
+      let targetDate = date
+        ? moment(date, "DD/MM/YYYY").startOf("day")
+        : moment().startOf("day"); // Default to today
 
       if (!targetDate.isValid()) {
         return res.status(400).json({
           error: true,
-          reason: "Invalid date provided",
+          reason: "Invalid date provided, expected format is dd/mm/yyyy",
         });
       }
-
-      // Find the attendance record for the target date
       let attendanceRecord = await Attendance.findOne({
         _class,
         date: {
@@ -687,51 +793,53 @@ module.exports = {
       if (!attendanceRecord) {
         return res.status(404).json({
           error: true,
-          reason: `No attendance record found for ${targetDate.format(
-            "MMMM Do YYYY"
-          )}`,
+          reason: `No attendance record found for ${targetDate.format("MMMM Do YYYY")}`,
         });
       }
 
-      // Check if the student is assigned to the class
-      const student = await User.findOne({
-        _id: studentId,
-        _class,
-        loginType: "student",
-        _school: teacher._school,
-      }).exec();
+      let errors = [];
 
-      if (!student) {
+      const studentChecks = studentIds.map((studentId) => {
+        return User.findOne({
+          _id: studentId,
+          _class,
+          loginType: "student",
+          _school: teacher._school,
+        }).exec();
+      });
+
+      const students = await Promise.all(studentChecks)
+
+      // Iterate over the studentIds and check each student
+      students.forEach((student, index) => {
+        if (!student) {
+          errors.push(`Student with ID ${studentIds[index]} is not assigned to this class`);
+        } else {
+          if (action === "add") {
+            if (attendanceRecord.presentIds.includes(studentIds[index])) {
+              errors.push(`Student ${studentIds[index]} has already been marked present`);
+            } else {
+              attendanceRecord.presentIds.push(studentIds[index])
+            }
+          } else if (action === "remove") {
+            if (!attendanceRecord.presentIds.includes(studentIds[index])) {
+              errors.push(`Student ${studentIds[index]} was not marked present`);
+            } else {
+              // Remove the student from the present list
+              attendanceRecord.presentIds = attendanceRecord.presentIds.filter(
+                (id) => id.toString() !== studentIds[index]
+              );
+            }
+          } else {
+            errors.push("Invalid action provided. Use 'add' or 'remove'");
+          }
+        }
+      });
+
+      if (errors.length > 0) {
         return res.status(400).json({
           error: true,
-          reason: "Student is not assigned to this class",
-        });
-      }
-
-      if (action === "add") {
-        if (attendanceRecord.presentIds.includes(studentId)) {
-          return res.status(400).json({
-            error: true,
-            reason: "Student has already been marked present",
-          });
-        }
-
-        attendanceRecord.presentIds.push(studentId);
-      } else if (action === "remove") {
-        if (!attendanceRecord.presentIds.includes(studentId)) {
-          return res.status(400).json({
-            error: true,
-            reason: "Student was not marked present",
-          });
-        }
-
-        attendanceRecord.presentIds = attendanceRecord.presentIds.filter(
-          (id) => id.toString() !== studentId
-        );
-      } else {
-        return res.status(400).json({
-          error: true,
-          reason: "Invalid action provided. Use 'add' or 'remove'",
+          reason: errors,
         });
       }
 
@@ -739,10 +847,7 @@ module.exports = {
 
       return res.status(200).json({
         error: false,
-        message: `Attendance for ${targetDate.format(
-          "MMMM Do YYYY"
-        )} successfully updated. Student ${action === "add" ? "added to" : "removed from"
-          } attendance`,
+        message: `Attendance for ${targetDate.format("MMMM Do YYYY")} successfully updated.`,
         attendance: attendanceRecord,
       });
     } catch (error) {
@@ -752,6 +857,7 @@ module.exports = {
       });
     }
   },
+
 
   /**
    * @api {post} attendance/checkin Check In
