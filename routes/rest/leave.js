@@ -341,23 +341,33 @@ module.exports = {
 
   async find(req, res) {
     try {
-      const { loginType, _school } = req.user;
-      let { searchText, pageNumber = 1, pageSize = 10 } = req.body;
-
-      if (!(loginType === "teacher")) {
+      const { loginType, _school, _id: userId } = req.user;
+      let { searchText = "", pageNumber = 1, pageSize = 10 } = req.body;
+  
+      // Validate pageNumber and pageSize
+      pageNumber = parseInt(pageNumber, 10);
+      pageSize = parseInt(pageSize, 10);
+  
+      if (isNaN(pageNumber) || pageNumber < 1 || isNaN(pageSize) || pageSize < 1) {
         return res
-          .status(403)
-          .json({ error: true, reason: "you are not teacher" });
+          .status(400)
+          .json({ error: true, reason: "Invalid page number or page size" });
       }
-
+  
       const skipNumber = (pageNumber - 1) * pageSize;
-
-      let query = {
-        _teacher: req.user._id,
-        _school,
-      };
-
-      if (searchText) {
+  
+      let query = { _school };
+  
+      if (loginType === "teacher") {
+        query._teacher = userId;
+      } 
+      else if (loginType !== "admin") {
+        return res
+          .status(400)
+          .json({ error: true, reason: "You do not have permission" });
+      }
+  
+      if (searchText.trim()) {
         const searchRegex = new RegExp(searchText.trim(), "i");
         query.$or = [
           { leaveType: { $regex: searchRegex } },
@@ -365,20 +375,18 @@ module.exports = {
           { status: { $regex: searchRegex } },
         ];
       }
-
-      const [leaves] = await Promise.all([
-        Leave.find(query).skip(skipNumber).limit(Number(pageSize)).exec(),
-      ]);
-
-      if (leaves.length === 0) {
-        return res.status(404).json({ error: true, reason: "Not found" });
-      }
-
+  
+      const leaves = await Leave.find(query)
+        .skip(skipNumber)
+        .limit(pageSize)
+        .exec();
+  
       return res.status(200).json({ error: false, leaves });
     } catch (error) {
       return res.status(500).json({ error: true, reason: error.message });
     }
   },
+  
 
   /**
    * @api {post} /teacher/leave Apply Leave
@@ -468,11 +476,12 @@ module.exports = {
       const end = moment(endDate, "DD/MM/YYYY");
       const today = moment();
 
+      console.log(start,end);
       
-
       if (!start.isValid() || !end.isValid()) {
         return res.status(400).json({ error: true, message: "Invalid date format. Use DD/MM/YYYY." });
       }
+      
       if (start.isBefore(today, "day")) {
         return res.status(400).json({ error: true, message: "Cannot apply for past dates." });
       }
