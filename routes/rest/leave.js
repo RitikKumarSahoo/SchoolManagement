@@ -290,7 +290,6 @@ module.exports = {
           .sort({ createdAt: -1 })
           .skip(skipNumber)
           .limit(Number(pageSize))
-          .populate({ path: '_teacher', select: "firstName lastName phone email" })
           .exec();
           
         const totalLeaves = await Leave.countDocuments({
