@@ -87,6 +87,7 @@ module.exports = {
         return res.status(400).json({ error: true, reason: "Field 'section' is required" })
       }
 
+      const currentDate = moment();
       const currentYear = currentDate.year();
       const academicYear =
         currentDate.month() >= 2
@@ -133,9 +134,11 @@ module.exports = {
           });
 
           return {
-            _Id: student._id,
-            percentage: ((attendedClasses / totalClasses) * 100).toFixed(2),
-          };
+            _id: student._id,
+            percentage: totalClasses
+              ? ((attendedClasses / totalClasses) * 100).toFixed(2)
+              : "0.00",
+          }
         })
       );
 
