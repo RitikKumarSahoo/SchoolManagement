@@ -136,12 +136,7 @@ module.exports = {
           .limit(pageSize)
           .exec();
 
-        if (teachers.length === 0) {
-          return res.status(404).json({
-            error: true,
-            message: "No teachers found for this school.",
-          });
-        }
+
         const totalTeachers = await User.countDocuments({
           loginType: "teacher",
           _school,
