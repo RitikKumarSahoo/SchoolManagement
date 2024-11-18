@@ -55,10 +55,6 @@ module.exports = {
     try {
       const { loginType, _school } = req.user
 
-      if (loginType !== "admin") {
-        return res.status(400).json({ error: true, reason: "You are not admin" })
-      }
-
       const settings = await Settings.findOne({ _school }).exec()
 
       if (settings === null) {
