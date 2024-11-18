@@ -268,19 +268,20 @@ module.exports = {
       }
 
       const salaryRange = settings.salary.find((rangeObj) => {
+
         const [min, max] = rangeObj.range.split("-").map(Number)
         return teacherExperience >= min && teacherExperience <= max
       });
 
-      const startOfMonth = moment().startOf("month").add(1, "day").toDate(); // 1st day of the month
-      const endOfPaymentWindow = moment().startOf("month").add(10, "days").endOf("day").toDate(); // 5th day of the month
+      const startOfMonth = moment().startOf("month").toDate();
+      const endOfMonth = moment().endOf("month").toDate();
 
       const existingPayment = await Transaction.findOne({
         _school,
         _user: teacherId,
-        date: { $gte: startOfMonth, $lte: endOfPaymentWindow },
+        date: { $gte: startOfMonth, $lte: endOfMonth },
         status: "paid",
-      });
+      })
 
       if (existingPayment) {
         return res.status(400).json({
