@@ -2,6 +2,7 @@ const User = require("../../models/user/index");
 const Transaction = require("../../models/transaction");
 const mail = require("../../lib/mail");
 const moment = require("moment");
+const Settings = require("../../models/settings")
 
 module.exports = {
   /**
@@ -202,89 +203,150 @@ module.exports = {
     }
   },
 
-  async Salary(req,res){
+  /**
+ * @api {post} /admin/salary Pay salary to a teacher
+ * @apiName PaySalary
+ * @apiGroup Transaction
+ * 
+ * @apiParam {String} teacherId Teacher's unique ID.
+ * @apiParam {Number} amount Salary amount to be paid to the teacher (optional, will use calculated amount based on experience if not provided).
+ * 
+ * @apiExample {json} Example Request:
+ *    POST /admin/salary
+ *    {
+ *      "teacherId": "6738c4f008b861d9c1506848",
+ *      "amount": 25000
+ *    }
+ * 
+ * @apiExample {json} Example Response (Salary successfully paid):
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "error": false,
+ *      "transaction": {
+ *        "_id": "673aec22d0817c64a75a1b7c",
+ *        "_teacher": "6738c4f008b861d9c1506848",
+ *        "_school": "671a88862e586338c6c94516",
+ *        "date": "2024-11-18T07:26:26.957Z",
+ *        "amount": 25000,
+ *        "status": "paid",
+ *        "createdAt": "2024-11-18T07:26:26.957Z",
+ *        "updatedAt": "2024-11-18T07:26:26.957Z"
+ *      }
+ *    }
+ * 
+ * @apiExample {json} Example Response (Salary already paid for the current month):
+ *    HTTP/1.1 400 Bad Request
+ *    {
+ *      "error": true,
+ *      "reason": "Salary already paid for November 2024"
+ *    }
+ */
+
+  async Salary(req, res) {
     try {
-      const { teacherId , amount } = req.body
-      const {_school} = req.user
+      const { teacherId, amount } = req.body
+      const { _school } = req.user
 
-      const settings = await settings.findOne({_school}).select("salary").exec()
-      
-      if(settings === null){
-        return res.status(400).json({error:true , reason: "settings not found"})
+      if (req.user.loginType !== "admin") {
+        return res.status(400).json({ error: true, reason: "You are not admin" })
       }
 
-      const Teacher = await User.findOne({_school,_id:teacherId}).select("experience")
-      if(Teacher === null){
-        return res.status(400).json({error:true, reason:"Teacher not found"})
+      const settings = await Settings.findOne({ _school }).select("salary").exec()
+
+      if (settings === null) {
+        return res.status(400).json({ error: true, reason: "settings not found" })
       }
 
-      console.log(settings.salary);
-      
-      return res.status(200).json({error:false })
+      const Teacher = await User.findOne({ _school, _id: teacherId }).select("experience")
+      if (Teacher === null) {
+        return res.status(400).json({ error: true, reason: "Teacher not found" })
+      }
+
+      const teacherExperience = Number(Teacher.experience)
+      if (!teacherExperience || teacherExperience <= 0) {
+        return res.status(400).json({ error: true, reason: "Invalid experience value for the teacher" });
+      }
+
+      const salaryRange = settings.salary.find((rangeObj) => {
+        const [min, max] = rangeObj.range.split("-").map(Number)
+        return teacherExperience >= min && teacherExperience <= max
+      });
+
+      const startOfMonth = moment().startOf("month").add(1, "day").toDate(); // 1st day of the month
+      const endOfPaymentWindow = moment().startOf("month").add(10, "days").endOf("day").toDate(); // 5th day of the month
+
+      const existingPayment = await Transaction.findOne({
+        _school,
+        _user: teacherId,
+        date: { $gte: startOfMonth, $lte: endOfPaymentWindow },
+        status: "paid",
+      });
+
+      if (existingPayment) {
+        return res.status(400).json({
+          error: true,
+          reason: `Salary already paid for ${moment(existingPayment.date).format("MMMM YYYY")}`,
+        });
+      }
+
+      const transaction = await Transaction.create({
+        amount: amount ? amount : salaryRange.amount,
+        _teacher: Teacher._id,
+        _school,
+        date: new Date(),
+        status: "paid",
+      })
+      return res.status(200).json({ error: false, transaction })
     } catch (error) {
-      
+      return res.status(500).json({ error: true, Error: error.message })
     }
   },
 
-  /**
-   * @api {get} /transaction/get/:id Get Transaction by ID
-   * @apiName GetTransactionById
-   * @apiGroup Transaction
-   * @apiPermission Admin
-   *
-   * @apiParam {String} id Transaction's unique ID.
-   *
-   * @apiHeader {String} Authorization User's access token.
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *    HTTP/1.1 200 OK
-   *    {
-   *      "error": false,
-   *      "message": "Transaction retrieved successfully",
-   *      "data": {
-   *        "_id": "652def8a7a39a61056fb8654",
-   *        "_user": {
-   *          "_id": "652dc8b95a36b92434b54e88",
-   *          "firstName": "John",
-   *          "lastName": "Doe",
-   *          "email": "john.doe@example.com"
-   *        },
-   *        "amount": 1000,
-   *        "busFee": 50,
-   *        "totalAmount": 1050,
-   *        "status": "pending",
-   *        "date": "2024-10-07T10:00:00Z"
-   *      }
-   *    }
-   *
-   * @apiError TransactionNotFound The transaction with the given ID was not found.
-   *
-   * @apiErrorExample {json} TransactionNotFound:
-   *    HTTP/1.1 404 Not Found
-   *    {
-   *      "error": true,
-   *      "message": "Transaction not found"
-   *    }
-   *
-   * @apiError InternalServerError Server-side issue occurred while retrieving transaction.
-   *
-   * @apiErrorExample {json} InternalServerError:
-   *    HTTP/1.1 500 Internal Server Error
-   *    {
-   *      "error": true,
-   *      "message": "An error occurred while processing the request"
-   *    }
-   */
+ /**
+ * @api {get} /admin/transaction/get/:id Get a transaction by ID
+ * @apiName GetTransaction
+ * @apiGroup Transaction
+ * 
+ * @apiParam {String} id Transaction's unique ID.
+ * 
+
+ * 
+ * @apiExample {json} Example Request:
+ *    GET /admin/transaction/get/673aec22d0817c64a75a1b7c
+ * 
+ * @apiExample {json} Example Response (Transaction found):
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "error": false,
+ *      "transaction": {
+ *        "_id": "673aec22d0817c64a75a1b7c",
+ *        "_teacher": "6738c4f008b861d9c1506848",
+ *        "_school": "671a88862e586338c6c94516",
+ *        "date": "2024-11-02T00:00:00.000Z",
+ *        "amount": 18000,
+ *        "status": "paid",
+ *        "createdAt": "2024-11-18T07:26:26.957Z",
+ *        "updatedAt": "2024-11-18T07:26:26.957Z"
+ *      }
+ *    }
+ * 
+ * @apiExample {json} Example Response (Transaction not found):
+ *    HTTP/1.1 400 Bad Request
+ *    {
+ *      "error": true,
+ *      "message": "Transaction not found"
+ *    }
+ */
 
   async get(req, res) {
     try {
       const { id } = req.params;
       const transaction = await Transaction.findOne({
         _id: id,
-      }).populate("_user", "firstName lastName email");
+      })
 
       if (!transaction) {
-        return res.status(404).json({
+        return res.status(400).json({
           error: true,
           message: "Transaction not found",
         });
@@ -292,8 +354,7 @@ module.exports = {
 
       return res.status(200).json({
         error: false,
-        message: "Transaction retrieved successfully",
-        data: transaction,
+        transaction,
       });
     } catch (error) {
       return res.status(500).json({
@@ -407,4 +468,176 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  /**
+ * @api {post} /user/transaction Get own transaction details
+ * @apiName GetOwnTransactionDetails
+ * @apiGroup Transaction
+ * 
+ * @apiParam {Number} [pageNumber=1] Page number for pagination (default is 1).
+ * @apiParam {Number} [pageSize=10] Number of records per page (default is 10).
+ * 
+ * @apiExample {json} Example Request:
+ *    {
+ *      "pageNumber": 1,
+ *      "pageSize": 10
+ *    }
+ *
+ * @apiExample {json} Example Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "error": false,
+ *      "transaction": [
+ *        {
+ *          "_id": "6083f9a1b413c24f4446d98b",
+ *          "date": "2024-10-25",
+ *          "amount": 5000,
+ *          "busFee": 100,
+ *          "totalAmount": 5100,
+ *          "status": "success"
+ *        }
+ *      ],
+ *      "totalTransaction": 50
+ *    }
+ */
+
+  async ownTransactionDetails(req, res) {
+
+    try {
+      const { _id, _school } = req.user
+      let { pageNumber = 1, pageSize = 10 } = req.body;
+      if (isNaN(pageNumber) || pageNumber < 1 || isNaN(pageSize) || pageSize < 1) {
+        return res
+          .status(400)
+          .json({ error: true, reason: "Invalid page number or page size" });
+      }
+
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      const transaction = await Transaction.find({ _teacher: _id, _school })
+        .sort({ createdAt: -1 })
+        .skip(skipNumber)
+        .limit(pageSize)
+        .exec();
+
+      const totalTransaction = await Transaction.countDocuments({ _teacher: _id, _school })
+
+      return res.status(200).json({ error: false, transaction, totalTransaction })
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message })
+    }
+  },
+
+
+  /**
+ * @api {post} /admin/transactions Get all transactions for a school
+ * @apiName GetAllTransactions
+ * @apiGroup Transaction
+ * 
+ * @apiParam {Number} [pageNumber=1] Page number for pagination (default is 1).
+ * @apiParam {Number} [pageSize=10] Number of records per page (default is 10).
+ * @apiParam {String} setField Specify the field to filter transactions by. Can be:
+ * - `"teacher"` to get transactions for teachers.
+ * - `"student"` to get transactions for students.
+ * - No value to get transactions for both teachers and students.
+ * 
+ * @apiError (400) {Boolean} error Indicates that the user is not an admin.
+ * @apiError (500) {Boolean} error Indicates server error.
+ * @apiError (500) {String} Error Error message detailing the issue.
+ * 
+ * @apiExample {json} Example Request (for teachers):
+ *    POST /admin/transactions
+ *    {
+ *      "pageNumber": 1,
+ *      "pageSize": 10,
+ *      "setField": "teacher"
+ *    }
+ * 
+ * @apiExample {json} Example Request (for students):
+ *    POST /admin/transactions
+ *    {
+ *      "pageNumber": 1,
+ *      "pageSize": 10,
+ *      "setField": "student"
+ *    }
+ * 
+ * @apiExample {json} Example Response (for teachers):
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "error": false,
+ *      "transaction": [
+ *        {
+ *          "_id": "673aec22d0817c64a75a1b7c",
+ *          "_teacher": "6738c4f008b861d9c1506848",
+ *          "date": "2024-11-02T00:00:00.000Z",
+ *          "amount": 18000,
+ *          "status": "paid",
+ *          "_school": "671a88862e586338c6c94516",
+ *          "createdAt": "2024-11-18T07:26:26.957Z",
+ *          "updatedAt": "2024-11-18T07:26:26.957Z",
+ *          "userType": "teacher"
+ *        }
+ *      ]
+ *    }
+ * 
+ * @apiExample {json} Example Response (for students):
+ *    HTTP/1.1 200 OK
+ *    {
+ *      "error": false,
+ *      "transaction": [
+ *        {
+ *          "_id": "673aec22d0817c64a75a1b7c",
+ *          "_student": "6738c4f008b861d9c1506848",
+ *          "date": "2024-11-02T00:00:00.000Z",
+ *          "amount": 5000,
+ *          "status": "paid",
+ *          "_school": "671a88862e586338c6c94516",
+ *          "createdAt": "2024-11-18T07:26:26.957Z",
+ *          "updatedAt": "2024-11-18T07:26:26.957Z",
+ *          "userType": "student"
+ *        }
+ *      ]
+ *    }
+ */
+
+  async allTransaction(req, res) {
+    try {
+      const { _school, loginType } = req.user
+      let { pageNumber = 1, pageSize = 10, setField } = req.body
+      const skipNumber = (pageNumber - 1) * pageSize;
+
+      if (loginType !== 'admin') {
+        return res.status(400).json({ error: true, reason: "You are not admin" })
+      }
+
+      if (setField === "teacher") {
+        const transaction = await Transaction.find({ _school, userType: "teacher" })
+          .sort({ createdAt: -1 })
+          .skip(skipNumber)
+          .limit(pageSize)
+          .exec();
+
+        return res.status(200).json({ error: false, transaction })
+      }
+
+      if (setField === "student") {
+        const transaction = await Transaction.find({ _school, userType: "student" })
+          .sort({ createdAt: -1 })
+          .skip(skipNumber)
+          .limit(pageSize)
+          .exec();
+        return res.status(200).json({ error: false, transaction })
+      }
+
+      const transaction = await Transaction.find({ _school })
+        .sort({ createdAt: -1 })
+        .skip(skipNumber)
+        .limit(pageSize)
+        .exec();
+
+      return res.status(200).json({ error: false, transaction })
+    } catch (error) {
+      return res.status(500).json({ error: true, Error: error.message })
+    }
+  }
 };
