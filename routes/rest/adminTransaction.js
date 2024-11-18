@@ -202,6 +202,30 @@ module.exports = {
     }
   },
 
+  async Salary(req,res){
+    try {
+      const { teacherId , amount } = req.body
+      const {_school} = req.user
+
+      const settings = await settings.findOne({_school}).select("salary").exec()
+      
+      if(settings === null){
+        return res.status(400).json({error:true , reason: "settings not found"})
+      }
+
+      const Teacher = await User.findOne({_school,_id:teacherId}).select("experience")
+      if(Teacher === null){
+        return res.status(400).json({error:true, reason:"Teacher not found"})
+      }
+
+      console.log(settings.salary);
+      
+      return res.status(200).json({error:false })
+    } catch (error) {
+      
+    }
+  },
+
   /**
    * @api {get} /transaction/get/:id Get Transaction by ID
    * @apiName GetTransactionById
