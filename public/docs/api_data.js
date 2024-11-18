@@ -10396,6 +10396,140 @@ define({ "api": [
     "groupTitle": "Transaction"
   },
   {
+    "type": "post",
+    "url": "/admin/transactions",
+    "title": "Get all transactions for a school",
+    "name": "GetAllTransactions",
+    "group": "Transaction",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (default is 1).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>Number of records per page (default is 10).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "setField",
+            "description": "<p>Specify the field to filter transactions by. Can be:</p> <ul> <li><code>&quot;teacher&quot;</code> to get transactions for teachers.</li> <li><code>&quot;student&quot;</code> to get transactions for students.</li> <li>No value to get transactions for both teachers and students.</li> </ul>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates that the user is not an admin.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates server error.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "Error",
+            "description": "<p>Error message detailing the issue.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Request (for teachers):",
+        "content": "POST /admin/transactions\n{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"setField\": \"teacher\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Request (for students):",
+        "content": "POST /admin/transactions\n{\n  \"pageNumber\": 1,\n  \"pageSize\": 10,\n  \"setField\": \"student\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response (for teachers):",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"transaction\": [\n    {\n      \"_id\": \"673aec22d0817c64a75a1b7c\",\n      \"_teacher\": \"6738c4f008b861d9c1506848\",\n      \"date\": \"2024-11-02T00:00:00.000Z\",\n      \"amount\": 18000,\n      \"status\": \"paid\",\n      \"_school\": \"671a88862e586338c6c94516\",\n      \"createdAt\": \"2024-11-18T07:26:26.957Z\",\n      \"updatedAt\": \"2024-11-18T07:26:26.957Z\",\n      \"userType\": \"teacher\"\n    }\n  ]\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response (for students):",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"transaction\": [\n    {\n      \"_id\": \"673aec22d0817c64a75a1b7c\",\n      \"_student\": \"6738c4f008b861d9c1506848\",\n      \"date\": \"2024-11-02T00:00:00.000Z\",\n      \"amount\": 5000,\n      \"status\": \"paid\",\n      \"_school\": \"671a88862e586338c6c94516\",\n      \"createdAt\": \"2024-11-18T07:26:26.957Z\",\n      \"updatedAt\": \"2024-11-18T07:26:26.957Z\",\n      \"userType\": \"student\"\n    }\n  ]\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTransaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
+    "type": "post",
+    "url": "/user/transaction",
+    "title": "Get own transaction details",
+    "name": "GetOwnTransactionDetails",
+    "group": "Transaction",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNumber",
+            "defaultValue": "1",
+            "description": "<p>Page number for pagination (default is 1).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageSize",
+            "defaultValue": "10",
+            "description": "<p>Number of records per page (default is 10).</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "{\n  \"pageNumber\": 1,\n  \"pageSize\": 10\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response:",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"transaction\": [\n    {\n      \"_id\": \"6083f9a1b413c24f4446d98b\",\n      \"date\": \"2024-10-25\",\n      \"amount\": 5000,\n      \"busFee\": 100,\n      \"totalAmount\": 5100,\n      \"status\": \"success\"\n    }\n  ],\n  \"totalTransaction\": 50\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTransaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
     "type": "get",
     "url": "/transaction/pendingfee",
     "title": "Get Pending Fee Payments",
@@ -10509,15 +10643,10 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/transaction/get/:id",
-    "title": "Get Transaction by ID",
-    "name": "GetTransactionById",
+    "url": "/admin/transaction/get/:id",
+    "title": "Get a transaction by ID",
+    "name": "GetTransaction",
     "group": "Transaction",
-    "permission": [
-      {
-        "name": "Admin"
-      }
-    ],
     "parameter": {
       "fields": {
         "Parameter": [
@@ -10531,58 +10660,70 @@ define({ "api": [
         ]
       }
     },
-    "header": {
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "GET /admin/transaction/get/673aec22d0817c64a75a1b7c",
+        "type": "json"
+      },
+      {
+        "title": "Example Response (Transaction found):",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"transaction\": {\n    \"_id\": \"673aec22d0817c64a75a1b7c\",\n    \"_teacher\": \"6738c4f008b861d9c1506848\",\n    \"_school\": \"671a88862e586338c6c94516\",\n    \"date\": \"2024-11-02T00:00:00.000Z\",\n    \"amount\": 18000,\n    \"status\": \"paid\",\n    \"createdAt\": \"2024-11-18T07:26:26.957Z\",\n    \"updatedAt\": \"2024-11-18T07:26:26.957Z\"\n  }\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response (Transaction not found):",
+        "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"message\": \"Transaction not found\"\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "routes/rest/adminTransaction.js",
+    "groupTitle": "Transaction"
+  },
+  {
+    "type": "post",
+    "url": "/admin/salary",
+    "title": "Pay salary to a teacher",
+    "name": "PaySalary",
+    "group": "Transaction",
+    "parameter": {
       "fields": {
-        "Header": [
+        "Parameter": [
           {
-            "group": "Header",
+            "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "Authorization",
-            "description": "<p>User's access token.</p>"
+            "field": "teacherId",
+            "description": "<p>Teacher's unique ID.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "amount",
+            "description": "<p>Salary amount to be paid to the teacher (optional, will use calculated amount based on experience if not provided).</p>"
           }
         ]
       }
     },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Transaction retrieved successfully\",\n  \"data\": {\n    \"_id\": \"652def8a7a39a61056fb8654\",\n    \"_user\": {\n      \"_id\": \"652dc8b95a36b92434b54e88\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"email\": \"john.doe@example.com\"\n    },\n    \"amount\": 1000,\n    \"busFee\": 50,\n    \"totalAmount\": 1050,\n    \"status\": \"pending\",\n    \"date\": \"2024-10-07T10:00:00Z\"\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "TransactionNotFound",
-            "description": "<p>The transaction with the given ID was not found.</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "optional": false,
-            "field": "InternalServerError",
-            "description": "<p>Server-side issue occurred while retrieving transaction.</p>"
-          }
-        ]
+    "examples": [
+      {
+        "title": "Example Request:",
+        "content": "POST /admin/salary\n{\n  \"teacherId\": \"6738c4f008b861d9c1506848\",\n  \"amount\": 25000\n}",
+        "type": "json"
       },
-      "examples": [
-        {
-          "title": "TransactionNotFound:",
-          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Transaction not found\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "InternalServerError:",
-          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An error occurred while processing the request\"\n}",
-          "type": "json"
-        }
-      ]
-    },
+      {
+        "title": "Example Response (Salary successfully paid):",
+        "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"transaction\": {\n    \"_id\": \"673aec22d0817c64a75a1b7c\",\n    \"_teacher\": \"6738c4f008b861d9c1506848\",\n    \"_school\": \"671a88862e586338c6c94516\",\n    \"date\": \"2024-11-18T07:26:26.957Z\",\n    \"amount\": 25000,\n    \"status\": \"paid\",\n    \"createdAt\": \"2024-11-18T07:26:26.957Z\",\n    \"updatedAt\": \"2024-11-18T07:26:26.957Z\"\n  }\n}",
+        "type": "json"
+      },
+      {
+        "title": "Example Response (Salary already paid for the current month):",
+        "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"Salary already paid for November 2024\"\n}",
+        "type": "json"
+      }
+    ],
     "version": "0.0.0",
     "filename": "routes/rest/adminTransaction.js",
     "groupTitle": "Transaction"
