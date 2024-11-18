@@ -22,6 +22,11 @@ const TransactionSchema = new mongoose.Schema({
     type: String,
     enum: ["success", "pending"],
   },
+  
+  _school:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'School'
+  }
 });
 
 module.exports = mongoose.model("Transaction", TransactionSchema);
