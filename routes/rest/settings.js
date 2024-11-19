@@ -776,89 +776,125 @@ module.exports = {
 
   async setScheduleTime(req, res) {
     try {
-      const { loginType, isSuperadmin } = req.user;
-
+      const { loginType, isSuperadmin, _school } = req.user;
+  
+      // Validate that the user is an admin and ensure _school matches the admin's school
       if (loginType !== 'admin' || isSuperadmin === true) {
         return res.status(401).json({ error: true, message: 'Unauthorized access' });
       }
-
-      const { academicYear, availableClasses, weekSchedule } = req.body;
+  
+      const { academicYear, weekSchedule } = req.body;
+  
+      // Check if the settings document exists for the given academic year and school
+      const existingSettings = await Settings.findOne({
+        academicYear,
+        _school,
+      });
+  
+      console.log("existingSettings", existingSettings?.weekSchedule);
+  
+      // If a schedule already exists and weekSchedule is populated, return an error
+      if (
+        existingSettings &&
+        existingSettings.weekSchedule &&
+        (Object.keys(existingSettings.weekSchedule).some(
+          (day) => existingSettings.weekSchedule[day].length > 0
+        ))
+      ) {
+        return res.status(400).json({
+          error: true,
+          message: `A schedule already exists for academic year ${academicYear} in the current school.`,
+        });
+      }
+  
+      // Validation and generation of the schedule
       const scheduleData = {};
-
+  
       for (const day in weekSchedule) {
         const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
-
         let currentTime = moment(startTime, 'HH:mm');
         let end = moment(endTime, 'HH:mm');
         let totalMinutes = end.diff(currentTime, 'minutes');
-
-        // Only subtract break time for weekdays (Monday to Friday)
+  
+        // Deduct break time for weekdays (Monday to Friday)
         if (day !== 'sat') {
-          totalMinutes -= parseInt(breakTime);  // Deduct 30 minutes for weekdays
+          totalMinutes -= parseInt(breakTime); // Deduct break time for weekdays
         }
-
+  
+        // Validation: Ensure total time is divisible by periodDuration
+        if (totalMinutes % periodDuration !== 0) {
+          return res.status(400).json({
+            error: true,
+            message: `Total time on ${day} is not divisible by the period duration.`,
+          });
+        }
+  
         let periodCount = Math.floor(totalMinutes / periodDuration);
-        let periods = {};
+        let periods = [];
         let periodNumber = 1;
-
+  
         // Calculate periods for the given day
         while (currentTime.isBefore(end) && periodNumber <= periodCount) {
           let periodStart = moment(currentTime);
           let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
-
-          // Use string keys for period numbers
-          periods[`period ${periodNumber}`] = {
+  
+          // Add the period to the schedule
+          periods.push({
+            periodType: 'period',
             startTime: periodStart.format('HH:mm'),
             endTime: periodEnd.format('HH:mm'),
-          };
-
-          // Add a 30-minute break after the 3rd period for weekdays only
-          if (periodNumber === 3 && day !== 'sat') {
-            // Insert break time after the 3rd period
-            const breakStart = periodEnd; // Break starts after the 3rd period
-            const breakEnd = moment(breakStart).add(parseInt(breakTime), 'minutes');
-
-            periods["breakTime"] = {
+          });
+  
+          // After the 4th period, insert the break time (for weekdays only)
+          if (periodNumber === 4 && day !== 'sat') {
+            const breakStart = periodEnd; // Break starts after the 4th period
+            const breakEnd = moment(breakStart).add(45, 'minutes'); // Break lasts for 45 minutes
+  
+            periods.push({
+              periodType: 'break',
               startTime: breakStart.format('HH:mm'),
               endTime: breakEnd.format('HH:mm'),
-            };
-
+            });
+  
             // Update currentTime to be after the break
             currentTime = breakEnd;
           } else {
             // Move to the start time of the next period
             currentTime = periodEnd;
           }
-
+  
           periodNumber++;
         }
-
+  
         // Save the periods for the day in the scheduleData object
         scheduleData[day] = periods;
       }
-
-      // Create and save the new schedule in the database
-      const newSchedule = new Settings({
-        academicYear,
-        availableClasses,
-        weekSchedule: scheduleData,
-        _school: req.user._school
-      });
-
-      await newSchedule.save();
-
+  
+      // Update the existing settings document with the new schedule
+      if (existingSettings) {
+        existingSettings.weekSchedule = scheduleData;
+        await existingSettings.save();
+      } else {
+        return res.status(400).json({
+          error: true,
+          message: `Settings for academic year ${academicYear} not found. Please ensure settings exist before creating a schedule.`,
+        });
+      }
+  
       // Return a success response with the saved schedule
       res.json({
         message: 'Schedule created successfully',
-        weekSchedule: newSchedule.weekSchedule,
-        _school: req.user._school
+        weekSchedule: existingSettings.weekSchedule,
       });
-
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+  
+  
+  
+  
 
 
 

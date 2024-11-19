@@ -47,49 +47,67 @@ const settingSchema = new mongoose.Schema({
 
   isActive: { type: Boolean },
 
-  weekSchedule: {
-    mon: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] }, // either 'period' or 'break'
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ],
-    tue: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ],
-    wed: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ],
-    thu: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ],
-    fri: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ],
-    sat: [
-      {
-        periodType: { type: String, required: true, enum: ['period', 'break'] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
-      }
-    ]
+  weekSchedule:{
+    mon: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] }, // 'period' or 'break'
+          startTime: { type: String, required: true }, // Format: HH:mm
+          endTime: { type: String, required: true }, // Format: HH:mm
+        },
+      ],
+      required: false, // Mark as optional
+    },
+    tue: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] },
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
+        },
+      ],
+      required: false,
+    },
+    wed: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] },
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
+        },
+      ],
+      required: false,
+    },
+    thu: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] },
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
+        },
+      ],
+      required: false,
+    },
+    fri: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] },
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
+        },
+      ],
+      required: false,
+    },
+    sat: {
+      type: [
+        {
+          periodType: { type: String, required: true, enum: ['period', 'break'] },
+          startTime: { type: String, required: true },
+          endTime: { type: String, required: true },
+        },
+      ],
+      required: false,
+    }
   },
 });
 
