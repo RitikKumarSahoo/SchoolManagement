@@ -1,10 +1,20 @@
 const mongoose = require("mongoose");
 
 const TransactionSchema = new mongoose.Schema({
-  _user: {
+  _teacher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  _student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+
+  userType:{
+    type:String,
+    enum:["student","teacher"]
+  },
+
   date: {
     type: Date,
     default: Date.now(),
@@ -20,13 +30,15 @@ const TransactionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["success", "pending"],
+    enum: ["pending", "paid"],
   },
-  
-  _school:{
+
+  _school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'School'
   }
-});
+},
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Transaction", TransactionSchema);

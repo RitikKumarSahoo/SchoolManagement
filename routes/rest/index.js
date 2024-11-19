@@ -165,6 +165,8 @@ router.post("/admin/transaction/paymentfee", adminStripe.pay);
 router.post("/admin/transaction/create", adminTransaction.createTransaction);
 router.put("/admin/transaction/update", adminTransaction.updateTransaction);
 router.post("/admin/salary",adminTransaction.Salary)
+router.post("/user/transaction",adminTransaction.ownTransactionDetails)
+router.post("/admin/transactions",adminTransaction.allTransaction)
 
 // teacher
 router.post("/admin/teachers", adminTeacher.getAllTeachers);
