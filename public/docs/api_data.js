@@ -863,13 +863,62 @@ define({ "api": [
     "groupTitle": "Admin"
   },
   {
-    "type": "post",
-    "url": "admin/students/view-students",
-    "title": "Admin will View All Students",
+    "type": "get",
+    "url": "/api/v1/admin/students/view-students",
+    "title": "View all students",
     "name": "ViewAllStudents",
     "group": "Admin",
-    "version": "1.0.0",
-    "description": "<p>Retrieves all students belonging to the school</p>",
+    "description": "<p>This endpoint allows admin, teacher, or super admin to view all students, with optional search filters.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "searchString",
+            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li>rollNo (numeric, typically shorter than phone numbers)</li> <li>phone (numeric, typically longer and matches exactly)</li> <li>gender (e.g. &quot;Male&quot;, &quot;Female&quot;)</li> <li>email (case-insensitive)</li> <li>firstName (case-insensitive)</li> <li>lastName (case-insensitive)</li> <li>fullName (case-insensitive)</li> </ul>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "className",
+            "description": "<p>The name of the class (e.g., &quot;10&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "section",
+            "description": "<p>The section of the class (e.g., &quot;A&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "academicYear",
+            "description": "<p>The academic year (e.g., &quot;2024-2025&quot;).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNo",
+            "defaultValue": "1",
+            "description": "<p>The page number for pagination (default: 1).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "skipLimit",
+            "defaultValue": "20",
+            "description": "<p>The number of students per page (default: 20).</p>"
+          }
+        ]
+      }
+    },
     "header": {
       "fields": {
         "Header": [
@@ -878,72 +927,80 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "Authorization",
-            "description": "<p>Bearer token for admin|teacher|superAdmin access.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "pageNo",
-            "defaultValue": "1",
-            "description": "<p>The page number to retrieve (defaults to 1 if not provided).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "skipLimit",
-            "defaultValue": "20",
-            "description": "<p>The number of students to return per page (defaults to 20 if not provided).</p>"
+            "description": "<p>Bearer token for authentication.</p>"
           }
         ]
       }
     },
     "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"670504c7cd2223b01699c6b1\",\n      \"username\": \"JunSpr385\",\n      \"firstName\": \"June\",\n      \"lastName\": \"David\",\n      \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n      \"email\": \"june123@gmail.com\",\n      \"phone\": \"9080264385\",\n      \"gender\": \"Female\",\n      \"admissionYear\": \"2024\",\n      \"dob\": \"1996-07-12\",\n      \"rollNo\": \"R003\",\n      \"_class\": {\n        \"name\": \"10\",\n        \"section\": \"A\"\n      }\n    },\n    {\n      \"_id\": \"67052d954cbe69ed12657f76\",\n      \"username\": \"MriSpr246\",\n      \"firstName\": \"Mrinal\",\n      \"lastName\": \"Mohan\",\n      \"profileImage\": \"public/docsimg/ProfilePic.jpeg\",\n      \"email\": \"mbera829@gmail.com\",\n      \"phone\": \"9002550246\",\n      \"gender\": \"Male\",\n      \"admissionYear\": \"2024\",\n      \"dob\": \"2010-05-02\",\n      \"rollNo\": \"R001\",\n      \"_class\": {\n        \"name\": \"10\",\n        \"section\": \"A\"\n      }\n    }\n  ],\n  \"totalStudents\": 2\n}",
-          "type": "json"
-        }
-      ]
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p><code>false</code> if the request is successful.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "students",
+            "description": "<p>List of students matching the search criteria.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "totalStudents",
+            "description": "<p>Total number of students matching the search criteria.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "totalPages",
+            "description": "<p>Total number of pages for pagination.</p>"
+          }
+        ]
+      }
     },
     "error": {
       "fields": {
-        "Error 4xx": [
+        "Forbidden 403": [
           {
-            "group": "Error 4xx",
+            "group": "Forbidden 403",
+            "type": "String",
             "optional": false,
-            "field": "You",
-            "description": "<p>are not authorized.</p>"
-          },
+            "field": "message",
+            "description": "<p>Permission denied for viewing students.</p>"
+          }
+        ],
+        "Internal Server Error 500": [
           {
-            "group": "Error 4xx",
+            "group": "Internal Server Error 500",
+            "type": "String",
             "optional": false,
-            "field": "InternalServerError",
-            "description": "<p>Internal server error.</p>"
+            "field": "message",
+            "description": "<p>Error message if something goes wrong during the request.</p>"
           }
         ]
-      },
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"You do not have permission to view student details\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Error-Response:",
-          "content": "{\n  \"error\": true,\n  \"message\": \"Internal server error\"\n}",
-          "type": "json"
-        }
-      ]
+      }
     },
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "curl -X GET \"http://localhost:3000/api/v1/admin/students/view-students?searchString=male&className=10th Grade&section=A&academicYear=2024-2025&pageNo=1&skipLimit=20\" \\\n-H \"Authorization: Bearer <your_token>\"",
+        "type": "curl"
+      },
+      {
+        "title": "Response Example:",
+        "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"studentId1\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"fullName\": \"John Doe\",\n      \"rollNo\": 1,\n      \"gender\": \"Male\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"9080264387\",\n      \"_class\": {\n        \"name\": \"10th Grade\",\n        \"section\": \"A\"\n      }\n    },\n    // more student objects\n  ],\n  \"totalStudents\": 100,\n  \"totalPages\": 5\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Admin"
   },
