@@ -291,12 +291,14 @@ module.exports = {
           .skip(skipNumber)
           .limit(Number(pageSize))
           .exec();
+
+        const user = await User.findOne({_id:req.user._id}).select("remainingLeave").select()
           
         const totalLeaves = await Leave.countDocuments({
           _school,
           _teacher: id,
         });
-        return res.status(200).json({ error: false, leaves, totalLeaves });
+        return res.status(200).json({ error: false, leaves, totalLeaves,remainingLeave:user.remainingLeave });
       }
 
       return res.status(400).json({ error: true, reason: "No permission" });
