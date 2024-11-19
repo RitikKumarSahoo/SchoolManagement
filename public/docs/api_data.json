@@ -863,12 +863,12 @@
     "groupTitle": "Admin"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/api/v1/admin/students/view-students",
     "title": "View all students",
     "name": "ViewAllStudents",
     "group": "Admin",
-    "description": "<p>This endpoint allows admin, teacher, or super admin to view all students, with optional search filters.</p>",
+    "description": "<p>This endpoint allows admin, teacher, or super admin to view all students based on search filters and pagination.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -877,7 +877,7 @@
             "type": "String",
             "optional": true,
             "field": "searchString",
-            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li>rollNo (numeric, typically shorter than phone numbers)</li> <li>phone (numeric, typically longer and matches exactly)</li> <li>gender (e.g. &quot;Male&quot;, &quot;Female&quot;)</li> <li>email (case-insensitive)</li> <li>firstName (case-insensitive)</li> <li>lastName (case-insensitive)</li> <li>fullName (case-insensitive)</li> </ul>"
+            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li>rollNo (numeric, typically shorter than phone numbers)</li> <li>phone (numeric, typically longer and matches exactly)</li> <li>gender (e.g., &quot;Male&quot;, &quot;Female&quot;)</li> <li>email (case-insensitive)</li> <li>firstName (case-insensitive)</li> <li>lastName (case-insensitive)</li> <li>fullName (case-insensitive)</li> </ul>"
           },
           {
             "group": "Parameter",
@@ -991,7 +991,7 @@
     "examples": [
       {
         "title": "Example usage:",
-        "content": "curl -X GET \"http://localhost:3000/api/v1/admin/students/view-students?searchString=male&className=10th Grade&section=A&academicYear=2024-2025&pageNo=1&skipLimit=20\" \\\n-H \"Authorization: Bearer <your_token>\"",
+        "content": "curl -X POST \"http://localhost:3000/api/v1/admin/students/view-students\" \\\n-H \"Authorization: Bearer <your_token>\" \\\n-d '{\n  \"searchString\": \"male\",\n  \"className\": \"10th Grade\",\n  \"section\": \"A\",\n  \"academicYear\": \"2024-2025\",\n  \"pageNo\": 1,\n  \"skipLimit\": 20\n}'",
         "type": "curl"
       },
       {
