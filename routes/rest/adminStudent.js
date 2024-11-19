@@ -501,7 +501,7 @@ module.exports = {
  *    - lastName (case-insensitive)
  *    - fullName (case-insensitive)
  * 
- * @apiParam {String} [className] The name of the class (e.g., "10th Grade").
+ * @apiParam {String} [className] The name of the class (e.g., "10").
  * @apiParam {String} [section] The section of the class (e.g., "A").
  * @apiParam {String} [academicYear] The academic year (e.g., "2024-2025").
  * @apiParam {Number} [pageNo=1] The page number for pagination (default: 1).
