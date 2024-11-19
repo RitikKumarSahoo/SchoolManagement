@@ -487,20 +487,19 @@ module.exports = {
   
 
  /**
- * @api {get} /api/v1/admin/students/view-students View all students
+ * @api {post} /api/v1/admin/students/view-students View all students
  * @apiName ViewAllStudents
  * @apiGroup Admin
- * @apiDescription This endpoint allows admin, teacher, or super admin to view all students, with optional search filters.
+ * @apiDescription This endpoint allows admin, teacher, or super admin to view all students based on search filters and pagination.
  * 
  * @apiParam {String} [searchString] Optional search string to filter students. The search can be based on:
  *    - rollNo (numeric, typically shorter than phone numbers)
  *    - phone (numeric, typically longer and matches exactly)
- *    - gender (e.g. "Male", "Female")
+ *    - gender (e.g., "Male", "Female")
  *    - email (case-insensitive)
  *    - firstName (case-insensitive)
  *    - lastName (case-insensitive)
  *    - fullName (case-insensitive)
- * 
  * @apiParam {String} [className] The name of the class (e.g., "10").
  * @apiParam {String} [section] The section of the class (e.g., "A").
  * @apiParam {String} [academicYear] The academic year (e.g., "2024-2025").
@@ -518,8 +517,16 @@ module.exports = {
  * @apiError (Internal Server Error 500) {String} message Error message if something goes wrong during the request.
  * 
  * @apiExample {curl} Example usage:
- *     curl -X GET "http://localhost:3000/api/v1/admin/students/view-students?searchString=male&className=10th Grade&section=A&academicYear=2024-2025&pageNo=1&skipLimit=20" \
- *     -H "Authorization: Bearer <your_token>"
+ *     curl -X POST "http://localhost:3000/api/v1/admin/students/view-students" \
+ *     -H "Authorization: Bearer <your_token>" \
+ *     -d '{
+ *       "searchString": "male",
+ *       "className": "10th Grade",
+ *       "section": "A",
+ *       "academicYear": "2024-2025",
+ *       "pageNo": 1,
+ *       "skipLimit": 20
+ *     }'
  * 
  * @apiExample {json} Response Example:
  * {
@@ -547,6 +554,7 @@ module.exports = {
  */
 
 
+
    async viewAllStudents(req, res) {
     try {
       const { loginType, isSuperAdmin } = req.user;
@@ -557,13 +565,14 @@ module.exports = {
       }
   
       // Extract parameters
-      const { searchString } = req.query; // Single search parameter
-      const { className, section, academicYear, pageNo = 1, skipLimit = 20 } =
+      // const {  } = req.query; // Single search parameter
+      const { className, section, academicYear,searchString, pageNo = 1, skipLimit = 20 } =
         req.body;
   
       // Convert pagination values to numbers
       const page = Number(pageNo);
       const limit = Number(skipLimit);
+      
   
       // Find the class based on className, section, and academicYear
       const _class = await Class.findOne({
@@ -572,6 +581,7 @@ module.exports = {
         section: section,
         academicYear: academicYear,
       });
+      // console.log(_class)
   
       // Base query for students in the same school with loginType "student"
       const query = {
@@ -609,7 +619,7 @@ module.exports = {
       }
     }
   
-    console.log(query)
+    // console.log(query)
   
       // Calculate pagination
       const skip = (page - 1) * limit;
