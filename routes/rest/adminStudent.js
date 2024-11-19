@@ -486,148 +486,163 @@ module.exports = {
   
   
 
-  /**
-   *@api {post} admin/students/view-students Admin will View All Students
-   * @apiName ViewAllStudents
-   * @apiGroup Admin
-   *@apiVersion 1.0.0
-   * @apiDescription Retrieves all students belonging to the school
-   * @apiHeader {String} Authorization Bearer token for admin|teacher|superAdmin access.
-   *
-   * @apiParam {Number} [pageNo=1] The page number to retrieve (defaults to 1 if not provided).
-   * @apiParam {Number} [skipLimit=20] The number of students to return per page (defaults to 20 if not provided).
-   *
-   * @apiSuccessExample {json} Success-Response:
-   * {
-   *   "error": false,
-   *   "students": [
-   *     {
-   *       "_id": "670504c7cd2223b01699c6b1",
-   *       "username": "JunSpr385",
-   *       "firstName": "June",
-   *       "lastName": "David",
-   *       "profileImage": "public/docsimg/ProfilePic.jpeg",
-   *       "email": "june123@gmail.com",
-   *       "phone": "9080264385",
-   *       "gender": "Female",
-   *       "admissionYear": "2024",
-   *       "dob": "1996-07-12",
-   *       "rollNo": "R003",
-   *       "_class": {
-   *         "name": "10",
-   *         "section": "A"
-   *       }
-   *     },
-   *     {
-   *       "_id": "67052d954cbe69ed12657f76",
-   *       "username": "MriSpr246",
-   *       "firstName": "Mrinal",
-   *       "lastName": "Mohan",
-   *       "profileImage": "public/docsimg/ProfilePic.jpeg",
-   *       "email": "mbera829@gmail.com",
-   *       "phone": "9002550246",
-   *       "gender": "Male",
-   *       "admissionYear": "2024",
-   *       "dob": "2010-05-02",
-   *       "rollNo": "R001",
-   *       "_class": {
-   *         "name": "10",
-   *         "section": "A"
-   *       }
-   *     }
-   *   ],
-   *   "totalStudents": 2
-   * }
-   *
-   * @apiError You are not authorized.
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "message": "You do not have permission to view student details"
-   * }
-   *
-   * @apiError InternalServerError Internal server error.
-   * @apiErrorExample {json} Error-Response:
-   * {
-   *   "error": true,
-   *   "message": "Internal server error"
-   * }
-   */
+ /**
+ * @api {get} /api/v1/admin/students/view-students View all students
+ * @apiName ViewAllStudents
+ * @apiGroup Admin
+ * @apiDescription This endpoint allows admin, teacher, or super admin to view all students, with optional search filters.
+ * 
+ * @apiParam {String} [searchString] Optional search string to filter students. The search can be based on:
+ *    - rollNo (numeric, typically shorter than phone numbers)
+ *    - phone (numeric, typically longer and matches exactly)
+ *    - gender (e.g. "Male", "Female")
+ *    - email (case-insensitive)
+ *    - firstName (case-insensitive)
+ *    - lastName (case-insensitive)
+ *    - fullName (case-insensitive)
+ * 
+ * @apiParam {String} [className] The name of the class (e.g., "10th Grade").
+ * @apiParam {String} [section] The section of the class (e.g., "A").
+ * @apiParam {String} [academicYear] The academic year (e.g., "2024-2025").
+ * @apiParam {Number} [pageNo=1] The page number for pagination (default: 1).
+ * @apiParam {Number} [skipLimit=20] The number of students per page (default: 20).
+ * 
+ * @apiHeader {String} Authorization Bearer token for authentication.
+ * 
+ * @apiSuccess {Boolean} error `false` if the request is successful.
+ * @apiSuccess {Object[]} students List of students matching the search criteria.
+ * @apiSuccess {Number} totalStudents Total number of students matching the search criteria.
+ * @apiSuccess {Number} totalPages Total number of pages for pagination.
+ * 
+ * @apiError (Forbidden 403) {String} message Permission denied for viewing students.
+ * @apiError (Internal Server Error 500) {String} message Error message if something goes wrong during the request.
+ * 
+ * @apiExample {curl} Example usage:
+ *     curl -X GET "http://localhost:3000/api/v1/admin/students/view-students?searchString=male&className=10th Grade&section=A&academicYear=2024-2025&pageNo=1&skipLimit=20" \
+ *     -H "Authorization: Bearer <your_token>"
+ * 
+ * @apiExample {json} Response Example:
+ * {
+ *   "error": false,
+ *   "students": [
+ *     {
+ *       "_id": "studentId1",
+ *       "firstName": "John",
+ *       "lastName": "Doe",
+ *       "fullName": "John Doe",
+ *       "rollNo": 1,
+ *       "gender": "Male",
+ *       "email": "john.doe@example.com",
+ *       "phone": "9080264387",
+ *       "_class": {
+ *         "name": "10th Grade",
+ *         "section": "A"
+ *       }
+ *     },
+ *     // more student objects
+ *   ],
+ *   "totalStudents": 100,
+ *   "totalPages": 5
+ * }
+ */
 
-  async viewAllStudents(req, res) {
+
+   async viewAllStudents(req, res) {
     try {
-      const { loginType,isSuperAdmin } = req.user; // Check if the user is an admin
+      const { loginType, isSuperAdmin } = req.user;
       if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin)) {
-        return res
-          .status(403)
-          .json({ message: "You do not have permission to view student details" });
+        return res.status(403).json({
+          message: "You do not have permission to view student details",
+        });
       }
-
-      const { name, rollNo, className, section, academicYear } = req.body;
-
-      let { pageNo = 1, skipLimit = 20 } = req.body;
-
-      pageNo = Number(pageNo);
-      skipLimit = Number(skipLimit);
-
-      _class = await Class.findOne({
+  
+      // Extract parameters
+      const { searchString } = req.query; // Single search parameter
+      const { className, section, academicYear, pageNo = 1, skipLimit = 20 } =
+        req.body;
+  
+      // Convert pagination values to numbers
+      const page = Number(pageNo);
+      const limit = Number(skipLimit);
+  
+      // Find the class based on className, section, and academicYear
+      const _class = await Class.findOne({
         _school: req.user._school,
         name: className,
         section: section,
         academicYear: academicYear,
       });
-
+  
+      // Base query for students in the same school with loginType "student"
       const query = {
         _school: req.user._school,
         loginType: "student",
       };
-
-      if (rollNo) {
-        query.rollNo = rollNo;
-      }
-
+  
+      // Add class filter if class exists
       if (_class) {
-        query._class = _class;
+        query._class = _class._id;
       }
+  
+      // Add dynamic search filter if searchString is provided
+    if (searchString) {
+      const regex = new RegExp(searchString, "i"); // Case-insensitive search
 
-      if (name) {
+      if (!isNaN(searchString) && searchString.length < 4) {
+        // If numeric and likely rollNo (assuming rollNo is shorter than phone numbers)
+        query.rollNo = parseInt(searchString, 10);
+      } else if (!isNaN(searchString)) {
+        // If numeric but longer (likely phone number), match exactly
+        query.phone = searchString; // Exact match for phone number
+      } else if (searchString.toLowerCase() === "male" || searchString.toLowerCase() === "female") {
+        // If searchString is "Male" or "Female", match gender exactly
+        query.gender = searchString;
+      } else {
+        // Apply regex to other string fields
         query.$or = [
-          { firstName: { $regex: name, $options: "i" } }, // case-insensitive search for firstName
-          { lastName: { $regex: name, $options: "i" } }, // case-insensitive search for lastName
-          { fullName: { $regex: name, $options: "i" } }, // case-insensitive search for lastName
+          { email: regex },
+          { firstName: regex },
+          { lastName: regex },
+          { fullName: regex },
+          { phone: regex },  // still apply regex here for other fields
         ];
       }
-
-      // Get pagination values, with default values if not provided by frontend
-      const skip = (pageNo - 1) * skipLimit;
-
-      // Fetch students with pagination, while excluding sensitive fields
+    }
+  
+    console.log(query)
+  
+      // Calculate pagination
+      const skip = (page - 1) * limit;
+  
+      // Fetch students with pagination and total count
       const [students, totalStudents] = await Promise.all([
         users
           .find(query)
           .select("-password -forgotpassword -bankDetails -bankAdded") // Exclude sensitive fields
           .skip(skip)
-          .limit(skipLimit)
-          .populate("_class", "name section -_id") // Populate class details and exclude the _id field
+          .limit(limit)
+          .populate("_class", "name section -_id") // Populate class details
           .lean()
           .exec(),
-        users.countDocuments(query).lean(),
+        users.countDocuments(query),
       ]);
-
+  
       // Calculate total pages
-      const totalPages = Math.ceil(totalStudents / skipLimit);
-
+      const totalPages = Math.ceil(totalStudents / limit);
+  
       // Send response with students and pagination data
       return res.json({
         error: false,
-        students: students,
-        totalStudents: totalStudents,
+        students,
+        totalStudents,
+        totalPages,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+  
 
   /**
    * @api {get} /admin/student/:id View Student Details
