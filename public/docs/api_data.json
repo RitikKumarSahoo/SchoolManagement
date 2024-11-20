@@ -4228,11 +4228,10 @@
   },
   {
     "type": "post",
-    "url": "/admin/notices/allnotices",
-    "title": "Find All Notices (Admin)",
-    "name": "FindAllNoticesAdmin",
+    "url": "/notices",
+    "title": "Get all notices with pagination and filters",
+    "name": "GetNotices",
     "group": "Notices",
-    "description": "<p>This endpoint is for admin users to retrieve all active notices, with filtering based on the user's role and notice type. It supports pagination and sorting by the upload date (<code>postedDate</code>).</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -4240,8 +4239,8 @@
             "group": "Parameter",
             "type": "String",
             "optional": true,
-            "field": "type",
-            "description": "<p>Optional parameter for admins to filter by notice type. Can be &quot;student&quot;, &quot;teacher&quot;, or &quot;general&quot;.</p>"
+            "field": "searchString",
+            "description": "<p>Search term for filtering notices by title (optional).</p>"
           },
           {
             "group": "Parameter",
@@ -4249,7 +4248,7 @@
             "optional": true,
             "field": "pageNo",
             "defaultValue": "1",
-            "description": "<p>Page number for pagination (defaults to 1 if not provided).</p>"
+            "description": "<p>Page number for pagination (optional).</p>"
           },
           {
             "group": "Parameter",
@@ -4257,20 +4256,35 @@
             "optional": true,
             "field": "skipLimit",
             "defaultValue": "10",
-            "description": "<p>Number of notices per page (defaults to 10 if not provided).</p>"
-          }
-        ]
-      }
-    },
-    "header": {
-      "fields": {
-        "Header": [
+            "description": "<p>Number of items per page (optional).</p>"
+          },
           {
-            "group": "Header",
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "dateRange",
+            "description": "<p>Date range filter (optional).</p>"
+          },
+          {
+            "group": "Parameter",
             "type": "String",
             "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for admin authentication.</p>"
+            "field": "dateRange.start",
+            "description": "<p>Start date for filtering notices. <strong>(Required if dateRange is provided)</strong>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "dateRange.end",
+            "description": "<p>End date for filtering notices. <strong>(Optional but must be provided with start)</strong>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "type",
+            "description": "<p>Filter notices by type (optional, can be &quot;student&quot;, &quot;teacher&quot;, &quot;general&quot;).</p>"
           }
         ]
       }
@@ -4290,35 +4304,35 @@
             "type": "Number",
             "optional": false,
             "field": "count",
-            "description": "<p>Total number of notices matching the filter criteria.</p>"
+            "description": "<p>Total number of notices matching the filter.</p>"
           },
           {
             "group": "Success 200",
             "type": "Object[]",
             "optional": false,
             "field": "notices",
-            "description": "<p>List of notices for the current page.</p>"
+            "description": "<p>List of notices matching the filter.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "pageNo",
-            "description": "<p>The current page number.</p>"
+            "description": "<p>Current page number.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "skipLimit",
-            "description": "<p>The number of notices per page.</p>"
+            "description": "<p>Number of notices per page.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "totalPages",
-            "description": "<p>The total number of pages based on the count and skipLimit.</p>"
+            "description": "<p>Total number of pages.</p>"
           }
         ]
       }
@@ -4328,33 +4342,40 @@
         "400": [
           {
             "group": "400",
-            "type": "String",
+            "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p><code>Unauthorized</code> if the user is not an admin or if the request is malformed.</p>"
+            "description": "<p><code>true</code> if there is a bad request (e.g., missing start or end date).</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Error message, e.g., &quot;Please select both start and end dates&quot;.</p>"
           }
         ],
         "500": [
           {
             "group": "500",
-            "type": "String",
+            "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p>Error message if there is an issue with the request.</p>"
+            "description": "<p><code>true</code> if there is a server error.</p>"
           }
         ]
       }
     },
     "examples": [
       {
-        "title": "Example Request (Admin):",
-        "content": "{\n  \"pageNo\": 1,\n  \"skipLimit\": 10,\n  \"type\": \"teacher\"  // Optional filter for admin\n}",
-        "type": "json"
+        "title": "Example request:",
+        "content": "fetch(\"/notices\", {\n  method: \"POST\",\n  headers: {\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    searchString: \"Exam\",\n    pageNo: 1,\n    skipLimit: 10,\n    dateRange: {\n      start: \"2024-11-01\",\n      end: \"2024-11-20\"\n    },\n    type: \"student\"\n  })\n});",
+        "type": "js"
       },
       {
-        "title": "Example Response:",
-        "content": "{\n  \"error\": false,\n  \"count\": 50,\n  \"notices\": [\n    {\n      \"_id\": \"603f5f3f7c6d8b3d4c1f0a1b\",\n      \"title\": \"Notice 1\",\n      \"content\": \"Content of notice 1.\",\n      \"noticeType\": \"teacher\",\n      \"postedDate\": \"2024-11-10T10:30:00Z\",\n      \"isActive\": true\n    },\n    {\n      \"_id\": \"603f5f3f7c6d8b3d4c1f0a2c\",\n      \"title\": \"Notice 2\",\n      \"content\": \"Content of notice 2.\",\n      \"noticeType\": \"teacher\",\n      \"postedDate\": \"2024-11-09T08:00:00Z\",\n      \"isActive\": true\n    }\n  ],\n  \"pageNo\": 1,\n  \"skipLimit\": 10,\n  \"totalPages\": 5\n}",
-        "type": "json"
+        "title": "Example response:",
+        "content": "{\n  \"error\": false,\n  \"count\": 25,\n  \"notices\": [\n    {\n      \"title\": \"Important Exam Schedule\",\n      \"noticeType\": \"student\",\n      \"postedDate\": \"2024-11-01T00:00:00.000Z\",\n      \"expireDate\": \"2024-11-30T23:59:59.999Z\",\n      \"isActive\": true\n    },\n    ...\n  ],\n  \"pageNo\": 1,\n  \"skipLimit\": 10,\n  \"totalPages\": 3\n}",
+        "type": "js"
       }
     ],
     "version": "0.0.0",
