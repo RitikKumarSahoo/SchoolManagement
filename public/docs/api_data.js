@@ -807,57 +807,7 @@ define({ "api": [
     "title": "View all students",
     "name": "ViewAllStudents",
     "group": "Admin",
-    "description": "<p>This endpoint allows admin, teacher, or super admin to view all students based on search filters and pagination.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "searchString",
-            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li><code>rollNo</code> (numeric, typically shorter than phone numbers)</li> <li><code>phone</code> (numeric, matches exactly)</li> <li><code>gender</code> (e.g., &quot;Male&quot;, &quot;Female&quot;)</li> <li><code>email</code> (case-insensitive)</li> <li><code>firstName</code> (case-insensitive)</li> <li><code>lastName</code> (case-insensitive)</li> <li><code>fullName</code> (case-insensitive)</li> </ul>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "className",
-            "description": "<p>The name of the class (e.g., &quot;10th Grade&quot;).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "section",
-            "description": "<p>The section of the class (e.g., &quot;A&quot;).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "academicYear",
-            "description": "<p>The academic year (e.g., &quot;2024-2025&quot;).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "pageNo",
-            "defaultValue": "1",
-            "description": "<p>The page number for pagination (default: 1).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "skipLimit",
-            "defaultValue": "20",
-            "description": "<p>The number of students per page (default: 20).</p>"
-          }
-        ]
-      }
-    },
+    "description": "<p>This endpoint allows admins, teachers, or super admins to view all students based on search filters and pagination.</p>",
     "header": {
       "fields": {
         "Header": [
@@ -871,6 +821,55 @@ define({ "api": [
         ]
       }
     },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "className",
+            "description": "<p>The name of the class to filter students.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "section",
+            "description": "<p>The section of the class to filter students.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "searchString",
+            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li><code>rollNo</code> (numeric, typically shorter than phone numbers)</li> <li><code>phone</code> (numeric, matches exactly)</li> <li><code>gender</code> (e.g., &quot;Male&quot;, &quot;Female&quot;)</li> <li><code>email</code> (case-insensitive)</li> <li><code>firstName</code> (case-insensitive)</li> <li><code>lastName</code> (case-insensitive)</li> <li><code>fullName</code> (case-insensitive)</li> </ul>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "pageNo",
+            "description": "<p>Page number for pagination. Default is 1.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "skipLimit",
+            "description": "<p>Number of students per page. Default is 10.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "sortBy",
+            "defaultValue": "rollNo",
+            "description": "<p>Field to sort students by(rollNo or class). Default is <code>rollNo</code>.</p>"
+          }
+        ]
+      }
+    },
     "success": {
       "fields": {
         "Success 200": [
@@ -879,73 +878,144 @@ define({ "api": [
             "type": "Boolean",
             "optional": false,
             "field": "error",
-            "description": "<p><code>false</code> if the request is successful.</p>"
+            "description": "<p>Indicates whether an error occurred. Always <code>false</code> for successful responses.</p>"
           },
           {
             "group": "Success 200",
             "type": "Object[]",
             "optional": false,
             "field": "students",
-            "description": "<p>List of students matching the search criteria.</p>"
+            "description": "<p>List of students.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students._id",
+            "description": "<p>Student ID.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.firstName",
+            "description": "<p>First name of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.lastName",
+            "description": "<p>Last name of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.fullName",
+            "description": "<p>Full name of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.rollNo",
+            "description": "<p>Roll number of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.phone",
+            "description": "<p>Phone number of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students.gender",
+            "description": "<p>Gender of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "students._class",
+            "description": "<p>Class details of the student.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students._class.name",
+            "description": "<p>Name of the class.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "students._class.section",
+            "description": "<p>Section of the class.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "totalStudents",
-            "description": "<p>Total number of students matching the search criteria.</p>"
+            "description": "<p>Total number of students matching the filters.</p>"
           },
           {
             "group": "Success 200",
             "type": "Number",
             "optional": false,
             "field": "totalPages",
-            "description": "<p>Total number of pages for pagination.</p>"
+            "description": "<p>Total number of pages for the current pagination.</p>"
           }
         ]
       }
     },
     "error": {
       "fields": {
-        "403": [
+        "Error 4xx": [
           {
-            "group": "403",
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether an error occurred. Always <code>true</code> for error responses.</p>"
+          },
+          {
+            "group": "Error 4xx",
             "type": "String",
             "optional": false,
             "field": "message",
-            "description": "<p>&quot;You do not have permission to view student details&quot; if the user is not authorized.</p>"
-          }
-        ],
-        "404": [
-          {
-            "group": "404",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message if the class or section is not available for the specified academic year.</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message if something goes wrong during the request.</p>"
+            "description": "<p>Error message describing the issue.</p>"
           }
         ]
-      }
+      },
+      "examples": [
+        {
+          "title": "403 Forbidden:",
+          "content": "HTTP/1.1 403 Forbidden\n{\n  \"error\": true,\n  \"message\": \"You do not have permission to view student details\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "404 Not Found:",
+          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"10th Grade-A not available for 2024-2025\"\n}",
+          "type": "json"
+        },
+        {
+          "title": "500 Internal Server Error:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"An unexpected error occurred\"\n}",
+          "type": "json"
+        }
+      ]
     },
     "examples": [
       {
         "title": "Example usage:",
-        "content": "curl -X POST \"http://localhost:3000/api/v1/admin/students/view-students\" \\\n-H \"Authorization: Bearer <your_token>\" \\\n-d '{\n  \"searchString\": \"Male\",\n  \"className\": \"10th Grade\",\n  \"section\": \"A\",\n  \"academicYear\": \"2024-2025\",\n  \"pageNo\": 1,\n  \"skipLimit\": 20\n}'",
+        "content": "curl -X POST \\\n  http://localhost:3000/api/v1/admin/students/view-students \\\n  -H 'Authorization: Bearer <your-token>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n        \"className\": \"10th Grade\",\n        \"section\": \"A\",\n        \"searchString\": \"123\",\n        \"pageNo\": 1,\n        \"skipLimit\": 20,\n        \"sortBy\": \"rollNo\"\n      }'",
         "type": "curl"
-      },
-      {
-        "title": "Response Example:",
-        "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"studentId1\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"fullName\": \"John Doe\",\n      \"rollNo\": 1,\n      \"gender\": \"Male\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"9080264387\",\n      \"_class\": {\n        \"name\": \"10th Grade\",\n        \"section\": \"A\"\n      }\n    }\n  ],\n  \"totalStudents\": 100,\n  \"totalPages\": 5\n}",
-        "type": "json"
       }
     ],
     "version": "0.0.0",

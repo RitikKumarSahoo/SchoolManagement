@@ -491,8 +491,12 @@ module.exports = {
  * @api {post} /api/v1/admin/students/view-students View all students
  * @apiName ViewAllStudents
  * @apiGroup Admin
- * @apiDescription This endpoint allows admin, teacher, or super admin to view all students based on search filters and pagination.
- * 
+ * @apiDescription This endpoint allows admins, teachers, or super admins to view all students based on search filters and pagination.
+ *
+ * @apiHeader {String} Authorization Bearer token for authentication.
+ *
+ * @apiParam {String} [className] The name of the class to filter students.
+ * @apiParam {String} [section] The section of the class to filter students.
  * @apiParam {String} [searchString] Optional search string to filter students. The search can be based on:
  *    - `rollNo` (numeric, typically shorter than phone numbers)
  *    - `phone` (numeric, matches exactly)
@@ -501,190 +505,182 @@ module.exports = {
  *    - `firstName` (case-insensitive)
  *    - `lastName` (case-insensitive)
  *    - `fullName` (case-insensitive)
- * @apiParam {String} [className] The name of the class (e.g., "10th Grade").
- * @apiParam {String} [section] The section of the class (e.g., "A").
- * @apiParam {String} [academicYear] The academic year (e.g., "2024-2025").
- * @apiParam {Number} [pageNo=1] The page number for pagination (default: 1).
- * @apiParam {Number} [skipLimit=20] The number of students per page (default: 20).
- * 
- * @apiHeader {String} Authorization Bearer token for authentication.
- * 
- * @apiSuccess {Boolean} error `false` if the request is successful.
- * @apiSuccess {Object[]} students List of students matching the search criteria.
- * @apiSuccess {Number} totalStudents Total number of students matching the search criteria.
- * @apiSuccess {Number} totalPages Total number of pages for pagination.
- * 
- * @apiError (403) {String} message "You do not have permission to view student details" if the user is not authorized.
- * @apiError (404) {String} message Error message if the class or section is not available for the specified academic year.
- * @apiError (500) {String} message Error message if something goes wrong during the request.
- * 
- * @apiExample {curl} Example usage:
- *     curl -X POST "http://localhost:3000/api/v1/admin/students/view-students" \
- *     -H "Authorization: Bearer <your_token>" \
- *     -d '{
- *       "searchString": "Male",
- *       "className": "10th Grade",
- *       "section": "A",
- *       "academicYear": "2024-2025",
- *       "pageNo": 1,
- *       "skipLimit": 20
- *     }'
- * 
- * @apiExample {json} Response Example:
+ * @apiParam {Number} [pageNo] Page number for pagination. Default is 1.
+ * @apiParam {Number} [skipLimit] Number of students per page. Default is 10.
+ * @apiParam {String} [sortBy="rollNo"] Field to sort students by(rollNo or class). Default is `rollNo`.
+ *
+ * @apiSuccess {Boolean} error Indicates whether an error occurred. Always `false` for successful responses.
+ * @apiSuccess {Object[]} students List of students.
+ * @apiSuccess {String} students._id Student ID.
+ * @apiSuccess {String} students.firstName First name of the student.
+ * @apiSuccess {String} students.lastName Last name of the student.
+ * @apiSuccess {String} students.fullName Full name of the student.
+ * @apiSuccess {String} students.rollNo Roll number of the student.
+ * @apiSuccess {String} students.phone Phone number of the student.
+ * @apiSuccess {String} students.gender Gender of the student.
+ * @apiSuccess {Object} students._class Class details of the student.
+ * @apiSuccess {String} students._class.name Name of the class.
+ * @apiSuccess {String} students._class.section Section of the class.
+ * @apiSuccess {Number} totalStudents Total number of students matching the filters.
+ * @apiSuccess {Number} totalPages Total number of pages for the current pagination.
+ *
+ * @apiError {Boolean} error Indicates whether an error occurred. Always `true` for error responses.
+ * @apiError {String} message Error message describing the issue.
+ *
+ * @apiErrorExample {json} 403 Forbidden:
+ * HTTP/1.1 403 Forbidden
  * {
- *   "error": false,
- *   "students": [
- *     {
- *       "_id": "studentId1",
- *       "firstName": "John",
- *       "lastName": "Doe",
- *       "fullName": "John Doe",
- *       "rollNo": 1,
- *       "gender": "Male",
- *       "email": "john.doe@example.com",
- *       "phone": "9080264387",
- *       "_class": {
- *         "name": "10th Grade",
- *         "section": "A"
- *       }
- *     }
- *   ],
- *   "totalStudents": 100,
- *   "totalPages": 5
+ *   "error": true,
+ *   "message": "You do not have permission to view student details"
  * }
+ *
+ * @apiErrorExample {json} 404 Not Found:
+ * HTTP/1.1 404 Not Found
+ * {
+ *   "error": true,
+ *   "message": "10th Grade-A not available for 2024-2025"
+ * }
+ *
+ * @apiErrorExample {json} 500 Internal Server Error:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "An unexpected error occurred"
+ * }
+ *
+ * @apiExample {curl} Example usage:
+ * curl -X POST \
+ *   http://localhost:3000/api/v1/admin/students/view-students \
+ *   -H 'Authorization: Bearer <your-token>' \
+ *   -H 'Content-Type: application/json' \
+ *   -d '{
+ *         "className": "10th Grade",
+ *         "section": "A",
+ *         "searchString": "123",
+ *         "pageNo": 1,
+ *         "skipLimit": 20,
+ *         "sortBy": "rollNo"
+ *       }'
  */
 
-   async viewAllStudents(req, res) {
-    try {
-      const { loginType, isSuperAdmin } = req.user;
-      if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin)) {
-        return res.status(403).json({
-          message: "You do not have permission to view student details",
-        });
-      }
-  
-      // Extract parameters
-      // const {  } = req.query; // Single search parameter
-      const { className, section, academicYear,searchString, pageNo = 1, skipLimit = 20 } =
-        req.body;
-  
-      // Convert pagination values to numbers
-      const page = Number(pageNo);
-      const limit = Number(skipLimit);
-      
-  
-      // Find the class based on className, section, and academicYear
-      // const _class = await Class.findOne({
-      //   _school: req.user._school,
-      //   name: className,
-      //   section: section,
-      //   academicYear: academicYear,
-      // });
 
-      let query = {
-        _school: req.user._school,
-        name: className,
-        section: section,
-      };
-      
-      // Include academicYear only if it is provided
-      if (academicYear) {
-        query.academicYear = academicYear;
-      }
-      const _class = await Class.findOne(query);
+ async viewAllStudents(req, res) {
+  try {
+    const { loginType, isSuperAdmin } = req.user;
 
-      // console.log(_class)
-      // if(!_class && !searchString){
-      //   return res.status(404).json({error: true,
-      //     message: `${className}-${section} not available for ${academicYear} academic year`,
-      //   });
-      // }
+    // Check permission
+    if (!(loginType === "admin" || loginType === "teacher" || isSuperAdmin)) {
+      return res.status(403).json({
+        message: "You do not have permission to view student details",
+      });
+    }
 
-      if (!_class && !searchString) {
-        // Construct error message dynamically
-        const parts = [];
-        if (className) parts.push(className);
-        if (section) parts.push(section);
-        const classSection = parts.join("-");
-        const yearMessage = academicYear
-          ? `for ${academicYear} academic year`
-          : "";
-      
-        return res.status(404).json({
-          error: true,
-          message: `${classSection} not available ${yearMessage}`.trim(),
-        });
-      }
-  
-      // Base query for students in the same school with loginType "student"
-       query = {
-        _school: req.user._school,
-        loginType: "student",
-      };
-  
-      // Add class filter if class exists
-      if (_class) {
-        query._class = _class._id;
-      }
-  
-      // Add dynamic search filter if searchString is provided
+    let { className, section, searchString, pageNo, skipLimit, sortBy = "rollNo" } = req.body;
+
+    if(!pageNo ) pageNo=1
+    if(!skipLimit) skipLimit=10
+    
+
+    // Calculate pagination
+    const page = Number(pageNo);
+    const limit = Number(skipLimit);
+    const skip = (page - 1) * limit;
+
+    // Automatically calculate the academic year using `moment`
+    const moment = require("moment");
+    const currentYear = moment().year();
+    const nextYear = currentYear + 1;
+    const academicYear = `${currentYear}-${nextYear}`;
+
+    // Base query for students in the same school with loginType "student"
+    let query = {
+      _school: req.user._school,
+      loginType: "student",
+    };
+
+    // Dynamically include class or section filters
+    let classFilter = {};
+    if (className) classFilter.name = className;
+    if (section) classFilter.section = section;
+    if (academicYear) classFilter.academicYear = academicYear;
+
+    // Fetch class data if className or section is provided
+    const classes = await Class.find({ ...classFilter, _school: req.user._school })
+      .select("_id name section")
+      .lean();
+
+    if (classes.length) {
+      // Include all matching classes in the query
+      query._class = { $in: classes.map((cls) => cls._id) };
+    } else if (!searchString) {
+      const parts = [];
+      if (className) parts.push(className);
+      if (section) parts.push(section);
+      const classSection = parts.join("-");
+      return res.status(404).json({
+        error: true,
+        message: `${classSection} not available for ${academicYear}`,
+      });
+    }
+
+    // Add searchString filters
     if (searchString) {
       const regex = new RegExp(searchString, "i"); // Case-insensitive search
-
       if (!isNaN(searchString) && searchString.length < 4) {
-        // If numeric and likely rollNo (assuming rollNo is shorter than phone numbers)
-        query.rollNo = parseInt(searchString, 10);
+        query.rollNo = parseInt(searchString, 10); // Likely rollNo
       } else if (!isNaN(searchString)) {
-        // If numeric but longer (likely phone number), match exactly
-        query.phone = searchString; // Exact match for phone number
-      } else if (searchString.toLowerCase() === "male" || searchString.toLowerCase() === "female") {
-        // If searchString is "Male" or "Female", match gender exactly
+        query.phone = searchString; // Exact match for phone
+      } else if (
+        searchString.toLowerCase() === "male" ||
+        searchString.toLowerCase() === "female"
+      ) {
         query.gender = searchString;
       } else {
-        // Apply regex to other string fields
         query.$or = [
           { email: regex },
           { firstName: regex },
           { lastName: regex },
           { fullName: regex },
-          { phone: regex },  // still apply regex here for other fields
         ];
       }
     }
-  
-    // console.log(query)
-  
-      // Calculate pagination
-      const skip = (page - 1) * limit;
-  
-      // Fetch students with pagination and total count
-      const [students, totalStudents] = await Promise.all([
-        users
-          .find(query)
-          .select("-password -forgotpassword -bankDetails -bankAdded") // Exclude sensitive fields
-          .skip(skip)
-          .limit(limit)
-          .populate("_class", "name section -_id") // Populate class details
-          .lean()
-          .exec(),
-        users.countDocuments(query),
-      ]);
-  
-      // Calculate total pages
-      const totalPages = Math.ceil(totalStudents / limit);
-  
-      // Send response with students and pagination data
-      return res.json({
-        error: false,
-        students,
-        totalStudents,
-        totalPages,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: true, message: error.message });
-    }
-  },
+
+    // Fetch students without sorting (initially)
+    const [students, totalStudents] = await Promise.all([
+      users
+        .find(query)
+        .select("-password -forgotpassword -bankDetails -bankAdded") // Exclude sensitive fields
+        .skip(skip)
+        .limit(limit)
+        .populate("_class", "name section -_id") // Populate class details
+        .lean()
+        .exec(),
+      users.countDocuments(query),
+    ]);
+
+    // Sort the `students` array based on the `rollNo` field within each student
+    students.sort((a, b) => {
+      const rollA = a.rollNo ? parseInt(a.rollNo, 10) : Infinity; // Default to Infinity if rollNo is missing
+      const rollB = b.rollNo ? parseInt(b.rollNo, 10) : Infinity;
+      return rollA - rollB;
+    });
+
+    const totalPages = Math.ceil(totalStudents / limit);
+
+    return res.json({
+      error: false,
+      students,
+      totalStudents,
+      totalPages,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: true, message: error.message });
+  }
+},
+
+
+
   
 
   /**
