@@ -634,8 +634,8 @@ module.exports = {
         searchString.toLowerCase() === "male" ||
         searchString.toLowerCase() === "female"
       ) {
-        query.gender = searchString;
-      } else {
+        query.gender = { $regex: new RegExp(`^${searchString}$`, "i") }; // Ensure case-insensitive gender search
+      }else {
         query.$or = [
           { email: regex },
           { firstName: regex },
