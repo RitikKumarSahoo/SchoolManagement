@@ -1,66 +1,5 @@
 define({ "api": [
   {
-    "type": "get",
-    "url": "/user/:id",
-    "title": "get user details",
-    "name": "userDetails",
-    "group": "Admin-User",
-    "version": "1.0.0",
-    "permission": [
-      {
-        "name": "User"
-      }
-    ],
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "id",
-            "description": "<p>Users unique ID.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "200": [
-          {
-            "group": "200",
-            "type": "json",
-            "optional": false,
-            "field": "name",
-            "description": "<p>description</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "{\n  \"error\" : false,\n  \"user\" : {\n    \"email\": \"myEmail@logic-square.com\",\n    \"phone\": \"00000000000\",\n    \"name\"  : {\n      \"first\":\"Jhon\",\n      \"last\" :\"Doe\"\n    }\n  }\n}",
-          "type": "type"
-        }
-      ]
-    },
-    "filename": "routes/rest/adminUsers.js",
-    "groupTitle": "Admin-User"
-  },
-  {
     "type": "post",
     "url": "/admin/students/bulk-upload",
     "title": "Bulk Create Students from CSV",
@@ -877,14 +816,14 @@ define({ "api": [
             "type": "String",
             "optional": true,
             "field": "searchString",
-            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li>rollNo (numeric, typically shorter than phone numbers)</li> <li>phone (numeric, typically longer and matches exactly)</li> <li>gender (e.g., &quot;Male&quot;, &quot;Female&quot;)</li> <li>email (case-insensitive)</li> <li>firstName (case-insensitive)</li> <li>lastName (case-insensitive)</li> <li>fullName (case-insensitive)</li> </ul>"
+            "description": "<p>Optional search string to filter students. The search can be based on:</p> <ul> <li><code>rollNo</code> (numeric, typically shorter than phone numbers)</li> <li><code>phone</code> (numeric, matches exactly)</li> <li><code>gender</code> (e.g., &quot;Male&quot;, &quot;Female&quot;)</li> <li><code>email</code> (case-insensitive)</li> <li><code>firstName</code> (case-insensitive)</li> <li><code>lastName</code> (case-insensitive)</li> <li><code>fullName</code> (case-insensitive)</li> </ul>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "className",
-            "description": "<p>The name of the class (e.g., &quot;10&quot;).</p>"
+            "description": "<p>The name of the class (e.g., &quot;10th Grade&quot;).</p>"
           },
           {
             "group": "Parameter",
@@ -968,18 +907,27 @@ define({ "api": [
     },
     "error": {
       "fields": {
-        "Forbidden 403": [
+        "403": [
           {
-            "group": "Forbidden 403",
+            "group": "403",
             "type": "String",
             "optional": false,
             "field": "message",
-            "description": "<p>Permission denied for viewing students.</p>"
+            "description": "<p>&quot;You do not have permission to view student details&quot; if the user is not authorized.</p>"
           }
         ],
-        "Internal Server Error 500": [
+        "404": [
           {
-            "group": "Internal Server Error 500",
+            "group": "404",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message if the class or section is not available for the specified academic year.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
             "type": "String",
             "optional": false,
             "field": "message",
@@ -991,18 +939,79 @@ define({ "api": [
     "examples": [
       {
         "title": "Example usage:",
-        "content": "curl -X POST \"http://localhost:3000/api/v1/admin/students/view-students\" \\\n-H \"Authorization: Bearer <your_token>\" \\\n-d '{\n  \"searchString\": \"male\",\n  \"className\": \"10th Grade\",\n  \"section\": \"A\",\n  \"academicYear\": \"2024-2025\",\n  \"pageNo\": 1,\n  \"skipLimit\": 20\n}'",
+        "content": "curl -X POST \"http://localhost:3000/api/v1/admin/students/view-students\" \\\n-H \"Authorization: Bearer <your_token>\" \\\n-d '{\n  \"searchString\": \"Male\",\n  \"className\": \"10th Grade\",\n  \"section\": \"A\",\n  \"academicYear\": \"2024-2025\",\n  \"pageNo\": 1,\n  \"skipLimit\": 20\n}'",
         "type": "curl"
       },
       {
         "title": "Response Example:",
-        "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"studentId1\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"fullName\": \"John Doe\",\n      \"rollNo\": 1,\n      \"gender\": \"Male\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"9080264387\",\n      \"_class\": {\n        \"name\": \"10th Grade\",\n        \"section\": \"A\"\n      }\n    },\n    // more student objects\n  ],\n  \"totalStudents\": 100,\n  \"totalPages\": 5\n}",
+        "content": "{\n  \"error\": false,\n  \"students\": [\n    {\n      \"_id\": \"studentId1\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"fullName\": \"John Doe\",\n      \"rollNo\": 1,\n      \"gender\": \"Male\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"9080264387\",\n      \"_class\": {\n        \"name\": \"10th Grade\",\n        \"section\": \"A\"\n      }\n    }\n  ],\n  \"totalStudents\": 100,\n  \"totalPages\": 5\n}",
         "type": "json"
       }
     ],
     "version": "0.0.0",
     "filename": "routes/rest/adminStudent.js",
     "groupTitle": "Admin"
+  },
+  {
+    "type": "get",
+    "url": "/user/:id",
+    "title": "get user details",
+    "name": "userDetails",
+    "group": "Admin_User",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "User"
+      }
+    ],
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in format &quot;Bearer xxxx.yyyy.zzzz&quot;</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Users unique ID.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "json",
+            "optional": false,
+            "field": "name",
+            "description": "<p>description</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n  \"error\" : false,\n  \"user\" : {\n    \"email\": \"myEmail@logic-square.com\",\n    \"phone\": \"00000000000\",\n    \"name\"  : {\n      \"first\":\"Jhon\",\n      \"last\" :\"Doe\"\n    }\n  }\n}",
+          "type": "type"
+        }
+      ]
+    },
+    "filename": "routes/rest/adminUsers.js",
+    "groupTitle": "Admin_User"
   },
   {
     "type": "post",
@@ -2638,31 +2647,6 @@ define({ "api": [
       }
     ],
     "description": "<p>This endpoint allows teachers to retrieve their leave requests with optional filtering by leave type, reason, or status.</p>",
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "searchText",
-        "description": "<p>Optional search text to filter leaves based on leave type, reason, or status.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Number",
-        "optional": true,
-        "field": "pageNumber",
-        "defaultValue": "1",
-        "description": "<p>The page number for pagination.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Number",
-        "optional": true,
-        "field": "pageSize",
-        "defaultValue": "10",
-        "description": "<p>The number of records per page for pagination.</p>"
-      }
-    ],
     "error": {
       "fields": {
         "Error 4xx": [
@@ -2729,24 +2713,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "Number",
-        "optional": true,
-        "field": "pageNumber",
-        "defaultValue": "1",
-        "description": "<p>Page number for pagination (optional).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Number",
-        "optional": true,
-        "field": "pageSize",
-        "defaultValue": "10",
-        "description": "<p>Number of records per page (optional).</p>"
-      }
-    ],
     "error": {
       "fields": {
         "400": [
@@ -3140,15 +3106,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": false,
-        "field": "status",
-        "description": "<p>Status of the leave request. Must be one of &quot;approved&quot;, &quot;rejected&quot;, or &quot;cancelled&quot;.</p>"
-      }
-    ],
     "examples": [
       {
         "title": "Request Example:",
@@ -4097,97 +4054,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "title",
-        "description": "<p>The title of the notice.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "description",
-        "description": "<p>Detailed description of the notice.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "allowedValues": [
-          "\"student\"",
-          "\"teacher\"",
-          "\"general\""
-        ],
-        "optional": true,
-        "field": "noticeType",
-        "description": "<p>Type of the notice (student, teacher, or general).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Boolean",
-        "optional": true,
-        "field": "isUrgent",
-        "description": "<p>Indicates if the notice is urgent.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "postedBy",
-        "description": "<p>The ID of the user who posted the notice.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Date",
-        "optional": true,
-        "field": "expireDate",
-        "description": "<p>Expiration date of the notice.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Object",
-        "optional": true,
-        "field": "attachments",
-        "description": "<p>Attachments associated with the notice.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "attachments.url",
-        "description": "<p>URL of the attachment.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "attachments.fileName",
-        "description": "<p>File name of the attachment.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Boolean",
-        "optional": true,
-        "field": "isActive",
-        "description": "<p>Indicates if the notice is active.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Date",
-        "optional": true,
-        "field": "postedDate",
-        "description": "<p>The date the notice was posted.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "signatureOfTeacherUrl",
-        "description": "<p>URL of the teacher's signature if provided.</p>"
-      }
-    ],
     "success": {
       "fields": {
         "Success 200": [
@@ -4614,29 +4480,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "academicYear",
-        "description": "<p>Filter by academic year (optional).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "className",
-        "description": "<p>Filter by class name (optional).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "section",
-        "description": "<p>Filter by section name (optional).</p>"
-      }
-    ],
     "error": {
       "fields": {
         "403": [
@@ -4728,22 +4571,6 @@ define({ "api": [
         ]
       }
     },
-    "query": [
-      {
-        "group": "Query",
-        "type": "String",
-        "optional": false,
-        "field": "class",
-        "description": "<p>Class name to filter the progress report (e.g., &quot;10th Grade&quot;).</p>"
-      },
-      {
-        "group": "Query",
-        "type": "String",
-        "optional": false,
-        "field": "academicYear",
-        "description": "<p>The academic year to filter the report (e.g., &quot;2023-2024&quot;).</p>"
-      }
-    ],
     "header": {
       "fields": {
         "Header": [
@@ -8184,22 +8011,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": false,
-        "field": "academicYear",
-        "description": "<p>The academic year for the setting to be deleted (e.g., &quot;2024-2025&quot;).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "schoolId",
-        "description": "<p>School ID to specify if the user is a superadmin. Admins delete settings only for their school.</p>"
-      }
-    ],
     "success": {
       "fields": {
         "Success 200": [
@@ -8293,31 +8104,6 @@ define({ "api": [
         ]
       }
     },
-    "query": [
-      {
-        "group": "Query",
-        "type": "String",
-        "optional": true,
-        "field": "schoolId",
-        "description": "<p>The ID of the school. (Super Admins only)</p>"
-      }
-    ],
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "academicYear",
-        "description": "<p>Optional filter by academic year (e.g., &quot;2024-2025&quot;).</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Boolean",
-        "optional": true,
-        "field": "isActive",
-        "description": "<p>Optional filter to return active/inactive settings.</p>"
-      }
-    ],
     "success": {
       "examples": [
         {
@@ -8564,155 +8350,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "firstName",
-        "description": "<p>First name of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "lastName",
-        "description": "<p>Last name of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "email",
-        "description": "<p>Email address of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "gender",
-        "description": "<p>Gender of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "phone",
-        "description": "<p>Phone number of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Number",
-        "optional": true,
-        "field": "admissionYear",
-        "description": "<p>Year the student was admitted.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Date",
-        "optional": true,
-        "field": "dob",
-        "description": "<p>Date of birth of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "rollNo",
-        "description": "<p>Roll number of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "signature",
-        "description": "<p>Signature of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "profileImage",
-        "description": "<p>URL of the student's profile image.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Object",
-        "optional": true,
-        "field": "address",
-        "description": "<p>Address of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "address.locality",
-        "description": "<p>Locality of the student's address.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "address.city",
-        "description": "<p>City of the student's address.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "address.state",
-        "description": "<p>State of the student's address.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "address.pin",
-        "description": "<p>Pin code of the student's address.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "address.country",
-        "description": "<p>Country of the student's address.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "Object",
-        "optional": true,
-        "field": "guardian",
-        "description": "<p>Guardian details of the student.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "guardian.fathersName",
-        "description": "<p>Father's name.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "guardian.fathersOccupation",
-        "description": "<p>Father's occupation.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "guardian.mothersName",
-        "description": "<p>Mother's name.</p>"
-      },
-      {
-        "group": "Body",
-        "type": "String",
-        "optional": true,
-        "field": "guardian.mothersOccupation",
-        "description": "<p>Mother's occupation.</p>"
-      }
-    ],
     "permission": [
       {
         "name": "admin, superAdmin"
@@ -9058,15 +8695,6 @@ define({ "api": [
         ]
       }
     },
-    "body": [
-      {
-        "group": "Body",
-        "type": "Boolean",
-        "optional": true,
-        "field": "isActive",
-        "description": "<p>Optional. If provided, the student's status will be set to the specified value (<code>true</code> for active, <code>false</code> for inactive).</p>"
-      }
-    ],
     "examples": [
       {
         "title": "Example Usage in Postman:",
