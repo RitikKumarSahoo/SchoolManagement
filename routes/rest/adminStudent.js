@@ -6,6 +6,7 @@ const mail = require("../../lib/mail");
 const randomstring = require("randomstring");
 const { Readable } = require("stream");
 const csv = require("csv-parser");
+const { error } = require("console");
 
 function generateCustomPassword() {
   const upperCaseLetter = randomstring.generate({
@@ -493,14 +494,14 @@ module.exports = {
  * @apiDescription This endpoint allows admin, teacher, or super admin to view all students based on search filters and pagination.
  * 
  * @apiParam {String} [searchString] Optional search string to filter students. The search can be based on:
- *    - rollNo (numeric, typically shorter than phone numbers)
- *    - phone (numeric, typically longer and matches exactly)
- *    - gender (e.g., "Male", "Female")
- *    - email (case-insensitive)
- *    - firstName (case-insensitive)
- *    - lastName (case-insensitive)
- *    - fullName (case-insensitive)
- * @apiParam {String} [className] The name of the class (e.g., "10").
+ *    - `rollNo` (numeric, typically shorter than phone numbers)
+ *    - `phone` (numeric, matches exactly)
+ *    - `gender` (e.g., "Male", "Female")
+ *    - `email` (case-insensitive)
+ *    - `firstName` (case-insensitive)
+ *    - `lastName` (case-insensitive)
+ *    - `fullName` (case-insensitive)
+ * @apiParam {String} [className] The name of the class (e.g., "10th Grade").
  * @apiParam {String} [section] The section of the class (e.g., "A").
  * @apiParam {String} [academicYear] The academic year (e.g., "2024-2025").
  * @apiParam {Number} [pageNo=1] The page number for pagination (default: 1).
@@ -513,14 +514,15 @@ module.exports = {
  * @apiSuccess {Number} totalStudents Total number of students matching the search criteria.
  * @apiSuccess {Number} totalPages Total number of pages for pagination.
  * 
- * @apiError (Forbidden 403) {String} message Permission denied for viewing students.
- * @apiError (Internal Server Error 500) {String} message Error message if something goes wrong during the request.
+ * @apiError (403) {String} message "You do not have permission to view student details" if the user is not authorized.
+ * @apiError (404) {String} message Error message if the class or section is not available for the specified academic year.
+ * @apiError (500) {String} message Error message if something goes wrong during the request.
  * 
  * @apiExample {curl} Example usage:
  *     curl -X POST "http://localhost:3000/api/v1/admin/students/view-students" \
  *     -H "Authorization: Bearer <your_token>" \
  *     -d '{
- *       "searchString": "male",
+ *       "searchString": "Male",
  *       "className": "10th Grade",
  *       "section": "A",
  *       "academicYear": "2024-2025",
@@ -545,15 +547,12 @@ module.exports = {
  *         "name": "10th Grade",
  *         "section": "A"
  *       }
- *     },
- *     // more student objects
+ *     }
  *   ],
  *   "totalStudents": 100,
  *   "totalPages": 5
  * }
  */
-
-
 
    async viewAllStudents(req, res) {
     try {
@@ -575,16 +574,50 @@ module.exports = {
       
   
       // Find the class based on className, section, and academicYear
-      const _class = await Class.findOne({
+      // const _class = await Class.findOne({
+      //   _school: req.user._school,
+      //   name: className,
+      //   section: section,
+      //   academicYear: academicYear,
+      // });
+
+      let query = {
         _school: req.user._school,
         name: className,
         section: section,
-        academicYear: academicYear,
-      });
+      };
+      
+      // Include academicYear only if it is provided
+      if (academicYear) {
+        query.academicYear = academicYear;
+      }
+      const _class = await Class.findOne(query);
+
       // console.log(_class)
+      // if(!_class && !searchString){
+      //   return res.status(404).json({error: true,
+      //     message: `${className}-${section} not available for ${academicYear} academic year`,
+      //   });
+      // }
+
+      if (!_class && !searchString) {
+        // Construct error message dynamically
+        const parts = [];
+        if (className) parts.push(className);
+        if (section) parts.push(section);
+        const classSection = parts.join("-");
+        const yearMessage = academicYear
+          ? `for ${academicYear} academic year`
+          : "";
+      
+        return res.status(404).json({
+          error: true,
+          message: `${classSection} not available ${yearMessage}`.trim(),
+        });
+      }
   
       // Base query for students in the same school with loginType "student"
-      const query = {
+       query = {
         _school: req.user._school,
         loginType: "student",
       };
