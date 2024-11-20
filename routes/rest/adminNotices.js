@@ -3,113 +3,183 @@ const Notice = require("../../models/notice.js");
 const agenda = require("../../agenda/index.js");
 
 module.exports = {
-  /**
- * @api {post} /admin/notices/allnotices Find All Notices (Admin)
- * @apiName FindAllNoticesAdmin
+ /**
+ * @api {post} /notices Get all notices with pagination and filters
+ * @apiName GetNotices
  * @apiGroup Notices
  * 
- * @apiDescription This endpoint is for admin users to retrieve all active notices, with filtering based on the user's role and notice type. It supports pagination and sorting by the upload date (`postedDate`).
- * 
- * @apiParam {String} [type] Optional parameter for admins to filter by notice type. Can be "student", "teacher", or "general".
- * @apiParam {Number} [pageNo=1] Page number for pagination (defaults to 1 if not provided).
- * @apiParam {Number} [skipLimit=10] Number of notices per page (defaults to 10 if not provided).
- * 
- * @apiHeader {String} Authorization Bearer token for admin authentication.
+ * @apiParam {String} [searchString] Search term for filtering notices by title (optional).
+ * @apiParam {Number} [pageNo=1] Page number for pagination (optional).
+ * @apiParam {Number} [skipLimit=10] Number of items per page (optional).
+ * @apiParam {Object} [dateRange] Date range filter (optional).
+ * @apiParam {String} dateRange.start Start date for filtering notices. **(Required if dateRange is provided)**.
+ * @apiParam {String} [dateRange.end] End date for filtering notices. **(Optional but must be provided with start)**.
+ * @apiParam {String} [type] Filter notices by type (optional, can be "student", "teacher", "general").
  * 
  * @apiSuccess {Boolean} error `false` if the request was successful.
- * @apiSuccess {Number} count Total number of notices matching the filter criteria.
- * @apiSuccess {Object[]} notices List of notices for the current page.
- * @apiSuccess {Number} pageNo The current page number.
- * @apiSuccess {Number} skipLimit The number of notices per page.
- * @apiSuccess {Number} totalPages The total number of pages based on the count and skipLimit.
+ * @apiSuccess {Number} count Total number of notices matching the filter.
+ * @apiSuccess {Object[]} notices List of notices matching the filter.
+ * @apiSuccess {Number} pageNo Current page number.
+ * @apiSuccess {Number} skipLimit Number of notices per page.
+ * @apiSuccess {Number} totalPages Total number of pages.
  * 
- * @apiError (400) {String} error `Unauthorized` if the user is not an admin or if the request is malformed.
- * @apiError (500) {String} error Error message if there is an issue with the request.
+ * @apiError (400) {Boolean} error `true` if there is a bad request (e.g., missing start or end date).
+ * @apiError (500) {Boolean} error `true` if there is a server error.
  * 
- * @apiExample Example Request (Admin):
- *  {
- *    "pageNo": 1,
- *    "skipLimit": 10,
- *    "type": "teacher"  // Optional filter for admin
- *  }
+ * @apiExample {js} Example request:
+ *     fetch("/notices", {
+ *       method: "POST",
+ *       headers: {
+ *         "Content-Type": "application/json"
+ *       },
+ *       body: JSON.stringify({
+ *         searchString: "Exam",
+ *         pageNo: 1,
+ *         skipLimit: 10,
+ *         dateRange: {
+ *           start: "2024-11-01",
+ *           end: "2024-11-20"
+ *         },
+ *         type: "student"
+ *       })
+ *     });
  * 
- * @apiExample Example Response:
- *  {
- *    "error": false,
- *    "count": 50,
- *    "notices": [
- *      {
- *        "_id": "603f5f3f7c6d8b3d4c1f0a1b",
- *        "title": "Notice 1",
- *        "content": "Content of notice 1.",
- *        "noticeType": "teacher",
- *        "postedDate": "2024-11-10T10:30:00Z",
- *        "isActive": true
- *      },
- *      {
- *        "_id": "603f5f3f7c6d8b3d4c1f0a2c",
- *        "title": "Notice 2",
- *        "content": "Content of notice 2.",
- *        "noticeType": "teacher",
- *        "postedDate": "2024-11-09T08:00:00Z",
- *        "isActive": true
- *      }
- *    ],
- *    "pageNo": 1,
- *    "skipLimit": 10,
- *    "totalPages": 5
- *  }
+ * @apiExample {js} Example response:
+ * {
+ *   "error": false,
+ *   "count": 25,
+ *   "notices": [
+ *     {
+ *       "title": "Important Exam Schedule",
+ *       "noticeType": "student",
+ *       "postedDate": "2024-11-01T00:00:00.000Z",
+ *       "expireDate": "2024-11-30T23:59:59.999Z",
+ *       "isActive": true
+ *     },
+ *     ...
+ *   ],
+ *   "pageNo": 1,
+ *   "skipLimit": 10,
+ *   "totalPages": 3
+ * }
+ * 
+ * @apiError (400) {Boolean} error `true` if only an end date is provided without a start date.
+ * @apiError (400) {String} reason Error message, e.g., "Please select both start and end dates".
  */
 
   async findAllNotices(req, res) {
     try {
-      const role = req.user.loginType;
-  
-      // Pagination parameters from frontend
-      const { pageNo = 1, skipLimit = 10 } = req.body;
-  
-      // Calculate the number of documents to skip
-      const skip = (pageNo - 1) * skipLimit;
-  
-      let filter = { isActive: true };  // Only retrieve active notices
-  
-      // Role-based filtering
-      if (role === "teacher") {
-        // Teachers can only see "teacher" and "general" notices
-        filter.noticeType = { $in: ["teacher", "general"] };
-      } else if (role === "student") {
-        // Students can only see "student" and "general" notices
-        filter.noticeType = { $in: ["student", "general"] };
-      } else if (role !== "admin") {
-        // Unauthorized access if not admin, teacher, or student
-        return res.status(403).json({ error: true, reason: "Unauthorized" });
-      }
-  
-      // Only for admin, check if a specific type is provided in the body
-      const { type } = req.body;
-      if (role === "admin" && type && ["student", "teacher", "general"].includes(type)) {
-        filter.noticeType = type;  // Override noticeType filter for admin if specific type is given
-      }
-  
-      // Fetch notices with pagination and sorting
-      const [notices, count] = await Promise.all([
-        Notice.find(filter).sort({ postedDate: -1 }).skip(skip).limit(skipLimit).exec(),
-        Notice.countDocuments(filter)
-      ]);
-  
-      // Return the response with pagination info
-      return res.json({
-        error: false,
-        count,         // Total number of notices matching the filter
-        notices,       // The paginated notices
-        pageNo,        // Current page number
-        skipLimit,     // Number of notices per page
-        totalPages: Math.ceil(count / skipLimit) // Total number of pages
-      });
+        const role = req.user.loginType;
+
+        // Pagination parameters from frontend
+        const { 
+            searchString = "", 
+            pageNo = 1, 
+            skipLimit = 10, 
+            dateRange, 
+            type 
+        } = req.body;
+
+        // Calculate the number of documents to skip
+        const skip = (pageNo - 1) * skipLimit;
+
+        // Default filter to fetch active notices for the user's school
+        let filter = { 
+            isActive: true, 
+            _school: req.user._school // Restrict notices to the user's school
+        };
+
+        // Role-based filtering for notices based on type
+        if (role === "teacher") {
+            // Teachers can only see "teacher" and "general" notices
+            filter.noticeType = { $in: ["teacher", "general"] };
+        } else if (role === "student") {
+            // Students can only see "student" and "general" notices
+            filter.noticeType = { $in: ["student", "general"] };
+        } else if (role === "admin") {
+            // Admin can see all types of notices
+            if (type && ["student", "teacher", "general"].includes(type)) {
+                // If admin specifies a type, filter by that type
+                filter.noticeType = type;
+            }
+            // If no type is specified, show all types (student, teacher, general)
+        } else {
+            // Unauthorized access if not admin, teacher, or student
+            return res.status(403).json({ error: true, reason: "Unauthorized" });
+        }
+
+        // If type is provided by teacher or student, filter by that specific type
+        if (role === "teacher" && type && ["teacher", "general"].includes(type)) {
+            filter.noticeType = type; // Filter by provided type if teacher
+        } else if (role === "student" && type && ["student", "general"].includes(type)) {
+            filter.noticeType = type; // Filter by provided type if student
+        }
+
+        console.log("Filter before date filter:", filter);
+
+        // Apply search by title if provided
+        if (searchString) {
+            filter.title = { $regex: searchString, $options: "i" }; // Case-insensitive search
+        }
+
+        // Handle date filtering if dateRange is provided
+        if (dateRange?.start && dateRange?.end) {
+            const startDate = new Date(dateRange.start);
+            const endDate = new Date(dateRange.end);
+
+            // Set the time of the start date to 00:00:00 (midnight) and end date to 23:59:59.999 (last moment of the day)
+            startDate.setHours(0, 0, 0, 0); // Start date at midnight
+            endDate.setHours(23, 59, 59, 999); // End date at the last millisecond of the day
+
+            // Apply the range to both postedDate and expireDate
+            filter.$or = [
+                { postedDate: { $gte: startDate, $lte: endDate } },
+                { expireDate: { $gte: startDate, $lte: endDate } },
+            ];
+        } else if (dateRange?.start) {
+            // If only start date is provided, show all notices till current date
+            const startDate = new Date(dateRange.start);
+            startDate.setHours(0, 0, 0, 0); // Set the time to midnight for the start date
+
+            // Filter notices starting from the provided start date till the current date
+            const currentDate = new Date();
+            currentDate.setHours(23, 59, 59, 999); // Set the current date time to the last moment of the day
+
+            filter.$or = [
+                { postedDate: { $gte: startDate, $lte: currentDate } },
+                { expireDate: { $gte: startDate, $lte: currentDate } },
+            ];
+        } else if (dateRange?.end) {
+            // If only end date is provided, return an error
+            return res.status(400).json({
+                error: true,
+                reason: "Please select both start and end dates"
+            });
+        }
+
+        console.log("Filter after date filtering:", filter);
+
+        // Fetch notices with pagination and sorting
+        const [notices, count] = await Promise.all([
+            Notice.find(filter).sort({ postedDate: -1 }).skip(skip).limit(skipLimit).exec(),
+            Notice.countDocuments(filter),
+        ]);
+
+        // Return the response with pagination info
+        return res.json({
+            error: false,
+            count, // Total number of notices matching the filter
+            notices, // The paginated notices
+            pageNo, // Current page number
+            skipLimit, // Number of notices per page
+            totalPages: Math.ceil(count / skipLimit), // Total number of pages
+        });
     } catch (err) {
-      return res.status(500).json({ error: true, reason: err.message });
+        return res.status(500).json({ error: true, reason: err.message });
     }
-  },
+},
+  
+  
   
 
   /**
@@ -283,7 +353,8 @@ module.exports = {
       });
 
       // Schedule the deactivation of the notice using Agenda
-      // agenda.schedule(new Date(expireDate), "deactivate notice", { noticeId: notice._id });
+      if(notice.expireDate) agenda.schedule(new Date(expireDate), "deactivate notice", { noticeId: notice._id });
+      
       
       return res.json({ error: false, notice });
     } catch (err) {
@@ -428,10 +499,10 @@ module.exports = {
       await notice.save();
   
       // If expireDate was changed, cancel the existing job and schedule a new one
-      // if (expireDateChanged) {
-      //   await agenda.cancel({ name: "deactivate notice", "data.noticeId": id });
-      //   await agenda.schedule(new Date(expireDate), "deactivate notice", { noticeId: id });
-      // }
+      if (expireDateChanged) {
+        await agenda.cancel({ name: "deactivate notice", "data.noticeId": id });
+        await agenda.schedule(new Date(expireDate), "deactivate notice", { noticeId: id });
+      }
   
       return res.json({ error: false, notice });
     } catch (err) {
@@ -509,6 +580,5 @@ module.exports = {
       return res.status(500).json({ error: true, reason: err.message });
     }
   },
-
   
 };
