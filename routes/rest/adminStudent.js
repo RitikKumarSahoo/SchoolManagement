@@ -644,7 +644,7 @@ module.exports = {
         ];
       }
     }
-    console.log(query);
+    
     
 
     // Fetch students without sorting (initially)
