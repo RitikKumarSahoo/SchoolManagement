@@ -74,105 +74,98 @@ module.exports = {
   },
 
   /**
-   * @api {post} /admin/setsettings Set Settings
-   * @apiName SetSettings
-   * @apiGroup Settings
-   * @apiDescription This endpoint is used to set the school settings, including available classes, academic year, bus fees, and more.
-   *
-   * @apiHeader {String} Authorization Bearer token for admin or super admin access.
-   *
-   * @apiParam {Array} availableClasses List of classes with their details.
-   * @apiParam {String} academicYear The academic year for the settings.
-   * @apiParam {Object} busFee The bus fee structure (e.g., { "0-5": 600, "6-10": 800 }).
-   * @apiParam {String} [schoolId] Optional school ID for super admins to set settings for a specific school.
-   * @apiParam {Number} salary salary of teacher
-   *
-   * @apiParamExample {json} Request-Example:
-   *     {
-   *       "availableClasses": [
-   *         {
-   *           "grade": "1",
-   *           "monthlyFee": 500,
-   *           "salary": 2000
-   *         },
-   *         {
-   *           "grade": "2",
-   *           "monthlyFee": 600,
-   *           "salary": 2200
-   *         }
-   *       ],
-   *       "academicYear": "2024-2025",
-   *       "busFee": {
-   *         "0-5": 600,
-   *         "6-10": 800
-   *       },
-   *       "schoolId": "60c72b2f5f1b2c001c4f8b3e"
-   *     }
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "error": false,
-   *       "message": "Settings updated successfully",
-   *       "settingsClass": {
-   *         "_school": "60c72b2f5f1b2c001c4f8b3e",
-   *         "academicYear": "2024-2025",
-   *         "availableClasses": [
-   *           {
-   *             "grade": "1",
-   *             "section": ["A", "B", "C", "D"],
-   *             "monthlyFee": 500,
-   *             "salary": 2000
-   *           },
-   *           {
-   *             "grade": "2",
-   *             "section": ["A", "B", "C", "D"],
-   *             "monthlyFee": 600,
-   *             "salary": 2200
-   *           }
-   *         ],
-   *         "busFee": {
-   *           "0-5": 600,
-   *           "6-10": 800
-   *         },
-   *         "isActive": true
-   *       },
-   *       "AllClass": [
-   *         {
-   *           "_id": "60c72b2f5f1b2c001c4f8b4f",
-   *           "name": "1",
-   *           "section": "A",
-   *           "academicYear": "2024-2025",
-   *           "_school": "60c72b2f5f1b2c001c4f8b3e"
-   *         },
-   *         {
-   *           "_id": "60c72b2f5f1b2c001c4f8b50",
-   *           "name": "2",
-   *           "section": "A",
-   *           "academicYear": "2024-2025",
-   *           "_school": "60c72b2f5f1b2c001c4f8b3e"
-   *         }
-   *       ]
-   *     }
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 404 Not Found
-   *     {
-   *       "error": true,
-   *       "message": "Settings not found"
-   *     }
-   *
-   * @apiErrorExample {json} Permission-Error-Response:
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "You do not have permission"
-   *     }
-   */
+ * @api {post} admin/setsettings Update School Settings
+ * @apiName UpdateSettings
+ * @apiGroup Settings
+ * @apiVersion 1.0.0
+ * 
+ * @apiDescription This route allows an admin to update various settings for a school, including available classes, bus fees, salaries, holidays, leave policies, and subjects. Each update is categorized by the `setField` parameter.
+ * 
+ * @apiHeader {String} Authorization Bearer token for authentication.
+ * 
+ * @apiBody {String} setField The type of setting to update. Allowed values: "class", "busFee", "salary", "holidays", "leave", "subjects".
+ * @apiBody {Array} [availableClasses] Array of objects specifying class details when `setField="class"`. Each object includes:
+ * - `grade` (String): Class grade (e.g., "10th Grade").
+ * - `monthlyFee` (Number): Monthly fee for the class.
+ * @apiBody {Array} [busFee] Array of objects specifying bus fee details when `setField="busFee"`. Each object includes:
+ * - `range` (String): Distance range in "start-end" format (e.g., "1-5").
+ * - `fee` (Number): Fee for the specified range.
+ * @apiBody {Array} [salary] Array of objects specifying salary details when `setField="salary"`. Each object includes:
+ * - `range` (String): Experience range in "start-end" format (e.g., "0-5").
+ * - `amount` (Number): Salary amount for the range.
+ * @apiBody {Array} [holidays] Array of holiday dates (ISO format strings) when `setField="holidays"`.
+ * @apiBody {Array} [leave] Array of objects specifying leave policies when `setField="leave"`. Each object includes:
+ * - `type` (String): Leave type ("CL", "PL", or "SL").
+ * - `days` (Number): Number of days allowed for the leave type.
+ * @apiBody {Array} [subjects] Array of strings specifying subject names to add when `setField="subjects"`.
+ * 
+ * @apiSuccess {Boolean} error Indicates if there was an error.
+ * @apiSuccess {Object} settings The updated settings object.
+ * 
+ * @apiError (400) {Boolean} error Indicates an error occurred.
+ * @apiError (400) {String} reason Explanation of the error.
+ * @apiError (500) {Boolean} error Indicates a server-side error occurred.
+ * @apiError (500) {String} message Error message.
+ * 
+ * @apiExample {json} Request Example (Set Available Classes):
+ * {
+ *   "setField": "class",
+ *   "availableClasses": [
+ *     { "grade": "10th Grade", "monthlyFee": 3000 },
+ *     { "grade": "9th Grade", "monthlyFee": 2500 }
+ *   ]
+ * }
+ * 
+ * @apiExample {json} Request Example (Set Bus Fees):
+ * {
+ *   "setField": "busFee",
+ *   "busFee": [
+ *     { "range": "1-5", "fee": 500 },
+ *     { "range": "6-10", "fee": 800 }
+ *   ]
+ * }
+ * 
+ * @apiExample {json} Request Example (Set Holidays):
+ * {
+ *   "setField": "holidays",
+ *   "holidays": ["2024-12-25", "2024-01-01"]
+ * }
+ * 
+ * @apiExample {json} Request Example (Set Subjects):
+ * {
+ *   "setField": "subjects",
+ *   "subjects": ["Mathematics", "Science", "History"]
+ * }
+ * 
+ * @apiSuccessExample {json} Success Response:
+ * {
+ *   "error": false,
+ *   "settings": {
+ *     "_id": "64f1b5fa4d589eb5b820db3e",
+ *     "_school": "64f1b5fa4d589eb5b820db3f",
+ *     "availableClasses": [
+ *       { "grade": "10th Grade", "sections": ["A", "B", "C", "D"], "monthlyFee": 3000 }
+ *     ],
+ *     "academicYear": "2024-2025",
+ *     "busFee": [],
+ *     "salary": [],
+ *     "holidays": [],
+ *     "leave": [],
+ *     "schoolSubjectsList": ["Mathematics", "Science", "History"]
+ *   }
+ * }
+ * 
+ * @apiErrorExample {json} Validation Error:
+ * {
+ *   "error": true,
+ *   "reason": "Field 'availableClasses' is required"
+ * }
+ */
+
 
   async settings(req, res) {
     try {
-      const { availableClasses, busFee, salary, holidays, leave, setField } = req.body;
+      const { availableClasses, busFee, salary, holidays, leave, setField, subjects } = req.body;
       const { loginType, _school } = req.user;
 
       const fixedSections = ["A", "B", "C", "D"];
@@ -437,6 +430,58 @@ module.exports = {
           return res.status(200).json({ error: false, settings });
         }
       }
+
+      //Subjects of the School
+      if (setField === "subjects") {
+        if (!Array.isArray(subjects) || subjects.length === 0) {
+            return res.status(400).json({
+                error: true,
+                reason: "Field 'subjects' is required and should be a valid array",
+            });
+        }
+
+        // Check for duplicates within the new list of subjects
+        const duplicates = subjects.filter(
+            (subject, index) => subjects.indexOf(subject) !== index
+        );
+        if (duplicates.length > 0) {
+            return res.status(400).json({
+                error: true,
+                reason: `Duplicate subjects found: ${duplicates.join(", ")}`,
+            });
+        }
+
+        if (!settings) {
+            // Create settings with initial list of subjects
+            settings = await Settings.create({
+                _school,
+                schoolSubjectsList: subjects,
+            });
+            return res.status(200).json({ error: false, settings });
+        } else {
+            // Update settings to add new subjects
+            const existingSubjects = settings.schoolSubjectsList || [];
+            const newSubjects = subjects.filter(
+                (subject) => !existingSubjects.includes(subject)
+            );
+
+            if (newSubjects.length === 0) {
+                return res.status(400).json({
+                    error: true,
+                    reason: "No new subjects to add; all provided subjects already exist.",
+                });
+            }
+
+            settings.schoolSubjectsList.push(...newSubjects);
+            await settings.save();
+
+            return res.status(200).json({
+                error: false,
+                message: `Subjects added successfully: ${newSubjects.join(", ")}`,
+                settings,
+            });
+        }
+    }
 
 
     } catch (error) {

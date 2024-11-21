@@ -115,7 +115,7 @@ module.exports = {
             filter.noticeType = type; // Filter by provided type if student
         }
 
-        console.log("Filter before date filter:", filter);
+        // console.log("Filter before date filter:", filter);
 
         // Apply search by title if provided
         if (searchString) {

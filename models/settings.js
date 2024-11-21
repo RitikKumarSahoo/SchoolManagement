@@ -109,6 +109,8 @@ const settingSchema = new mongoose.Schema({
       required: false,
     }
   },
+  schoolSubjectsList: [String]
+  
 });
 
 module.exports = mongoose.model("Setting", settingSchema);

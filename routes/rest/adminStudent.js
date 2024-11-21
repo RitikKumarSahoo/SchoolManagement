@@ -139,6 +139,18 @@ module.exports = {
       //   return res.status(400).json({ error: true, message: "All fields are required" });
       // }
 
+      const existingUser = await users.findOne({ 
+        $or: [{ email }, { phone }] 
+      }).lean().exec();
+  
+      if (existingUser) {
+        const conflictField = existingUser.email === email ? "email" : "phone";
+        return res.status(400).json({ 
+          error: true, 
+          message: `The provided ${conflictField} already exists. Please use a different ${conflictField}.` 
+        });
+      }
+
       // Find admin and ensure they have access
       const admin = await users
         .findOne({ _id: id, loginType: "admin" })
@@ -516,7 +528,8 @@ module.exports = {
  * @apiSuccess {String} students.lastName Last name of the student.
  * @apiSuccess {String} students.fullName Full name of the student.
  * @apiSuccess {String} students.rollNo Roll number of the student.
- * @apiSuccess {String} students.phone Phone number of the student.
+ * @apiSuccess {String} students.email Email number of the student(must be unique).
+ * @apiSuccess {String} students.phone Phone number of the student(must be unique).
  * @apiSuccess {String} students.gender Gender of the student.
  * @apiSuccess {Object} students._class Class details of the student.
  * @apiSuccess {String} students._class.name Name of the class.
@@ -1085,174 +1098,190 @@ module.exports = {
 
   async bulkCreateFromCSV(req, res) {
     try {
-      // Ensure a file is uploaded
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded." });
-      }
+        // Ensure a file is uploaded
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded." });
+        }
 
-      // Extract user details from JWT token
-      const { _school, loginType } = req.user;
+        // Extract user details from JWT token
+        const { _school, loginType } = req.user;
 
-      // Validate user role: ensure they are an admin
-      if (loginType !== "admin") {
-        return res
-          .status(403)
-          .json({
-            error: "Unauthorized. Only admins can upload student data.",
-          });
-      }
-
-      const { className, section, academicYear } = req.body;
-      const studentsToCreate = [];
-      const studentsWithoutEmail = [];
-      const emailPromises = [];
-      // Getting the Class Id:-
-      const classDetails = await Class.findOne({ name: className, section, academicYear });
-      
-      
-      // Validate if class exists
-      if (!classDetails) {
-        return res.status(404).json({ error: "Class not found." });
-      }
-      const school = await School.findOne({ _id: _school }).lean();
-
-      // Create a readable stream from the uploaded file buffer
-      const bufferStream = new Readable();
-      bufferStream.push(req.file.buffer);
-      bufferStream.push(null); // End the stream
-
-      bufferStream
-        .pipe(csv())
-        .on("data", (row) => {
-          // Generate a username based on the required format
-          
-          
-          const username = `${row.Firstname.slice(0, 3).toLowerCase()}${school.name.slice(0, 3).toLowerCase()}${row.Phone.slice(-3)}`;
-          const password = generateCustomPassword(); // Assuming you have a function for generating a custom password
-
-          // Student data preparation
-          const studentData = {
-            username,
-            password, // Use your hashing method later when saving
-            firstName: row.Firstname,
-            lastName: row.Lastname,
-            fullName: `${row.Firstname} ${row.Lastname}`,
-            email: row.Email || "", // Optional email
-            phone: row.Phone,
-            gender: row.Gender,
-            dob: row.Dob,
-            guardian: {
-              fathersName: row.Fathersname,
-              fathersOccupation: row.FathersOccupation,
-              mothersName: row.Mothersname,
-              mothersOccupation: row.MothersOccupation,
-            },
-            address: {
-              locality: row.Locality,
-              city: row.City,
-              state: row.State,
-              pin: row.Pin,
-              country: row.Country,
-            },
-            admissionYear: row.Joindate.split("-")[0], // Extract year as admissionYear
-            joinDate: row.Joindate,
-            rollNo: row.Rollno,
-            _addedBy: req.user._id,
-            _class: classDetails._id,
-            _school: _school, // Assuming _school is an object with an _id field
-            loginType: "student",
-            currentAcademicYear: row.Academicyear
-
-          }
-
-          studentsToCreate.push(studentData);
-
-          if (!studentData.email) {
-            studentsWithoutEmail.push({
-              fullName: studentData.fullName,
-              username: studentData.username,
-              password,
+        // Validate user role: ensure they are an admin
+        if (loginType !== "admin") {
+            return res.status(403).json({
+                error: "Unauthorized. Only admins can upload student data.",
             });
-          } else {
-            // Create a promise for sending email to student if they have an email
-            const emailPromise = mail("adminNotification", {
-              to: studentData.email,
-              subject: `Welcome to the School`,
-              locals: {
-                studentEmail: studentData.email,
-                studentName: studentData.firstName,
-                username: studentData.username,
-                password: password,
-                adminName: req.user.firstName, // Or other property for admin's name
-              },
-            });
-            emailPromises.push(emailPromise);
-          }
-        })
-        .on("end", async () => {
-          try {
-            // Wait for all email promises to resolve
-            await Promise.all(emailPromises);
+        }
 
-            // Bulk insert students without hashing passwords here
-            // await users.insertMany(studentsToCreate);
-            const saveErrors = [];
-            for (const studentData of studentsToCreate) {
-              try {
-                await users.create(studentData);
-              } catch (saveError) {
-                saveErrors.push({
-                  student: studentData.fullName,
-                  error: saveError.message,
+        const { className, section, academicYear } = req.body;
+        const studentsToCreate = [];
+        const studentsWithoutEmail = [];
+        const saveErrors = [];
+        const createdStudentCredentials = [];
+        const classDetails = await Class.findOne({ name: className, section, academicYear });
+
+        // Validate if class exists
+        if (!classDetails) {
+            return res.status(404).json({ error: "Class not found." });
+        }
+
+        const school = await School.findOne({ _id: _school }).lean();
+
+        // Create a readable stream from the uploaded file buffer
+        const bufferStream = new Readable();
+        bufferStream.push(req.file.buffer);
+        bufferStream.push(null); // End the stream
+
+        bufferStream
+            .pipe(csv())
+            .on("data", async (row) => {
+                const username = `${row.Firstname.slice(0, 3).toLowerCase()}${school.name.slice(0, 3).toLowerCase()}${row.Phone.slice(-3)}`;
+                const password = generateCustomPassword();
+
+                // Check if phone or email already exists
+                const existingStudent = await users.findOne({
+                    $or: [{ phone: row.Phone }, { email: row.Email }],
+                }).lean();
+
+                if (existingStudent) {
+                    saveErrors.push({
+                        student: `${row.Firstname} ${row.Lastname}`,
+                        error: existingStudent.phone === row.Phone
+                            ? "Phone number already exists."
+                            : "Email already exists.",
+                    });
+                    return;
+                }
+
+                // Prepare student data
+                const studentData = {
+                    username,
+                    password,
+                    firstName: row.Firstname,
+                    lastName: row.Lastname,
+                    fullName: `${row.Firstname} ${row.Lastname}`,
+                    email: row.Email || "", // Optional email
+                    phone: row.Phone,
+                    gender: row.Gender,
+                    dob: row.Dob,
+                    guardian: {
+                        fathersName: row.Fathersname,
+                        fathersOccupation: row.FathersOccupation,
+                        mothersName: row.Mothersname,
+                        mothersOccupation: row.MothersOccupation,
+                    },
+                    address: {
+                        locality: row.Locality,
+                        city: row.City,
+                        state: row.State,
+                        pin: row.Pin,
+                        country: row.Country,
+                    },
+                    admissionYear: row.Joindate.split("-")[0], // Extract year as admissionYear
+                    joinDate: row.Joindate,
+                    rollNo: row.Rollno,
+                    _addedBy: req.user._id,
+                    _class: classDetails._id,
+                    _school: _school,
+                    loginType: "student",
+                    currentAcademicYear: row.Academicyear,
+                };
+
+                studentsToCreate.push(studentData);
+
+                // Add credentials to the response data
+                createdStudentCredentials.push({
+                    fullName: studentData.fullName,
+                    username: studentData.username,
+                    password: password,
                 });
-              }
-            }
 
-            if (studentsWithoutEmail.length > 0) {
-              await mail("adminNotification", {
-                to: req.user.email, // Admin email from the request user info
-                subject: "New Students Created - Email Notification",
-                locals: {
-                  adminName: req.user.firstName,
-                  studentName: "", // No student name available for admin notification
-                  username: "", // No username available for admin notification
-                  password: "", // No password available for admin notification
-                  studentEmail: "", // Set to empty string
-                  studentList: studentsWithoutEmail, // List of students without emails
-                },
-              });
-            }
+                if (!studentData.email) {
+                    studentsWithoutEmail.push({
+                        fullName: studentData.fullName,
+                        username: studentData.username,
+                        password,
+                    });
+                }
 
-            if (saveErrors.length > 0) {
-              return res.status(500).json({
-                message: "Some students failed to be created.",
-                totalCreated: studentsToCreate.length - saveErrors.length,
-                totalFailed: saveErrors.length,
-                failedRecords: saveErrors,
-              });
-            }
+                // Commenting out email-sending logic
+                /*
+                else {
+                    const emailPromise = mail("adminNotification", {
+                        to: studentData.email,
+                        subject: `Welcome to the School`,
+                        locals: {
+                            studentEmail: studentData.email,
+                            studentName: studentData.firstName,
+                            username: studentData.username,
+                            password: password,
+                            adminName: req.user.firstName,
+                        },
+                    });
+                    emailPromises.push(emailPromise);
+                }
+                */
+            })
+            .on("end", async () => {
+                try {
+                    // Wait for all email promises to resolve (disabled)
+                    // await Promise.all(emailPromises);
 
-            res.status(200).json({
-              message: "All students created successfully!",
-              totalCreated: studentsToCreate.length,
-              // studentsToCreate
+                    for (const studentData of studentsToCreate) {
+                        try {
+                            await users.create(studentData);
+                        } catch (saveError) {
+                            saveErrors.push({
+                                student: studentData.fullName,
+                                error: saveError.message,
+                            });
+                        }
+                    }
+
+                    /*
+                    if (studentsWithoutEmail.length > 0) {
+                        await mail("adminNotification", {
+                            to: req.user.email,
+                            subject: "New Students Created - Email Notification",
+                            locals: {
+                                adminName: req.user.firstName,
+                                studentList: studentsWithoutEmail,
+                            },
+                        });
+                    }
+                    */
+
+                    if (saveErrors.length > 0) {
+                        return res.status(500).json({
+                            message: "Some students failed to be created.",
+                            totalCreated: studentsToCreate.length - saveErrors.length,
+                            totalFailed: saveErrors.length,
+                            failedRecords: saveErrors,
+                            credentials: createdStudentCredentials, // Include credentials
+                        });
+                    }
+
+                    res.status(200).json({
+                        message: "All students created successfully!",
+                        totalCreated: studentsToCreate.length,
+                        credentials: createdStudentCredentials, // Include credentials
+                    });
+                } catch (error) {
+                    console.error(`Error saving students: ${error.message}`);
+                    res.status(500).json({
+                        error: "Error processing the data",
+                        details: error.message,
+                    });
+                }
             });
-          } catch (error) {
-            console.error(`Error saving students: ${error.message}`);
-            res
-              .status(500)
-              .json({
-                error: "Error processing the data",
-                details: error.message,
-              });
-          }
-        });
     } catch (error) {
-      res
-        .status(500)
-        .json({ error: "Error processing the file", details: error.message });
+        res.status(500).json({
+            error: "Error processing the file",
+            details: error.message,
+        });
     }
-  },
+},
+
   
   // Get Last Roll No of The class and section
   
