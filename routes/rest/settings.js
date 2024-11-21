@@ -434,54 +434,54 @@ module.exports = {
       //Subjects of the School
       if (setField === "subjects") {
         if (!Array.isArray(subjects) || subjects.length === 0) {
-            return res.status(400).json({
-                error: true,
-                reason: "Field 'subjects' is required and should be a valid array",
-            });
+          return res.status(400).json({
+            error: true,
+            reason: "Field 'subjects' is required and should be a valid array",
+          });
         }
 
         // Check for duplicates within the new list of subjects
         const duplicates = subjects.filter(
-            (subject, index) => subjects.indexOf(subject) !== index
+          (subject, index) => subjects.indexOf(subject) !== index
         );
         if (duplicates.length > 0) {
-            return res.status(400).json({
-                error: true,
-                reason: `Duplicate subjects found: ${duplicates.join(", ")}`,
-            });
+          return res.status(400).json({
+            error: true,
+            reason: `Duplicate subjects found: ${duplicates.join(", ")}`,
+          });
         }
 
         if (!settings) {
-            // Create settings with initial list of subjects
-            settings = await Settings.create({
-                _school,
-                schoolSubjectsList: subjects,
-            });
-            return res.status(200).json({ error: false, settings });
+          // Create settings with initial list of subjects
+          settings = await Settings.create({
+            _school,
+            schoolSubjectsList: subjects,
+          });
+          return res.status(200).json({ error: false, settings });
         } else {
-            // Update settings to add new subjects
-            const existingSubjects = settings.schoolSubjectsList || [];
-            const newSubjects = subjects.filter(
-                (subject) => !existingSubjects.includes(subject)
-            );
+          // Update settings to add new subjects
+          const existingSubjects = settings.schoolSubjectsList || [];
+          const newSubjects = subjects.filter(
+            (subject) => !existingSubjects.includes(subject)
+          );
 
-            if (newSubjects.length === 0) {
-                return res.status(400).json({
-                    error: true,
-                    reason: "No new subjects to add; all provided subjects already exist.",
-                });
-            }
-
-            settings.schoolSubjectsList.push(...newSubjects);
-            await settings.save();
-
-            return res.status(200).json({
-                error: false,
-                message: `Subjects added successfully: ${newSubjects.join(", ")}`,
-                settings,
+          if (newSubjects.length === 0) {
+            return res.status(400).json({
+              error: true,
+              reason: "No new subjects to add; all provided subjects already exist.",
             });
+          }
+
+          settings.schoolSubjectsList.push(...newSubjects);
+          await settings.save();
+
+          return res.status(200).json({
+            error: false,
+            message: `Subjects added successfully: ${newSubjects.join(", ")}`,
+            settings,
+          });
         }
-    }
+      }
 
 
     } catch (error) {
@@ -490,113 +490,121 @@ module.exports = {
   },
 
   /**
-   * @api {put} /admin/updatesettings Update Settings
-   * @apiName UpdateClassSettings
-   * @apiGroup Settings
-   * @apiDescription This endpoint updates the class settings, including available classes, bus fees, and the active status.
-   *
-   * @apiHeader {String} Authorization Bearer token for admin or super admin access.
-   *
-   * @apiParam {Array} [availableClasses] List of available classes with details.
-   * @apiParam {Object} [busFee] The updated bus fee structure (e.g., { "0-5": 600, "6-10": 800 }).
-   * @apiParam {Boolean} [isActive] Indicates if the settings should be active or not.
-   * @apiParam {Boolean} [academicYear] "2024-2025"
-   * @apiParam {Number}  [salary] salary of teacher
-   *
-   * @apiParamExample {json} Request-Example:
-   *     {
-   *       "availableClasses": [
-   *         {
-   *           "grade": "1",
-   *           "section": ["A", "B"],
-   *           "monthlyFee": 500,
-   *           "salary": 2000
-   *         },
-   *         {
-   *           "grade": "2",
-   *           "monthlyFee": 600,
-   *           "salary": 2200
-   *         }
-   *       ],
-   *       "busFee": {
-   *         "0-5": 600,
-   *         "6-10": 800
-   *       },
-   *       "isActive": true
-   *     }
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "error": false,
-   *       "message": "Class settings updated successfully",
-   *       "updatedSettings": {
-   *         "_school": "60c72b2f5f1b2c001c4f8b3e",
-   *         "academicYear": "2024-2025",
-   *         "availableClasses": [
-   *           {
-   *             "grade": "1",
-   *             "section": ["A", "B"],
-   *             "monthlyFee": 500,
-   *             "salary": 2000
-   *           },
-   *           {
-   *             "grade": "2",
-   *             "section": ["A", "B", "C", "D"],
-   *             "monthlyFee": 600,
-   *             "salary": 2200
-   *           }
-   *         ],
-   *         "busFee": {
-   *           "0-5": 600,
-   *           "6-10": 800
-   *         },
-   *         "isActive": true
-   *       }
-   *     }
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 404 Not Found
-   *     {
-   *       "error": true,
-   *       "message": "Settings not found"
-   *     }
-   *
-   * @apiErrorExample {json} Permission-Error-Response:
-   *     HTTP/1.1 400 Bad Request
-   *     {
-   *       "error": true,
-   *       "reason": "You do not have permission"
-   *     }
-   */
+ * @api {patch} /api/settings/updateSettings Update School Settings
+ * @apiName UpdateSettings
+ * @apiGroup Settings
+ * @apiPermission admin
+ * 
+ * @apiDescription Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, and subjects.
+ * 
+ * @apiParam {String} setField The field to update. Possible values: `class`, `busFee`, `salary`, `holidays`, `leave`, `subjects`.
+ * @apiParam {Object} [availableClasses] The available classes to be updated (only if `setField` is `class`).
+ * @apiParam {String} [availableClasses.grade] The grade for the class.
+ * @apiParam {String[]} [availableClasses.sections] List of sections for the class.
+ * @apiParam {Number} [availableClasses.monthlyFee] The monthly fee for the class.
+ * 
+ * @apiParam {Object[]} [busFee] List of bus fee entries (only if `setField` is `busFee`).
+ * @apiParam {String} busFee.range The range in the format 'start-end' (e.g., '1-5').
+ * @apiParam {Number} busFee.fee The bus fee for the range.
+ * 
+ * @apiParam {Object[]} [salary] List of salary ranges (only if `setField` is `salary`).
+ * @apiParam {String} salary.range The salary range in the format 'start-end' (e.g., '12-24').
+ * @apiParam {Number} salary.amount The salary amount for the range.
+ * 
+ * @apiParam {Object[]} [holidays] List of holidays to be updated (only if `setField` is `holidays`).
+ * @apiParam {String} holidays.name The name of the holiday.
+ * @apiParam {String} holidays.date The date of the holiday in `DD/MM/YYYY` format.
+ * 
+ * @apiParam {Object[]} [leave] List of leave types (only if `setField` is `leave`).
+ * @apiParam {String} leave.type The type of leave (e.g., 'CL', 'PL', 'SL').
+ * @apiParam {Number} leave.days The number of days for the leave type.
+ * 
+ * @apiParam {String|String[]} [subjects] List of subjects to be updated (only if `setField` is `subjects`).
+ * 
+ * @apiSuccess {Object} settings The updated settings for the school.
+ * @apiSuccess {Array} settings.schoolSubjectsList The updated list of subjects.
+ * @apiSuccess {Array} settings.availableClasses The updated available classes.
+ * @apiSuccess {Array} settings.busFee The updated bus fees.
+ * @apiSuccess {Array} settings.salary The updated salary ranges.
+ * @apiSuccess {Array} settings.holidays The updated holidays.
+ * @apiSuccess {Array} settings.leave The updated leave types.
+ * 
+ * @apiError (400) BadRequest Field validation failed. Specific reason is provided.
+ * @apiError (403) Forbidden The user is not authorized to perform this action (non-admin).
+ * @apiError (404) NotFound Settings not found for the school.
+ * @apiError (500) InternalServerError Server-side error occurred.
+ * 
+ * @apiExample {json} Request Example (for updating subjects):
+ *  {
+ *    "setField": "subjects",
+ *    "subjects": ["Computer Science", "Physical Education"]
+ *  }
+ * 
+ * @apiExample {json} Request Example (for updating salary ranges):
+ *  {
+ *    "setField": "salary",
+ *    "salary": [
+ *      { "range": "12-24", "amount": 20000 },
+ *      { "range": "25-36", "amount": 25000 }
+ *    ]
+ *  }
+ * 
+ * @apiExample {json} Request Example (for updating bus fees):
+ *  {
+ *    "setField": "busFee",
+ *    "busFee": [
+ *      { "range": "1-5", "fee": 500 },
+ *      { "range": "6-10", "fee": 700 }
+ *    ]
+ *  }
+ * 
+ * @apiExample {json} Request Example (for updating holidays):
+ *  {
+ *    "setField": "holidays",
+ *    "holidays": [
+ *      { "name": "Christmas", "date": "25/12/2024" },
+ *      { "name": "New Year", "date": "01/01/2025" }
+ *    ]
+ *  }
+ * 
+ * @apiExample {json} Request Example (for updating leave types):
+ *  {
+ *    "setField": "leave",
+ *    "leave": [
+ *      { "type": "CL", "days": 5 },
+ *      { "type": "PL", "days": 7 }
+ *    ]
+ *  }
+ */
+
 
   async updateSettings(req, res) {
     try {
-      const { availableClasses, busFee, salary, holidays, leave, setField } = req.body;
+      const { availableClasses, busFee, salary, holidays, leave, subjects, setField } = req.body;
       const { loginType, _school } = req.user;
-  
+
       if (loginType !== "admin") {
         return res.status(403).json({ error: true, reason: "You are not authorized to perform this action." });
       }
-  
+
       if (setField === undefined || setField === "") {
         return res.status(400).json({ error: true, reason: "Field 'setField' is required" });
       }
-  
+
       let settings = await Settings.findOne({ _school });
       if (settings === null) {
         return res.status(404).json({ error: true, reason: "Settings not found for the school." });
       }
-  
+
       if (setField === "class") {
         if (!availableClasses || !Array.isArray(availableClasses) || availableClasses.length === 0) {
           return res.status(400).json({ error: true, reason: "Field 'availableClasses' is required and must be a non-empty array." });
         }
         const fixedSections = ["A", "B", "C", "D"];
-  
+
         for (const classInfo of availableClasses) {
           const existingClass = settings.availableClasses.find(c => c.grade === classInfo.grade);
-  
+
           if (existingClass) {
             if (classInfo.monthlyFee) {
               existingClass.monthlyFee = classInfo.monthlyFee;
@@ -610,13 +618,13 @@ module.exports = {
           }
         }
       }
-  
+
       // Handling "busFee" update: Update bus fees
       if (setField === "busFee") {
         if (!busFee || !Array.isArray(busFee)) {
           return res.status(400).json({ error: true, reason: "Field 'busFee' is required and should be a valid array." });
         }
-  
+
         // Validate bus fee entries
         for (const entry of busFee) {
           if (!entry.range || !entry.fee) {
@@ -630,17 +638,17 @@ module.exports = {
             return res.status(400).json({ error: true, reason: `Invalid range format for '${entry.range}'. Use 'start-end' format.` });
           }
         }
-  
+
         // Update the bus fee
         settings.busFee = busFee;
       }
-  
+
       // Handling "salary" update: Update salary ranges
       if (setField === "salary") {
         if (!salary || !Array.isArray(salary)) {
           return res.status(400).json({ error: true, reason: "Field 'salary' is required and should be a valid array." });
         }
-  
+
         // Validate salary entries
         for (const entry of salary) {
           if (!entry.range || typeof entry.amount !== "number") {
@@ -650,21 +658,21 @@ module.exports = {
             return res.status(400).json({ error: true, reason: "Range must be in the format '12-24' (months)." });
           }
         }
-  
+
         // Ensure salary ranges are sequential
         const ranges = salary.map(entry => entry.range.split('-').map(Number));
         ranges.sort((a, b) => a[0] - b[0]);
-  
+
         for (let i = 1; i < ranges.length; i++) {
           if (ranges[i][0] !== ranges[i - 1][1] + 1) {
             return res.status(400).json({ error: true, reason: "Salary ranges must be sequential, with no gaps between them." });
           }
         }
-  
+
         // Update salary
         settings.salary = salary;
       }
-  
+
       // Handling "holidays" update: Update holidays (can update name and date)
       if (setField === "holidays") {
         if (!holidays || !Array.isArray(holidays)) {
@@ -673,7 +681,7 @@ module.exports = {
             reason: "Field 'holidays' is required and should be a valid array."
           });
         }
-  
+
         // Validate each holiday entry
         for (const holiday of holidays) {
           if (!holiday.name || typeof holiday.name !== "string") {
@@ -682,14 +690,14 @@ module.exports = {
               reason: "Each holiday entry must have a 'name' property of type string."
             });
           }
-  
+
           if (!holiday.date || typeof holiday.date !== "string") {
             return res.status(400).json({
               error: true,
               reason: "Each holiday entry must have a 'date' property of type string."
             });
           }
-  
+
           // Validate date format using moment
           if (!moment(holiday.date, "DD/MM/YYYY", true).isValid()) {
             return res.status(400).json({
@@ -698,48 +706,94 @@ module.exports = {
             });
           }
         }
-  
+
         // Update holidays
         settings.holidays = holidays;
       }
-  
+
       // Handling "leave" update: Update leave types
       if (setField === "leave") {
         if (!leave || !Array.isArray(leave)) {
           return res.status(400).json({ error: true, reason: "Field 'leave' is required and should be a valid array." });
         }
-  
+
         const validLeaveTypes = ["CL", "PL", "SL"];
-  
+
         // Validate each leave entry
         for (const entry of leave) {
           if (!entry.type || typeof entry.days !== "number") {
             return res.status(400).json({ error: true, reason: "Each leave entry must have 'type' (string) and 'days' (number)." });
           }
-  
+
           if (!validLeaveTypes.includes(entry.type)) {
             return res.status(400).json({ error: true, reason: `'type' must be one of ${validLeaveTypes.join(", ")}` });
           }
-  
+
           if (entry.days < 0) {
             return res.status(400).json({ error: true, reason: "'days' must be a non-negative number" });
           }
         }
-  
+
         // Update leave
         settings.leave = leave;
       }
-  
+
+      // Handling "subjects" update: Update subjects
+      if (setField === "subjects") {
+        if (!subjects || (typeof subjects !== "string" && !Array.isArray(subjects))) {
+          return res.status(400).json({
+            error: true,
+            reason: "Field 'subjects' is required and should be a string or an array.",
+          });
+        }
+      
+        // Normalize input to an array
+        const subjectsArray = typeof subjects === "string" ? [subjects] : subjects;
+      
+        // Ensure each subject is valid and does not already exist
+        const existingSubjects = settings.schoolSubjectsList || [];
+        const newSubjects = [];
+      
+        for (const subject of subjectsArray) {
+          if (typeof subject !== "string" || subject.trim() === "") {
+            return res.status(400).json({
+              error: true,
+              reason: "Each subject must be a non-empty string.",
+            });
+          }
+      
+          const normalizedSubject = subject.trim().toLowerCase();  // Normalize to lowercase for case-insensitive comparison
+      
+          // Check if the subject already exists in schoolSubjectsList (case-insensitive)
+          const subjectExists = existingSubjects.some(existingSubject =>
+            existingSubject.toLowerCase() === normalizedSubject
+          );
+      
+          if (subjectExists) {
+            return res.status(400).json({
+              error: true,
+              reason: `The subject '${subject}' (case-insensitive) is already added. Duplicates are not allowed.`,
+            });
+          }
+      
+          newSubjects.push(subject.trim());
+        }
+      
+        // Add new subjects to schoolSubjectsList
+        settings.schoolSubjectsList.push(...newSubjects);
+      }
+
+
       // Save the updated settings
       await settings.save();
-  
+
       return res.status(200).json({ error: false, settings });
-  
+
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
-  
+
 
   /**
    * @api {delete} /admin/deletesetting Delete Setting
@@ -822,22 +876,22 @@ module.exports = {
   async setScheduleTime(req, res) {
     try {
       const { loginType, isSuperadmin, _school } = req.user;
-  
+
       // Validate that the user is an admin and ensure _school matches the admin's school
       if (loginType !== 'admin' || isSuperadmin === true) {
         return res.status(401).json({ error: true, message: 'Unauthorized access' });
       }
-  
+
       const { academicYear, weekSchedule } = req.body;
-  
+
       // Check if the settings document exists for the given academic year and school
       const existingSettings = await Settings.findOne({
         academicYear,
         _school,
       });
-  
+
       console.log("existingSettings", existingSettings?.weekSchedule);
-  
+
       // If a schedule already exists and weekSchedule is populated, return an error
       if (
         existingSettings &&
@@ -851,21 +905,21 @@ module.exports = {
           message: `A schedule already exists for academic year ${academicYear} in the current school.`,
         });
       }
-  
+
       // Validation and generation of the schedule
       const scheduleData = {};
-  
+
       for (const day in weekSchedule) {
         const { periodDuration, startTime, endTime, breakTime } = weekSchedule[day];
         let currentTime = moment(startTime, 'HH:mm');
         let end = moment(endTime, 'HH:mm');
         let totalMinutes = end.diff(currentTime, 'minutes');
-  
+
         // Deduct break time for weekdays (Monday to Friday)
         if (day !== 'sat') {
           totalMinutes -= parseInt(breakTime); // Deduct break time for weekdays
         }
-  
+
         // Validation: Ensure total time is divisible by periodDuration
         if (totalMinutes % periodDuration !== 0) {
           return res.status(400).json({
@@ -873,48 +927,48 @@ module.exports = {
             message: `Total time on ${day} is not divisible by the period duration.`,
           });
         }
-  
+
         let periodCount = Math.floor(totalMinutes / periodDuration);
         let periods = [];
         let periodNumber = 1;
-  
+
         // Calculate periods for the given day
         while (currentTime.isBefore(end) && periodNumber <= periodCount) {
           let periodStart = moment(currentTime);
           let periodEnd = moment(currentTime).add(periodDuration, 'minutes');
-  
+
           // Add the period to the schedule
           periods.push({
             periodType: 'period',
             startTime: periodStart.format('HH:mm'),
             endTime: periodEnd.format('HH:mm'),
           });
-  
+
           // After the 4th period, insert the break time (for weekdays only)
           if (periodNumber === 4 && day !== 'sat') {
             const breakStart = periodEnd; // Break starts after the 4th period
             const breakEnd = moment(breakStart).add(45, 'minutes'); // Break lasts for 45 minutes
-  
+
             periods.push({
               periodType: 'break',
               startTime: breakStart.format('HH:mm'),
               endTime: breakEnd.format('HH:mm'),
             });
-  
+
             // Update currentTime to be after the break
             currentTime = breakEnd;
           } else {
             // Move to the start time of the next period
             currentTime = periodEnd;
           }
-  
+
           periodNumber++;
         }
-  
+
         // Save the periods for the day in the scheduleData object
         scheduleData[day] = periods;
       }
-  
+
       // Update the existing settings document with the new schedule
       if (existingSettings) {
         existingSettings.weekSchedule = scheduleData;
@@ -925,7 +979,7 @@ module.exports = {
           message: `Settings for academic year ${academicYear} not found. Please ensure settings exist before creating a schedule.`,
         });
       }
-  
+
       // Return a success response with the saved schedule
       res.json({
         message: 'Schedule created successfully',
@@ -936,10 +990,10 @@ module.exports = {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
-  
-  
-  
-  
+
+
+
+
 
 
 
