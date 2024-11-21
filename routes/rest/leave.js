@@ -380,7 +380,7 @@ module.exports = {
         ];
       }
 
-      const leaves = await Leave.find(query)
+      const leaves = await Leave.find(query).populate({path:"_teacher" , select: "-forgotpassword -password"})
         .skip(skipNumber)
         .limit(pageSize)
         .exec();
