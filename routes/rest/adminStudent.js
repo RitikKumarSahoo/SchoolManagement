@@ -635,7 +635,7 @@ module.exports = {
         searchString.toLowerCase() === "female"
       ) {
         query.gender = { $regex: new RegExp(`^${searchString}$`, "i") }; // Ensure case-insensitive gender search
-      }else {
+      } else {
         query.$or = [
           { email: regex },
           { firstName: regex },
@@ -644,6 +644,8 @@ module.exports = {
         ];
       }
     }
+    console.log(query);
+    
 
     // Fetch students without sorting (initially)
     const [students, totalStudents] = await Promise.all([
