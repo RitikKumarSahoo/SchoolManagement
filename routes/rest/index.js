@@ -51,7 +51,7 @@ router.post("/createadmin/:id", login.createAdmin);
 router.post("/schools", school.getAllSchool);
 router.get("/school/:id", school.schoolDetails);
 router.post("/createschool", school.Post);
-router.put("/school/:id", school.updateSchool);
+router.put("/school", school.updateSchool);
 router.delete("/school/delete/:id", school.deleteSchool);
 //transaction
 

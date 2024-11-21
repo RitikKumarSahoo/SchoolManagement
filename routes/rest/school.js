@@ -310,7 +310,7 @@ module.exports = {
       const { isSuperAdmin, loginType, _school } = req.user;
 
       if (isSuperAdmin === true) {
-        const school = await School.findOne({ _id: req.params.id });
+        const school = await School.findOne({ _id: _school });
 
         if (school === null) {
           return res
