@@ -365,7 +365,7 @@ module.exports = {
 
   /**
    *
-   * @api {get} /admin/notice/awstempcreds 5.0 login user get temporary aws key
+   * @api {get} /awstempcreds 5.0 login user get temporary aws key
    * @apiName GetAwsKey
    * @apiGroup Auth
    * @apiVersion  1.0.0
