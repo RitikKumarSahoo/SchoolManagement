@@ -130,6 +130,7 @@ router.post("/admin/lastrollnumber", adminStudentRoutes.getLastRollNumber);
 router.post("/admin/notices/allnotices", adminNoticeRoutes.findAllNotices); // Fetch all notices
 router.get("/admin/notice/getNotice/:id", adminNoticeRoutes.get); // Get a notice by ID
 router.post("/admin/notice/createnotice", adminNoticeRoutes.post); // Create a new notice
+router.get("/admin/notice/awstempcreds", adminNoticeRoutes.getAwsKey); // Get AWS credentials
 router.put("/admin/notice/editnotice/:id", adminNoticeRoutes.put); // Edit a notice by ID
 router.post("/admin/notice/deletenotice/:id", adminNoticeRoutes.delete); // Delete a notice by ID
 

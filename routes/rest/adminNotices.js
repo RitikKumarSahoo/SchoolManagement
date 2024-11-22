@@ -1,6 +1,7 @@
 const moment = require('moment');
 const Notice = require("../../models/notice.js");
 const agenda = require("../../agenda/index.js");
+const { STS } = require("aws-sdk");
 
 module.exports = {
  /**
@@ -359,6 +360,52 @@ module.exports = {
       return res.json({ error: false, notice });
     } catch (err) {
       return res.status(500).json({ error: true, reason: err.message });
+    }
+  },
+
+  /**
+   *
+   * @api {get} /admin/notice/awstempcreds 5.0 login user get temporary aws key
+   * @apiName GetAwsKey
+   * @apiGroup Auth
+   * @apiVersion  1.0.0
+   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
+   *
+   * @apiSuccessExample {type} Success-Response:
+      {
+        "error": false,
+        "AccessKeyId": "ASIASNKPOZCACSWCVJPE",
+        "SecretAccessKey": "f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/",
+        "SessionToken": "FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==",
+        "Expiration": "2020-01-30T06:18:43.000Z"
+      }
+   *
+   *
+   */
+  async getAwsKey(req, res) {
+    try {
+      const sts = new STS({ accessKeyId: process.env.AWS_ACCESS_KEY, secretAccessKey: process.env.AWS_SECRET_KEY})
+      const { Credentials } = await sts.getSessionToken().promise()
+      // CORS:
+      res.setHeader("Access-Control-Allow-Origin", "*")
+      res.setHeader("Access-Control-Request-Method", "*")
+      res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT")
+      // res.setHeader("Access-Control-Allow-Headers", "*")
+      res.setHeader("Access-Control-Allow-Headers", "authorization, origin, x-requested-with, x-http-method-override, content-type, Overwrite, Destination, Depth, User-Agent, Translate, Range, Content-Range, Timeout, X-File-Size, If-Modified-Since, X-File-Name, Cache-Control, Location, Lock-Token")
+      if (req.method === "OPTIONS") {
+        res.writeHead(200)
+        return res.end()
+      }
+
+      return res.json({
+        error: false,
+        S3BucketName: process.env.AWS_BUCKET_NAME,
+        S3Region: process.env.AWS_REGION,
+        ...Credentials
+      })
+    } catch (err) {
+      console.log("==> ERR generating temp AWS creds: ", err)
+      return res.status(500).json({ error: true, reason: err.message })
     }
   },
 

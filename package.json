@@ -21,6 +21,7 @@
   "dependencies": {
     "@sayanriju/scaffold-crud-from-mongoose-model": "^1.2.5",
     "agenda": "^4.2.1",
+    "aws-sdk": "^2.1692.0",
     "axios": "^1.7.7",
     "bcrypt": "^5.0.1",
     "cookie-parser": "~1.4.4",
