@@ -1793,6 +1793,109 @@ define({ "api": [
     "groupTitle": "Attendance"
   },
   {
+    "type": "get",
+    "url": "admin/notice/awstempcreds",
+    "title": "5.0 Get Temporary AWS Key",
+    "name": "GetAwsKey",
+    "group": "Auth",
+    "permission": [
+      {
+        "name": "user"
+      }
+    ],
+    "description": "<p>Fetches temporary AWS credentials (Access Key, Secret Key, and Session Token) using AWS STS (Security Token Service). These credentials can be used for accessing AWS services like S3 for a limited time.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>The JWT Token in the format &quot;Bearer xxxx.yyyy.zzzz&quot;.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error (always <code>false</code> for success).</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "S3BucketName",
+            "description": "<p>The name of the S3 bucket.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "S3Region",
+            "description": "<p>The AWS region where the S3 bucket is located.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "AccessKeyId",
+            "description": "<p>The temporary AWS Access Key ID.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "SecretAccessKey",
+            "description": "<p>The temporary AWS Secret Access Key.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "SessionToken",
+            "description": "<p>The temporary session token.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"S3BucketName\": \"your-bucket-name\",\n  \"S3Region\": \"us-east-1\",\n  \"AccessKeyId\": \"ASIAxxxxxxxxxxxxxxx\",\n  \"SecretAccessKey\": \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY\",\n  \"SessionToken\": \"FQoGZXIvYXdzEPn//////////wEaDJASmdZoWJj+lXCh...\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>An error occurred while generating the temporary AWS credentials.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"reason\": \"Invalid AWS Access Key or Secret Key\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "version": "0.0.0",
+    "filename": "routes/rest/adminNotices.js",
+    "groupTitle": "Auth"
+  },
+  {
     "type": "post",
     "url": "/forgotpassword",
     "title": "Request to get password reset link in mail",
@@ -8225,101 +8328,6 @@ define({ "api": [
     "groupTitle": "Settings"
   },
   {
-    "type": "put",
-    "url": "/admin/updatesettings",
-    "title": "Update Settings",
-    "name": "UpdateClassSettings",
-    "group": "Settings",
-    "description": "<p>This endpoint updates the class settings, including available classes, bus fees, and the active status.</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for admin or super admin access.</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Array",
-            "optional": true,
-            "field": "availableClasses",
-            "description": "<p>List of available classes with details.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": true,
-            "field": "busFee",
-            "description": "<p>The updated bus fee structure (e.g., { &quot;0-5&quot;: 600, &quot;6-10&quot;: 800 }).</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "isActive",
-            "description": "<p>Indicates if the settings should be active or not.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "academicYear",
-            "description": "<p>&quot;2024-2025&quot;</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "salary",
-            "description": "<p>salary of teacher</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Request-Example:",
-          "content": "{\n  \"availableClasses\": [\n    {\n      \"grade\": \"1\",\n      \"section\": [\"A\", \"B\"],\n      \"monthlyFee\": 500,\n      \"salary\": 2000\n    },\n    {\n      \"grade\": \"2\",\n      \"monthlyFee\": 600,\n      \"salary\": 2200\n    }\n  ],\n  \"busFee\": {\n    \"0-5\": 600,\n    \"6-10\": 800\n  },\n  \"isActive\": true\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "success": {
-      "examples": [
-        {
-          "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"message\": \"Class settings updated successfully\",\n  \"updatedSettings\": {\n    \"_school\": \"60c72b2f5f1b2c001c4f8b3e\",\n    \"academicYear\": \"2024-2025\",\n    \"availableClasses\": [\n      {\n        \"grade\": \"1\",\n        \"section\": [\"A\", \"B\"],\n        \"monthlyFee\": 500,\n        \"salary\": 2000\n      },\n      {\n        \"grade\": \"2\",\n        \"section\": [\"A\", \"B\", \"C\", \"D\"],\n        \"monthlyFee\": 600,\n        \"salary\": 2200\n      }\n    ],\n    \"busFee\": {\n      \"0-5\": 600,\n      \"6-10\": 800\n    },\n    \"isActive\": true\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "examples": [
-        {
-          "title": "Error-Response:",
-          "content": "HTTP/1.1 404 Not Found\n{\n  \"error\": true,\n  \"message\": \"Settings not found\"\n}",
-          "type": "json"
-        },
-        {
-          "title": "Permission-Error-Response:",
-          "content": "HTTP/1.1 400 Bad Request\n{\n  \"error\": true,\n  \"reason\": \"You do not have permission\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "version": "0.0.0",
-    "filename": "routes/rest/settings.js",
-    "groupTitle": "Settings"
-  },
-  {
     "type": "post",
     "url": "admin/setsettings",
     "title": "Update School Settings",
@@ -8432,6 +8440,264 @@ define({ "api": [
         "type": "json"
       }
     ],
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "patch",
+    "url": "/api/settings/updateSettings",
+    "title": "Update School Settings",
+    "name": "UpdateSettings",
+    "group": "Settings",
+    "permission": [
+      {
+        "name": "admin"
+      }
+    ],
+    "description": "<p>Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, and subjects.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "setField",
+            "description": "<p>The field to update. Possible values: <code>class</code>, <code>busFee</code>, <code>salary</code>, <code>holidays</code>, <code>leave</code>, <code>subjects</code>.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "availableClasses",
+            "description": "<p>The available classes to be updated (only if <code>setField</code> is <code>class</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "availableClasses.grade",
+            "description": "<p>The grade for the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String[]",
+            "optional": true,
+            "field": "availableClasses.sections",
+            "description": "<p>List of sections for the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "availableClasses.monthlyFee",
+            "description": "<p>The monthly fee for the class.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object[]",
+            "optional": true,
+            "field": "busFee",
+            "description": "<p>List of bus fee entries (only if <code>setField</code> is <code>busFee</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "busFee.range",
+            "description": "<p>The range in the format 'start-end' (e.g., '1-5').</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "busFee.fee",
+            "description": "<p>The bus fee for the range.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object[]",
+            "optional": true,
+            "field": "salary",
+            "description": "<p>List of salary ranges (only if <code>setField</code> is <code>salary</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "salary.range",
+            "description": "<p>The salary range in the format 'start-end' (e.g., '12-24').</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "salary.amount",
+            "description": "<p>The salary amount for the range.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object[]",
+            "optional": true,
+            "field": "holidays",
+            "description": "<p>List of holidays to be updated (only if <code>setField</code> is <code>holidays</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "holidays.name",
+            "description": "<p>The name of the holiday.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "holidays.date",
+            "description": "<p>The date of the holiday in <code>DD/MM/YYYY</code> format.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object[]",
+            "optional": true,
+            "field": "leave",
+            "description": "<p>List of leave types (only if <code>setField</code> is <code>leave</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "leave.type",
+            "description": "<p>The type of leave (e.g., 'CL', 'PL', 'SL').</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "leave.days",
+            "description": "<p>The number of days for the leave type.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String[]",
+            "optional": true,
+            "field": "subjectsArray",
+            "description": "<p>List of subjects to be updated (only if <code>setField</code> is <code>subjects</code> and multiple subjects are provided).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "subjectsSingle",
+            "description": "<p>Single subject to be updated (only if <code>setField</code> is <code>subjects</code> and a single subject is provided).</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "settings",
+            "description": "<p>The updated settings for the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.schoolSubjectsList",
+            "description": "<p>The updated list of subjects.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.availableClasses",
+            "description": "<p>The updated available classes.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.busFee",
+            "description": "<p>The updated bus fees.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.salary",
+            "description": "<p>The updated salary ranges.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.holidays",
+            "description": "<p>The updated holidays.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "settings.leave",
+            "description": "<p>The updated leave types.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "optional": false,
+            "field": "BadRequest",
+            "description": "<p>Field validation failed. Specific reason is provided.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "optional": false,
+            "field": "Forbidden",
+            "description": "<p>The user is not authorized to perform this action (non-admin).</p>"
+          }
+        ],
+        "404": [
+          {
+            "group": "404",
+            "optional": false,
+            "field": "NotFound",
+            "description": "<p>Settings not found for the school.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "optional": false,
+            "field": "InternalServerError",
+            "description": "<p>Server-side error occurred.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Request Example (for updating subjects):",
+        "content": "{\n  \"setField\": \"subjects\",\n  \"subjectsArray\": [\"Computer Science\", \"Physical Education\"]\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example (for updating a single subject):",
+        "content": "{\n  \"setField\": \"subjects\",\n  \"subjectsSingle\": \"Mathematics\"\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
     "filename": "routes/rest/settings.js",
     "groupTitle": "Settings"
   },

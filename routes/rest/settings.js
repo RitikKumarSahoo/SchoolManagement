@@ -519,7 +519,8 @@ module.exports = {
  * @apiParam {String} leave.type The type of leave (e.g., 'CL', 'PL', 'SL').
  * @apiParam {Number} leave.days The number of days for the leave type.
  * 
- * @apiParam {String|String[]} [subjects] List of subjects to be updated (only if `setField` is `subjects`).
+ * @apiParam {String[]} [subjectsArray] List of subjects to be updated (only if `setField` is `subjects` and multiple subjects are provided).
+ * @apiParam {String} [subjectsSingle] Single subject to be updated (only if `setField` is `subjects` and a single subject is provided).
  * 
  * @apiSuccess {Object} settings The updated settings for the school.
  * @apiSuccess {Array} settings.schoolSubjectsList The updated list of subjects.
@@ -537,45 +538,16 @@ module.exports = {
  * @apiExample {json} Request Example (for updating subjects):
  *  {
  *    "setField": "subjects",
- *    "subjects": ["Computer Science", "Physical Education"]
+ *    "subjectsArray": ["Computer Science", "Physical Education"]
  *  }
  * 
- * @apiExample {json} Request Example (for updating salary ranges):
+ * @apiExample {json} Request Example (for updating a single subject):
  *  {
- *    "setField": "salary",
- *    "salary": [
- *      { "range": "12-24", "amount": 20000 },
- *      { "range": "25-36", "amount": 25000 }
- *    ]
- *  }
- * 
- * @apiExample {json} Request Example (for updating bus fees):
- *  {
- *    "setField": "busFee",
- *    "busFee": [
- *      { "range": "1-5", "fee": 500 },
- *      { "range": "6-10", "fee": 700 }
- *    ]
- *  }
- * 
- * @apiExample {json} Request Example (for updating holidays):
- *  {
- *    "setField": "holidays",
- *    "holidays": [
- *      { "name": "Christmas", "date": "25/12/2024" },
- *      { "name": "New Year", "date": "01/01/2025" }
- *    ]
- *  }
- * 
- * @apiExample {json} Request Example (for updating leave types):
- *  {
- *    "setField": "leave",
- *    "leave": [
- *      { "type": "CL", "days": 5 },
- *      { "type": "PL", "days": 7 }
- *    ]
+ *    "setField": "subjects",
+ *    "subjectsSingle": "Mathematics"
  *  }
  */
+
 
 
   async updateSettings(req, res) {
