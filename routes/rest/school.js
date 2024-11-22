@@ -666,8 +666,8 @@ module.exports = {
 
       const schools = await School.find()
         .sort({ createdAt: -1 })
-        // .skip(skipNumber)
-        // .limit(pageSize);
+        .skip(skipNumber)
+        .limit(pageSize);
       const totalSchools = await School.countDocuments();
 
       const school = await Promise.all(
