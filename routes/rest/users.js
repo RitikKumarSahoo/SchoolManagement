@@ -129,7 +129,7 @@ module.exports = {
    */
   async editData(req, res) {
     try {
-      const { loginType, id } = req.user; // loginType can be either "student", "teacher", or "admin"
+      const { loginType, id, isSuperAdmin } = req.user; // loginType can be either "student", "teacher", or "admin"
   
       // Find the user by ID
       const user = await User.findOne({ _id: id });
@@ -141,7 +141,8 @@ module.exports = {
       if (
         loginType === "teacher" ||
         loginType === "admin" ||
-        loginType === "student"
+        loginType === "student"||
+        isSuperAdmin
       ) {
         // Update fields only if provided
         if (req.body.firstName) user.firstName = req.body.firstName;
@@ -177,7 +178,7 @@ module.exports = {
           .status(400)
           .json({
             error: true,
-            reason: "User must be Admin, Teacher or Student",
+            reason: "User must be Admin, Teacher, Student or SuperAdmin",
           });
       }
   
