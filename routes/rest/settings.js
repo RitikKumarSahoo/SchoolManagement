@@ -525,14 +525,14 @@ module.exports = {
   },
 
   /**
- * @api {patch} /api/settings/updateSettings Update School Settings
+ * @api {put} /api/settings/updateSettings Update School Settings
  * @apiName UpdateSettings
  * @apiGroup Settings
  * @apiPermission admin
  * 
- * @apiDescription Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, and subjects.
+ * @apiDescription Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, subjects, and school details (e.g., name, registration number, address, contact, etc.).
  * 
- * @apiParam {String} setField The field to update. Possible values: `class`, `busFee`, `salary`, `holidays`, `leave`, `subjects`.
+ * @apiParam {String} setField The field to update. Possible values: `class`, `busFee`, `salary`, `holidays`, `leave`, `subjects`, `schools`.
  * @apiParam {Object} [availableClasses] The available classes to be updated (only if `setField` is `class`).
  * @apiParam {String} [availableClasses.grade] The grade for the class.
  * @apiParam {String[]} [availableClasses.sections] List of sections for the class.
@@ -557,6 +557,26 @@ module.exports = {
  * @apiParam {String[]} [subjectsArray] List of subjects to be updated (only if `setField` is `subjects` and multiple subjects are provided).
  * @apiParam {String} [subjectsSingle] Single subject to be updated (only if `setField` is `subjects` and a single subject is provided).
  * 
+ * @apiParam {Object} [schools] The school details to be updated (only if `setField` is `schools`).
+ * @apiParam {String} [schools.name] The name of the school.
+ * @apiParam {String} [schools.registrationNumber] The registration number of the school.
+ * @apiParam {Object} [schools.address] The address of the school.
+ * @apiParam {String} [schools.address.city] The city of the school.
+ * @apiParam {String} [schools.address.state] The state of the school.
+ * @apiParam {String} [schools.address.country] The country of the school.
+ * @apiParam {String} [schools.address.pinCode] The pin code of the school.
+ * @apiParam {Object} [schools.contact] The contact details of the school.
+ * @apiParam {String} [schools.contact.phoneNo] The phone number of the school.
+ * @apiParam {String} [schools.contact.email] The email of the school.
+ * @apiParam {String} [schools.contact.website] The website of the school.
+ * @apiParam {Object} [schools.location] The location of the school (latitude and longitude).
+ * @apiParam {String} [schools.location.type] The location type (e.g., 'Point').
+ * @apiParam {Number[]} [schools.location.coordinates] The coordinates of the school as an array [longitude, latitude].
+ * @apiParam {String} [schools.principalName] The name of the principal.
+ * @apiParam {Number} [schools.establishYear] The year the school was established.
+ * @apiParam {Boolean} [schools.isActive] The active status of the school (true/false).
+ * @apiParam {String} [schools.schoolType] The type of the school (e.g., 'Public', 'Private').
+ * 
  * @apiSuccess {Object} settings The updated settings for the school.
  * @apiSuccess {Array} settings.schoolSubjectsList The updated list of subjects.
  * @apiSuccess {Array} settings.availableClasses The updated available classes.
@@ -564,10 +584,20 @@ module.exports = {
  * @apiSuccess {Array} settings.salary The updated salary ranges.
  * @apiSuccess {Array} settings.holidays The updated holidays.
  * @apiSuccess {Array} settings.leave The updated leave types.
+ * @apiSuccess {Object} school The updated school details.
+ * @apiSuccess {String} school.name The name of the school.
+ * @apiSuccess {String} school.registrationNumber The registration number of the school.
+ * @apiSuccess {Object} school.address The address of the school.
+ * @apiSuccess {String} school.contact The contact details of the school.
+ * @apiSuccess {Object} school.location The location of the school.
+ * @apiSuccess {String} school.principalName The name of the principal.
+ * @apiSuccess {Number} school.establishYear The year the school was established.
+ * @apiSuccess {Boolean} school.isActive The active status of the school.
+ * @apiSuccess {String} school.schoolType The type of the school.
  * 
  * @apiError (400) BadRequest Field validation failed. Specific reason is provided.
  * @apiError (403) Forbidden The user is not authorized to perform this action (non-admin).
- * @apiError (404) NotFound Settings not found for the school.
+ * @apiError (404) NotFound Settings or school not found.
  * @apiError (500) InternalServerError Server-side error occurred.
  * 
  * @apiExample {json} Request Example (for updating subjects):
@@ -581,13 +611,40 @@ module.exports = {
  *    "setField": "subjects",
  *    "subjectsSingle": "Mathematics"
  *  }
+ * 
+ * @apiExample {json} Request Example (for updating school details):
+ *  {
+ *    "setField": "schools",
+ *    "schools": {
+ *      "name": "ABC High School",
+ *      "registrationNumber": "12345ABC",
+ *      "address": {
+ *        "city": "New York",
+ *        "state": "NY",
+ *        "country": "USA",
+ *        "pinCode": "10001"
+ *      },
+ *      "contact": {
+ *        "phoneNo": "+1234567890",
+ *        "email": "contact@abcschool.com",
+ *        "website": "http://abcschool.com"
+ *      },
+ *      "location": {
+ *        "type": "Point",
+ *        "coordinates": [-74.0060, 40.7128]
+ *      },
+ *      "principalName": "John Doe",
+ *      "establishYear": 1995,
+ *      "isActive": true,
+ *      "schoolType": "Public"
+ *    }
+ *  }
  */
-
 
 
   async updateSettings(req, res) {
     try {
-      const { availableClasses, busFee, salary, holidays, leave, subjects, setField } = req.body;
+      const { availableClasses, busFee, salary, holidays, leave, subjects, schools, setField } = req.body;
       const { loginType, _school } = req.user;
 
       if (loginType !== "admin") {
@@ -790,11 +847,61 @@ module.exports = {
         settings.schoolSubjectsList.push(...newSubjects);
       }
 
+      if (setField === "schools") {
+        if (!schools || typeof schools !== "object") {
+          return res.status(400).json({ error: true, reason: "Field 'schools' is required and must be a valid object." });
+        }
+  
+        const {
+          name,
+          registrationNumber,
+          address,
+          contact,
+          location,
+          principalName,
+          establishYear,
+          isActive,
+          schoolType,
+        } = schools;
+  
+        const school = await School.findById(_school); // Fetch school document
+        if (!school) {
+          return res.status(404).json({ error: true, reason: "School not found." });
+        }
+  
+        // Update school fields if provided
+        if (name) school.name = name;
+        if (registrationNumber) school.registrationNumber = registrationNumber;
+        if (address && typeof address === "object") {
+          if (address.city) school.address.city = address.city;
+          if (address.state) school.address.state = address.state;
+          if (address.country) school.address.country = address.country;
+          if (address.pinCode) school.address.pinCode = address.pinCode;
+        }
+        if (contact && typeof contact === "object") {
+          if (contact.phoneNo) school.contact.phoneNo = contact.phoneNo;
+          if (contact.email) school.contact.email = contact.email;
+          if (contact.website) school.contact.website = contact.website;
+        }
+        if (location && typeof location === "object") {
+          if (location.type) school.location.type = location.type;
+          if (location.coordinates && Array.isArray(location.coordinates)) {
+            school.location.coordinates = location.coordinates;
+          }
+        }
+        if (principalName) school.principalName = principalName;
+        if (establishYear) school.establishYear = establishYear;
+        if (typeof isActive === "boolean") school.isActive = isActive;
+        if (schoolType) school.schoolType = schoolType;
+  
+        // Save the updated school document
+        await school.save();
+      }
 
       // Save the updated settings
       await settings.save();
 
-      return res.status(200).json({ error: false, settings });
+      return res.status(200).json({ error: false, settings, school });
 
     } catch (error) {
       return res.status(500).json({ error: true, message: error.message });
