@@ -1,77 +1,112 @@
 const Settings = require("../../models/settings");
 const Class = require("../../models/class");
+const School = require("../../models/school");
 const moment = require("moment")
 
 module.exports = {
   /**
-   * @api {post} admin/settings Get Class Settings
-   * @apiName GetSettings
-   * @apiGroup Settings
-   * @apiPermission admin superadmin
-   * @apiDescription Retrieve class settings for a specific school with optional filtering by academic year and active status.
-   *
-   * @apiHeader {String} Authorization Bearer token.
-   *
-   * @apiQuery {String} [schoolId] The ID of the school. (Super Admins only)
-   *
-   * @apiBody {String} [academicYear] Optional filter by academic year (e.g., "2024-2025").
-   * @apiBody {Boolean} [isActive] Optional filter to return active/inactive settings.
-   *
-   * @apiSuccessExample {json} Success-Response:
-   * HTTP/1.1 200 OK
-   * {
-   *   "error": false,
-   *   "settings": [
-   *     {
-   *       "_id": "60f7f15d9b1e8b001c3a8b8c",
-   *       "_school": "60f7f12e9b1e8b001c3a8b8b",
-   *       "academicYear": "2024-2025",
-   *       "availableClasses": [
-   *         {
-   *           "grade": "5",
-   *           "section": ["A", "B", "C"],
-   *           "monthlyFee": 1500,
-   *           "salary": 2000
-   *         }
-   *       ],
-   *       "busFee": {
-   *         "morning": 500,
-   *         "evening": 500
-   *       },
-   *       "isActive": true
-   *     }
-   *   ]
-   * }
-   *
-   * @apiErrorExample {json} Error-Response:
-   * HTTP/1.1 400 Bad Request
-   * {
-   *   "error": true,
-   *   "reason": "You do not have permission"
-   * }
-   */
+ * @api {post} admin/settings Get Class Settings
+ * @apiName GetSettings
+ * @apiGroup Settings
+ * @apiPermission admin superadmin
+ * @apiDescription Retrieve class settings for a specific school with optional filtering by academic year and active status.
+ *
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ * @apiQuery {String} [schoolId] The ID of the school. (Super Admins only)
+ *
+ * @apiBody {String} [academicYear] Optional filter by academic year (e.g., "2024-2025").
+ * @apiBody {Boolean} [isActive] Optional filter to return active/inactive settings.
+ *
+ * @apiSuccessExample {json} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "settings": [
+ *     {
+ *       "_id": "60f7f15d9b1e8b001c3a8b8c",
+ *       "_school": "60f7f12e9b1e8b001c3a8b8b",
+ *       "academicYear": "2024-2025",
+ *       "availableClasses": [
+ *         {
+ *           "grade": "5",
+ *           "sections": ["A", "B", "C"],
+ *           "monthlyFee": 1500
+ *         }
+ *       ],
+ *       "busFee": [
+ *         { "range": "morning", "fee": 500 },
+ *         { "range": "evening", "fee": 500 }
+ *       ],
+ *       "isActive": true
+ *     }
+ *   ],
+ *   "schoolDetails": {
+ *     "_id": "671b5f46365b083490f126d2",
+ *     "name": "Khukurdaha I C M M High School",
+ *     "registrationNumber": "REG3167",
+ *     "address": {
+ *       "city": "Panskura",
+ *       "state": "West Bengal",
+ *       "country": "India",
+ *       "pinCode": "721641"
+ *     },
+ *     "contact": {
+ *       "phoneNo": "+91 8172059732",
+ *       "email": "kicmmhs@gmail.com",
+ *       "website": "kicmmhs.edu"
+ *     },
+ *     "location": {
+ *       "type": "Point",
+ *       "coordinates": [21.418325060918168, 84.02980772446274]
+ *     },
+ *     "principalName": "Mrinal Bera",
+ *     "establishYear": 1995,
+ *     "isActive": true,
+ *     "schoolType": "highSchool",
+ *     "createdAt": "2024-11-25T05:29:00.467Z",
+ *     "updatedAt": "2024-11-25T05:29:00.467Z"
+ *   }
+ * }
+ *
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "reason": "You do not have permission"
+ * }
+ */
+
 
   async get(req, res) {
     try {
-      const { loginType, _school } = req.user
-
-      const settings = await Settings.findOne({ _school }).exec()
-
-      if (settings === null) {
-        return res.staus(400).json({ error: true, reason: "settings not found" })
+      const { _school } = req.user;
+  
+      // Fetch settings and populate school details
+      const settings = await Settings.findOne({ _school }).exec();
+      const schoolDetails = await School.findById(_school).exec(); // Assuming School is your school model
+  
+      if (!settings) {
+        return res.status(400).json({ error: true, reason: "Settings not found" });
       }
-
+  
+      if (!schoolDetails) {
+        return res.status(400).json({ error: true, reason: "School details not found" });
+      }
+  
       return res.status(200).json({
         error: false,
         settings,
+        schoolDetails,
       });
     } catch (error) {
       return res.status(500).json({
         error: true,
-        Error: error.message,
+        message: error.message,
       });
     }
-  },
+  }
+  ,
 
   /**
  * @api {post} admin/setsettings Update School Settings
@@ -845,6 +880,73 @@ module.exports = {
 
   // Adjust the import based on your directory structure
 
+
+  /**
+   * @api {post} /admin/setscheduletime Set a weekly schedule by academic year
+   * @apiName SetScheduleTime
+   * @apiGroup Schedule
+   * @apiPermission admin
+   * @apiDescription Updates the weekly schedule for a given academic year and school.
+   * @apiHeader {String} Authorization Bearer token.
+   *
+   * @apiBody {String} academicYear The academic year for the schedule to be set (e.g., "2024-2025").
+   * @apiBody {Object} weekSchedule The weekly schedule details. The object should have the following structure:
+   * {
+   *   mon: {
+   *     periodDuration: <number>,
+   *     startTime: <string> (HH:mm),
+   *     endTime: <string> (HH:mm),
+   *     breakTime: <number> (minutes)
+   *   },
+   *   tue: {
+   *     periodDuration: <number>,
+   *     startTime: <string> (HH:mm),
+   *     endTime: <string> (HH:mm),
+   *     breakTime: <number> (minutes)
+   *   },
+   *   ...
+   * }
+   *
+   * @apiSuccess {Boolean} error Indicates if there was an error (false on success).
+   * @apiSuccess {String} message Success message confirming the schedule was set.
+   * @apiSuccess {Object} weekSchedule The saved weekly schedule.
+   *
+   * @apiSuccessExample {json} Success-Response:
+   * HTTP/1.1 200 OK
+   * {
+   *   "error": false,
+   *   "message": "Schedule created successfully",
+   *   "weekSchedule": {
+   *     "mon": [...],
+   *     "tue": [...],
+   *     ...
+   *   }
+   * }
+   *
+   * @apiErrorExample {json} Permission Error:
+   * HTTP/1.1 400 Bad Request
+   * {
+   *   "error": true,
+   *   "reason": "You do not have permission to set the schedule"
+   * }
+   *
+   * @apiErrorExample {json} Not-Found Error:
+   * HTTP/1.1 404 Not Found
+   * {
+   *   "error": true,
+   *   "reason": "Settings for academic year not found"
+   * }
+   *
+   * @apiError (500) {Boolean} error True if a server error occurred.
+   * @apiError (500) {String} Error Server error message.
+   *
+   * @apiErrorExample {json} Server Error:
+   * HTTP/1.1 500 Internal Server Error
+   * {
+   *   "error": true,
+   *   "Error": "Error message"
+   * }
+   */
   async setScheduleTime(req, res) {
     try {
       const { loginType, isSuperadmin, _school } = req.user;
@@ -961,17 +1063,7 @@ module.exports = {
       console.error(err);
       res.status(500).json({ error: 'Internal Server Error' });
     }
-  }
-
-
-
-
-
-
-
-
-
-
+  },
 
 
 };
