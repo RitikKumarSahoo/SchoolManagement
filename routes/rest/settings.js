@@ -882,71 +882,81 @@ module.exports = {
 
 
   /**
-   * @api {post} /admin/setscheduletime Set a weekly schedule by academic year
-   * @apiName SetScheduleTime
-   * @apiGroup Schedule
-   * @apiPermission admin
-   * @apiDescription Updates the weekly schedule for a given academic year and school.
-   * @apiHeader {String} Authorization Bearer token.
-   *
-   * @apiBody {String} academicYear The academic year for the schedule to be set (e.g., "2024-2025").
-   * @apiBody {Object} weekSchedule The weekly schedule details. The object should have the following structure:
-   * {
-   *   mon: {
-   *     periodDuration: <number>,
-   *     startTime: <string> (HH:mm),
-   *     endTime: <string> (HH:mm),
-   *     breakTime: <number> (minutes)
-   *   },
-   *   tue: {
-   *     periodDuration: <number>,
-   *     startTime: <string> (HH:mm),
-   *     endTime: <string> (HH:mm),
-   *     breakTime: <number> (minutes)
-   *   },
-   *   ...
-   * }
-   *
-   * @apiSuccess {Boolean} error Indicates if there was an error (false on success).
-   * @apiSuccess {String} message Success message confirming the schedule was set.
-   * @apiSuccess {Object} weekSchedule The saved weekly schedule.
-   *
-   * @apiSuccessExample {json} Success-Response:
-   * HTTP/1.1 200 OK
-   * {
-   *   "error": false,
-   *   "message": "Schedule created successfully",
-   *   "weekSchedule": {
-   *     "mon": [...],
-   *     "tue": [...],
-   *     ...
-   *   }
-   * }
-   *
-   * @apiErrorExample {json} Permission Error:
-   * HTTP/1.1 400 Bad Request
-   * {
-   *   "error": true,
-   *   "reason": "You do not have permission to set the schedule"
-   * }
-   *
-   * @apiErrorExample {json} Not-Found Error:
-   * HTTP/1.1 404 Not Found
-   * {
-   *   "error": true,
-   *   "reason": "Settings for academic year not found"
-   * }
-   *
-   * @apiError (500) {Boolean} error True if a server error occurred.
-   * @apiError (500) {String} Error Server error message.
-   *
-   * @apiErrorExample {json} Server Error:
-   * HTTP/1.1 500 Internal Server Error
-   * {
-   *   "error": true,
-   *   "Error": "Error message"
-   * }
-   */
+ * @api {post} /admin/setscheduletime Set Weekly Schedule
+ * @apiName SetScheduleTime
+ * @apiGroup Schedule
+ * @apiPermission admin
+ * @apiDescription Set the weekly schedule for a school.
+ *
+ * @apiHeader {String} Authorization Bearer token.
+ *
+ * @apiBody {Object} weekSchedule Weekly schedule details.
+ * @apiBody {Object} weekSchedule.mon Monday's schedule.
+ * @apiBody {Number} weekSchedule.mon.periodDuration Duration of each period (in minutes).
+ * @apiBody {String} weekSchedule.mon.startTime Start time of the schedule (HH:mm).
+ * @apiBody {String} weekSchedule.mon.endTime End time of the schedule (HH:mm).
+ * @apiBody {Number} weekSchedule.mon.breakTime Break time between periods (in minutes).
+ * @apiBody {Object} weekSchedule.tue Tuesday's schedule. (Same as `weekSchedule.mon` structure)
+ * ...
+ *
+ * @apiSuccess {Boolean} error Indicates if there was an error (false on success).
+ * @apiSuccess {String} message Success message confirming the schedule was set.
+ * @apiSuccess {Object} weekSchedule The saved weekly schedule.
+ * @apiSuccess {Object} weekSchedule.mon Monday's schedule.
+ * @apiSuccess {Number} weekSchedule.mon.periodDuration Duration of each period (in minutes).
+ * @apiSuccess {String} weekSchedule.mon.startTime Start time of the schedule (HH:mm).
+ * @apiSuccess {String} weekSchedule.mon.endTime End time of the schedule (HH:mm).
+ * @apiSuccess {Number} weekSchedule.mon.breakTime Break time between periods (in minutes).
+ * @apiSuccess {Object} weekSchedule.tue Tuesday's schedule. (Same as `weekSchedule.mon` structure)
+ * ...
+ *
+ * @apiSuccessExample {json} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "message": "Schedule created successfully",
+ *   "weekSchedule": {
+ *     "mon": {
+ *       "periodDuration": 40,
+ *       "startTime": "09:00",
+ *       "endTime": "13:00",
+ *       "breakTime": 10
+ *     },
+ *     "tue": {
+ *       "periodDuration": 40,
+ *       "startTime": "09:00",
+ *       "endTime": "13:00",
+ *       "breakTime": 10
+ *     },
+ *     ...
+ *   }
+ * }
+ *
+ * @apiError {Boolean} error Indicates if there was an error (true on failure).
+ * @apiError {String} reason The reason for the error.
+ *
+ * @apiErrorExample {json} MissingFields:
+ * HTTP/1.1 400 Bad Request
+ * {
+ *   "error": true,
+ *   "reason": "Required fields are missing in the schedule."
+ * }
+ *
+ * @apiErrorExample {json} InvalidToken:
+ * HTTP/1.1 401 Unauthorized
+ * {
+ *   "error": true,
+ *   "reason": "Invalid or missing authorization token."
+ * }
+ *
+ * @apiErrorExample {json} ServerError:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "reason": "An unexpected error occurred. Please try again later."
+ * }
+ */
+
   async setScheduleTime(req, res) {
     try {
       const { loginType, isSuperadmin, _school } = req.user;
