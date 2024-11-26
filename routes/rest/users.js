@@ -1,4 +1,5 @@
 const User = require("../../models/user");
+const bcrypt = require('bcrypt');
 
 module.exports = {
   /**
@@ -192,6 +193,96 @@ module.exports = {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: "Server error" });
+    }
+  },
+
+  /**
+   * @api {post} /changepassword/ Update own password
+   * @apiName ChangePassword
+   * @apiGroup User
+   * @apiVersion 1.0.0
+   * @apiPermission admin, teacher, student, superAdmin
+   *
+   * @apiDescription This endpoint allows a user (admin, teacher, student, or superAdmin) to update their password.
+   *
+   * @apiHeader {String} Authorization Bearer token for authorization.
+   *
+   * @apiParam {String} oldPassword The user's current password.
+   * @apiParam {String} newPassword The user's new password.
+   * @apiParam {String} reEnterPassword The user's new password repeated.
+   *
+   * @apiSuccess {Boolean} error Indicates whether the request encountered an error.
+   * @apiSuccess {String} message Success message indicating the password was updated.
+   *
+   * @apiError (400) {Boolean} error True if the user is not an admin or the admin was not found.
+   * @apiError (400) {String} reason The reason for the error.
+   * @apiError (403) {String} message Only Admin, Teacher, Student, and SuperAdmin can change password.
+   * @apiError (500) {String} message Server error.
+   *
+   * @apiExample {curl} Example usage:
+   *     curl -X PUT 'https://api.example.com/changepassword/' \
+   *     -H 'Authorization: Bearer <token>' \
+   *     -d '{
+   *         "oldPassword": "oldpassword",
+   *         "newPassword": "newpassword",
+   *         "reEnterPassword": "newpassword"
+   *     }'
+   */
+  async changePassword(req, res) {
+    try {
+      const { oldPassword, newPassword, reEnterPassword } = req.body;
+  
+      // Fetch the user by ID
+      const user = await User.findOne({ _id: req.user._id });
+  
+      // Check if the user has permissions
+      if (
+        user.isSuperAdmin === true ||
+        user.loginType === "admin" ||
+        user.loginType === "teacher" ||
+        user.loginType === "student"
+      ) {
+        // Validate required fields
+        if (!oldPassword || !newPassword || !reEnterPassword) {
+          return res.status(400).json({
+            message: "All password fields are required",
+          });
+        }
+  
+        // Verify the old password
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({
+            error: true,
+            reason: "Old password does not match",
+          });
+        }
+  
+        // Check if the new password and re-enter password match
+        if (newPassword !== reEnterPassword) {
+          return res.status(400).json({
+            error: true,
+            reason: "New password and Re-enter password do not match",
+          });
+        }
+  
+        // Update the user's password (pre-hook will hash it)
+        user.password = newPassword;
+        await user.save(); // `pre("save")` hook will hash the password
+  
+        return res.status(200).json({
+          message: "Password updated successfully",
+        });
+      } else {
+        return res.status(403).json({
+          message: "Only Admin, Teacher, Student, and SuperAdmin can change password",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Server error",
+      });
     }
   },
   

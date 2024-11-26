@@ -57,6 +57,7 @@ router.delete("/school/delete/:id", school.deleteSchool);
 
 router.get("/user/:id", users.get);
 router.put("/updateprofile/", users.editData);
+router.post("/changepassword", users.changePassword);
 
 const upload = multer({ dest: "../public/uploads" });
 const uplodFile = multer();
