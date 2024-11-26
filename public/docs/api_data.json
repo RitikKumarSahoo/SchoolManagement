@@ -10945,6 +10945,127 @@
   },
   {
     "type": "post",
+    "url": "/changepassword/",
+    "title": "Update own password",
+    "name": "ChangePassword",
+    "group": "User",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "admin, teacher, student, superAdmin"
+      }
+    ],
+    "description": "<p>This endpoint allows a user (admin, teacher, student, or superAdmin) to update their password.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authorization.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "oldPassword",
+            "description": "<p>The user's current password.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "newPassword",
+            "description": "<p>The user's new password.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "reEnterPassword",
+            "description": "<p>The user's new password repeated.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates whether the request encountered an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Success message indicating the password was updated.</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>True if the user is not an admin or the admin was not found.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>The reason for the error.</p>"
+          }
+        ],
+        "403": [
+          {
+            "group": "403",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Only Admin, Teacher, Student, and SuperAdmin can change password.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Server error.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "curl -X PUT 'https://api.example.com/changepassword/' \\\n-H 'Authorization: Bearer <token>' \\\n-d '{\n    \"oldPassword\": \"oldpassword\",\n    \"newPassword\": \"newpassword\",\n    \"reEnterPassword\": \"newpassword\"\n}'",
+        "type": "curl"
+      }
+    ],
+    "filename": "routes/rest/users.js",
+    "groupTitle": "User"
+  },
+  {
+    "type": "post",
     "url": "/activatedeactivate/:id",
     "title": "Activate/Deactivate user",
     "name": "DeactivateUser",
