@@ -364,24 +364,44 @@ module.exports = {
   },
 
   /**
-   *
-   * @api {get} /awstempcreds 5.0 login user get temporary aws key
-   * @apiName GetAwsKey
-   * @apiGroup Auth
-   * @apiVersion  1.0.0
-   * @apiHeader {String} Authorization The JWT Token in format "Bearer xxxx.yyyy.zzzz"
-   *
-   * @apiSuccessExample {type} Success-Response:
-      {
-        "error": false,
-        "AccessKeyId": "ASIASNKPOZCACSWCVJPE",
-        "SecretAccessKey": "f24Hso6+okCfeKZaqVM8dYxvT0puEOmKuEZVdIZ/",
-        "SessionToken": "FwoGZXIvYXdzEF8aDJASmdZoWJj+lXCjtSJqdzhlJ7bJ9igMImED3xJ9uHKGoJzzM9Kx7iFzW97T+JCKf30hG5gvNwPAV1LaiG3Xp7jLOswS5jKhgXqsse4x5dMAp6YxF1QC++b+LRoaAiGOWEP6bxfhgJHUbLImcSOQYTYtN8CwzktWIyizzsnxBTIotfjCyhl7/bz+0oQau5HtZa7KWIro5NQeLDWmmXxOP6UWtZhmeVRTmw==",
-        "Expiration": "2020-01-30T06:18:43.000Z"
-      }
-   *
-   *
-   */
+ * @api {get} admin/notice/awstempcreds 5.0 Get Temporary AWS Key
+ * @apiName GetAwsKey
+ * @apiGroup Auth
+ * @apiPermission user
+ * 
+ * @apiDescription Fetches temporary AWS credentials (Access Key, Secret Key, and Session Token) using AWS STS (Security Token Service). 
+ * These credentials can be used for accessing AWS services like S3 for a limited time.
+ * 
+ * @apiHeader {String} Authorization The JWT Token in the format "Bearer xxxx.yyyy.zzzz".
+ * 
+ * @apiSuccess {Boolean} error Indicates if there was an error (always `false` for success).
+ * @apiSuccess {String} S3BucketName The name of the S3 bucket.
+ * @apiSuccess {String} S3Region The AWS region where the S3 bucket is located.
+ * @apiSuccess {String} AccessKeyId The temporary AWS Access Key ID.
+ * @apiSuccess {String} SecretAccessKey The temporary AWS Secret Access Key.
+ * @apiSuccess {String} SessionToken The temporary session token.
+ * 
+ * @apiSuccessExample {json} Success-Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "S3BucketName": "your-bucket-name",
+ *   "S3Region": "us-east-1",
+ *   "AccessKeyId": "ASIAxxxxxxxxxxxxxxx",
+ *   "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY",
+ *   "SessionToken": "FQoGZXIvYXdzEPn//////////wEaDJASmdZoWJj+lXCh..."
+ * }
+ * 
+ * @apiError (500) InternalServerError An error occurred while generating the temporary AWS credentials.
+ * 
+ * @apiErrorExample {json} Error-Response:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "reason": "Invalid AWS Access Key or Secret Key"
+ * }
+ */
+
   async getAwsKey(req, res) {
     try {
       const sts = new STS({ accessKeyId: process.env.AWS_ACCESS_KEY, secretAccessKey: process.env.AWS_SECRET_KEY})
