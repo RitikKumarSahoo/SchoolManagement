@@ -8586,9 +8586,9 @@ define({ "api": [
     "groupTitle": "Settings"
   },
   {
-    "type": "patch",
-    "url": "/api/settings/updateSettings",
-    "title": "Update School Settings",
+    "type": "put",
+    "url": "admin/updatesettings",
+    "title": "Settings Update with school Details",
     "name": "UpdateSettings",
     "group": "Settings",
     "permission": [
@@ -8596,7 +8596,7 @@ define({ "api": [
         "name": "admin"
       }
     ],
-    "description": "<p>Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, and subjects.</p>",
+    "description": "<p>Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, subjects, and school details (e.g., name, registration number, address, contact, etc.).</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -8605,7 +8605,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "setField",
-            "description": "<p>The field to update. Possible values: <code>class</code>, <code>busFee</code>, <code>salary</code>, <code>holidays</code>, <code>leave</code>, <code>subjects</code>.</p>"
+            "description": "<p>The field to update. Possible values: <code>class</code>, <code>busFee</code>, <code>salary</code>, <code>holidays</code>, <code>leave</code>, <code>subjects</code>, <code>schools</code>.</p>"
           },
           {
             "group": "Parameter",
@@ -8732,6 +8732,139 @@ define({ "api": [
             "optional": true,
             "field": "subjectsSingle",
             "description": "<p>Single subject to be updated (only if <code>setField</code> is <code>subjects</code> and a single subject is provided).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "schools",
+            "description": "<p>The school details to be updated (only if <code>setField</code> is <code>schools</code>).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.name",
+            "description": "<p>The name of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.registrationNumber",
+            "description": "<p>The registration number of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "schools.address",
+            "description": "<p>The address of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.address.city",
+            "description": "<p>The city of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.address.state",
+            "description": "<p>The state of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.address.country",
+            "description": "<p>The country of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.address.pinCode",
+            "description": "<p>The pin code of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "schools.contact",
+            "description": "<p>The contact details of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.contact.phoneNo",
+            "description": "<p>The phone number of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.contact.email",
+            "description": "<p>The email of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.contact.website",
+            "description": "<p>The website of the school.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "schools.location",
+            "description": "<p>The location of the school (latitude and longitude).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.location.type",
+            "description": "<p>The location type (e.g., 'Point').</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number[]",
+            "optional": true,
+            "field": "schools.location.coordinates",
+            "description": "<p>The coordinates of the school as an array [longitude, latitude].</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.principalName",
+            "description": "<p>The name of the principal.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "schools.establishYear",
+            "description": "<p>The year the school was established.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "schools.isActive",
+            "description": "<p>The active status of the school (true/false).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "schools.schoolType",
+            "description": "<p>The type of the school (e.g., 'Public', 'Private').</p>"
           }
         ]
       }
@@ -8787,6 +8920,76 @@ define({ "api": [
             "optional": false,
             "field": "settings.leave",
             "description": "<p>The updated leave types.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school",
+            "description": "<p>The updated school details.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.name",
+            "description": "<p>The name of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.registrationNumber",
+            "description": "<p>The registration number of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.address",
+            "description": "<p>The address of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.contact",
+            "description": "<p>The contact details of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "school.location",
+            "description": "<p>The location of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.principalName",
+            "description": "<p>The name of the principal.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Number",
+            "optional": false,
+            "field": "school.establishYear",
+            "description": "<p>The year the school was established.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "school.isActive",
+            "description": "<p>The active status of the school.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "school.schoolType",
+            "description": "<p>The type of the school.</p>"
           }
         ]
       }
@@ -8814,7 +9017,7 @@ define({ "api": [
             "group": "404",
             "optional": false,
             "field": "NotFound",
-            "description": "<p>Settings not found for the school.</p>"
+            "description": "<p>Settings or school not found.</p>"
           }
         ],
         "500": [
@@ -8836,6 +9039,11 @@ define({ "api": [
       {
         "title": "Request Example (for updating a single subject):",
         "content": "{\n  \"setField\": \"subjects\",\n  \"subjectsSingle\": \"Mathematics\"\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example (for updating school details):",
+        "content": "{\n  \"setField\": \"schools\",\n  \"schools\": {\n    \"name\": \"ABC High School\",\n    \"registrationNumber\": \"12345ABC\",\n    \"address\": {\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"country\": \"USA\",\n      \"pinCode\": \"10001\"\n    },\n    \"contact\": {\n      \"phoneNo\": \"+1234567890\",\n      \"email\": \"contact@abcschool.com\",\n      \"website\": \"http://abcschool.com\"\n    },\n    \"location\": {\n      \"type\": \"Point\",\n      \"coordinates\": [-74.0060, 40.7128]\n    },\n    \"principalName\": \"John Doe\",\n    \"establishYear\": 1995,\n    \"isActive\": true,\n    \"schoolType\": \"Public\"\n  }\n}",
         "type": "json"
       }
     ],
