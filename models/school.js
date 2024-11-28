@@ -9,6 +9,9 @@ const SchoolSchema = new mongoose.Schema(
       type: String,
     },
     address: {
+      locality: {
+        type: String,
+      },
       city: {
         type: String,
       },

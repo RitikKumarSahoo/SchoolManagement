@@ -81,19 +81,19 @@ module.exports = {
   async get(req, res) {
     try {
       const { _school } = req.user;
-  
+
       // Fetch settings and populate school details
       const settings = await Settings.findOne({ _school }).exec();
       const schoolDetails = await School.findById(_school).exec(); // Assuming School is your school model
-  
+
       if (!settings) {
         return res.status(400).json({ error: true, reason: "Settings not found" });
       }
-  
+
       if (!schoolDetails) {
         return res.status(400).json({ error: true, reason: "School details not found" });
       }
-  
+
       return res.status(200).json({
         error: false,
         settings,
@@ -466,7 +466,8 @@ module.exports = {
         }
       }
 
-      //Subjects of the School
+      
+      // Subjects of the School
       if (setField === "subjects") {
         if (!Array.isArray(subjects) || subjects.length === 0) {
           return res.status(400).json({
@@ -475,48 +476,35 @@ module.exports = {
           });
         }
 
-        // Check for duplicates within the new list of subjects
-        const duplicates = subjects.filter(
-          (subject, index) => subjects.indexOf(subject) !== index
-        );
+        // Ensure subjects contain no duplicates in the incoming data
+        const duplicates = subjects.filter((subject, index) => subjects.indexOf(subject) !== index);
         if (duplicates.length > 0) {
           return res.status(400).json({
             error: true,
-            reason: `Duplicate subjects found: ${duplicates.join(", ")}`,
+            reason: `Duplicate subjects found in payload: ${duplicates.join(", ")}`,
           });
         }
 
         if (!settings) {
-          // Create settings with initial list of subjects
+          // Create settings with the initial list of subjects
           settings = await Settings.create({
             _school,
             schoolSubjectsList: subjects,
           });
           return res.status(200).json({ error: false, settings });
         } else {
-          // Update settings to add new subjects
-          const existingSubjects = settings.schoolSubjectsList || [];
-          const newSubjects = subjects.filter(
-            (subject) => !existingSubjects.includes(subject)
-          );
-
-          if (newSubjects.length === 0) {
-            return res.status(400).json({
-              error: true,
-              reason: "No new subjects to add; all provided subjects already exist.",
-            });
-          }
-
-          settings.schoolSubjectsList.push(...newSubjects);
+          // Replace existing subjects with the new list
+          settings.schoolSubjectsList = subjects;
           await settings.save();
 
           return res.status(200).json({
             error: false,
-            message: `Subjects added successfully: ${newSubjects.join(", ")}`,
+            message: "Subjects Updated successfully.",
             settings,
           });
         }
       }
+
 
 
     } catch (error) {
@@ -810,14 +798,14 @@ module.exports = {
             reason: "Field 'subjects' is required and should be a string or an array.",
           });
         }
-      
+
         // Normalize input to an array
         const subjectsArray = typeof subjects === "string" ? [subjects] : subjects;
-      
+
         // Ensure each subject is valid and does not already exist
         const existingSubjects = settings.schoolSubjectsList || [];
         const newSubjects = [];
-      
+
         for (const subject of subjectsArray) {
           if (typeof subject !== "string" || subject.trim() === "") {
             return res.status(400).json({
@@ -825,24 +813,24 @@ module.exports = {
               reason: "Each subject must be a non-empty string.",
             });
           }
-      
+
           const normalizedSubject = subject.trim().toLowerCase();  // Normalize to lowercase for case-insensitive comparison
-      
+
           // Check if the subject already exists in schoolSubjectsList (case-insensitive)
           const subjectExists = existingSubjects.some(existingSubject =>
             existingSubject.toLowerCase() === normalizedSubject
           );
-      
+
           if (subjectExists) {
             return res.status(400).json({
               error: true,
               reason: `The subject '${subject}' (case-insensitive) is already added. Duplicates are not allowed.`,
             });
           }
-      
+
           newSubjects.push(subject.trim());
         }
-      
+
         // Add new subjects to schoolSubjectsList
         settings.schoolSubjectsList.push(...newSubjects);
       }
@@ -851,7 +839,7 @@ module.exports = {
         if (!schools || typeof schools !== "object") {
           return res.status(400).json({ error: true, reason: "Field 'schools' is required and must be a valid object." });
         }
-  
+
         const {
           name,
           registrationNumber,
@@ -863,16 +851,17 @@ module.exports = {
           isActive,
           schoolType,
         } = schools;
-  
+
         const school = await School.findById(_school); // Fetch school document
         if (!school) {
           return res.status(404).json({ error: true, reason: "School not found." });
         }
-  
+
         // Update school fields if provided
         if (name) school.name = name;
         if (registrationNumber) school.registrationNumber = registrationNumber;
         if (address && typeof address === "object") {
+          if (address.locality) school.address.locality = address.locality;
           if (address.city) school.address.city = address.city;
           if (address.state) school.address.state = address.state;
           if (address.country) school.address.country = address.country;
@@ -893,14 +882,14 @@ module.exports = {
         if (establishYear) school.establishYear = establishYear;
         if (typeof isActive === "boolean") school.isActive = isActive;
         if (schoolType) school.schoolType = schoolType;
-  
+
         // Save the updated school document
         await school.save();
       }
-
+      
       // Save the updated settings
       await settings.save();
-
+      const school = await School.findOne({ _id: req.user._school });
       return res.status(200).json({ error: false, settings, school });
 
     } catch (error) {
