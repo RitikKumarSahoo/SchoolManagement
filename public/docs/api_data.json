@@ -8470,126 +8470,10 @@
     "groupTitle": "Settings"
   },
   {
-    "type": "post",
-    "url": "admin/setsettings",
-    "title": "Update School Settings",
-    "name": "UpdateSettings",
-    "group": "Settings",
-    "version": "1.0.0",
-    "description": "<p>This route allows an admin to update various settings for a school, including available classes, bus fees, salaries, holidays, leave policies, and subjects. Each update is categorized by the <code>setField</code> parameter.</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "Authorization",
-            "description": "<p>Bearer token for authentication.</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates if there was an error.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "settings",
-            "description": "<p>The updated settings object.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Success Response:",
-          "content": "{\n  \"error\": false,\n  \"settings\": {\n    \"_id\": \"64f1b5fa4d589eb5b820db3e\",\n    \"_school\": \"64f1b5fa4d589eb5b820db3f\",\n    \"availableClasses\": [\n      { \"grade\": \"10th Grade\", \"sections\": [\"A\", \"B\", \"C\", \"D\"], \"monthlyFee\": 3000 }\n    ],\n    \"academicYear\": \"2024-2025\",\n    \"busFee\": [],\n    \"salary\": [],\n    \"holidays\": [],\n    \"leave\": [],\n    \"schoolSubjectsList\": [\"Mathematics\", \"Science\", \"History\"]\n  }\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "400": [
-          {
-            "group": "400",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates an error occurred.</p>"
-          },
-          {
-            "group": "400",
-            "type": "String",
-            "optional": false,
-            "field": "reason",
-            "description": "<p>Explanation of the error.</p>"
-          }
-        ],
-        "500": [
-          {
-            "group": "500",
-            "type": "Boolean",
-            "optional": false,
-            "field": "error",
-            "description": "<p>Indicates a server-side error occurred.</p>"
-          },
-          {
-            "group": "500",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message.</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "Validation Error:",
-          "content": "{\n  \"error\": true,\n  \"reason\": \"Field 'availableClasses' is required\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "examples": [
-      {
-        "title": "Request Example (Set Available Classes):",
-        "content": "{\n  \"setField\": \"class\",\n  \"availableClasses\": [\n    { \"grade\": \"10th Grade\", \"monthlyFee\": 3000 },\n    { \"grade\": \"9th Grade\", \"monthlyFee\": 2500 }\n  ]\n}",
-        "type": "json"
-      },
-      {
-        "title": "Request Example (Set Bus Fees):",
-        "content": "{\n  \"setField\": \"busFee\",\n  \"busFee\": [\n    { \"range\": \"1-5\", \"fee\": 500 },\n    { \"range\": \"6-10\", \"fee\": 800 }\n  ]\n}",
-        "type": "json"
-      },
-      {
-        "title": "Request Example (Set Holidays):",
-        "content": "{\n  \"setField\": \"holidays\",\n  \"holidays\": [\"2024-12-25\", \"2024-01-01\"]\n}",
-        "type": "json"
-      },
-      {
-        "title": "Request Example (Set Subjects):",
-        "content": "{\n  \"setField\": \"subjects\",\n  \"subjects\": [\"Mathematics\", \"Science\", \"History\"]\n}",
-        "type": "json"
-      }
-    ],
-    "filename": "routes/rest/settings.js",
-    "groupTitle": "Settings"
-  },
-  {
     "type": "put",
     "url": "/admin/updatesettings",
-    "title": "Settings Update with School Details",
-    "name": "UpdateSettings",
+    "title": "Organization Settings Update",
+    "name": "Organization_Settings_Update",
     "group": "Settings",
     "permission": [
       {
@@ -9048,6 +8932,122 @@
       }
     ],
     "version": "0.0.0",
+    "filename": "routes/rest/settings.js",
+    "groupTitle": "Settings"
+  },
+  {
+    "type": "post",
+    "url": "admin/setsettings",
+    "title": "Update School Settings",
+    "name": "UpdateSettings",
+    "group": "Settings",
+    "version": "1.0.0",
+    "description": "<p>This route allows an admin to update various settings for a school, including available classes, bus fees, salaries, holidays, leave policies, and subjects. Each update is categorized by the <code>setField</code> parameter.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for authentication.</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "settings",
+            "description": "<p>The updated settings object.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "{\n  \"error\": false,\n  \"settings\": {\n    \"_id\": \"64f1b5fa4d589eb5b820db3e\",\n    \"_school\": \"64f1b5fa4d589eb5b820db3f\",\n    \"availableClasses\": [\n      { \"grade\": \"10th Grade\", \"sections\": [\"A\", \"B\", \"C\", \"D\"], \"monthlyFee\": 3000 }\n    ],\n    \"academicYear\": \"2024-2025\",\n    \"busFee\": [],\n    \"salary\": [],\n    \"holidays\": [],\n    \"leave\": [],\n    \"schoolSubjectsList\": [\"Mathematics\", \"Science\", \"History\"]\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "400": [
+          {
+            "group": "400",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates an error occurred.</p>"
+          },
+          {
+            "group": "400",
+            "type": "String",
+            "optional": false,
+            "field": "reason",
+            "description": "<p>Explanation of the error.</p>"
+          }
+        ],
+        "500": [
+          {
+            "group": "500",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates a server-side error occurred.</p>"
+          },
+          {
+            "group": "500",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Validation Error:",
+          "content": "{\n  \"error\": true,\n  \"reason\": \"Field 'availableClasses' is required\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "examples": [
+      {
+        "title": "Request Example (Set Available Classes):",
+        "content": "{\n  \"setField\": \"class\",\n  \"availableClasses\": [\n    { \"grade\": \"10th Grade\", \"monthlyFee\": 3000 },\n    { \"grade\": \"9th Grade\", \"monthlyFee\": 2500 }\n  ]\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example (Set Bus Fees):",
+        "content": "{\n  \"setField\": \"busFee\",\n  \"busFee\": [\n    { \"range\": \"1-5\", \"fee\": 500 },\n    { \"range\": \"6-10\", \"fee\": 800 }\n  ]\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example (Set Holidays):",
+        "content": "{\n  \"setField\": \"holidays\",\n  \"holidays\": [\"2024-12-25\", \"2024-01-01\"]\n}",
+        "type": "json"
+      },
+      {
+        "title": "Request Example (Set Subjects):",
+        "content": "{\n  \"setField\": \"subjects\",\n  \"subjects\": [\"Mathematics\", \"Science\", \"History\"]\n}",
+        "type": "json"
+      }
+    ],
     "filename": "routes/rest/settings.js",
     "groupTitle": "Settings"
   },

@@ -513,8 +513,8 @@ module.exports = {
   },
 
  /**
- * @api {put} /admin/updatesettings Settings Update with School Details
- * @apiName UpdateSettings
+ * @api {put} /admin/updatesettings Organization Settings Update
+ * @apiName Organization Settings Update
  * @apiGroup Settings
  * @apiPermission admin
  * 
