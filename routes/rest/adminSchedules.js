@@ -1,6 +1,7 @@
 
 const Schedule = require("../../models/schedule")
 const School = require("../../models/school")
+const User = require("../../models/user")
 
 module.exports = {
 
@@ -564,8 +565,117 @@ async post(req,res){
     }
   },
 
-  async fetchAvailableTeachers(req,res){
-    
+  /**
+ * @api {post} /admin/fetchavailableteachers Fetch Available Teachers
+ * @apiName FetchAvailableTeachers
+ * @apiGroup Admin
+ * 
+ * @apiParam {String} day The day of the week for which availability is being checked.
+ * @apiParam {String} startTime The start time of the requested class.
+ * @apiParam {String} endTime The end time of the requested class.
+ * 
+ * @apiSuccess {Object[]} availableTeachers List of available teachers.
+ * @apiSuccess {String} availableTeachers.teacherId Teacher's unique ID.
+ * @apiSuccess {String} availableTeachers.name Teacher's full name.
+ * @apiSuccess {String} availableTeachers.subject Teacher's subject.
+ * @apiSuccess {Boolean} availableTeachers.available Teacher availability status (true means available).
+ * 
+ * @apiError {Object} error Internal Server Error.
+ * @apiErrorExample {json} Error-Response:
+ *     HTTP/1.1 500 Internal Server Error
+ *     {
+ *       "message": "Internal Server Error"
+ *     }
+ * 
+ * @apiExample {json} Request-Example:
+ *     {
+ *       "day": "Monday",
+ *       "startTime": "09:00",
+ *       "endTime": "10:00"
+ *     }
+ * 
+ * @apiExample {json} Success-Response:
+ *     HTTP/1.1 200 OK
+ *     [
+ *       {
+ *         "teacherId": "123456",
+ *         "name": "John Doe",
+ *         "subjects": "Math",
+ *         "available": true
+ *       },
+ *       {
+ *         "teacherId": "234567",
+ *         "name": "Jane Smith",
+ *         "subjects": "Science",
+ *         "available": true
+ *       }
+ *     ]
+ */
+
+  async fetchAvailableTeachers(req, res) {
+    const { day, startTime, endTime } = req.body;
+  
+    try {
+      const schoolId = req.user._school;
+      // console.log(schoolId);
+      
+      // Fetch all teachers associated with the school
+      const teachers = await User.find({ _school: schoolId, loginType: "teacher" }).select("_id firstName lastName subject");
+  
+      // Check each teacher's availability
+      const availabilityPromises = teachers.map(async (teacher) => {
+        // Fetch the schedule for the teacher on the specific day and check availability
+        const isAssigned = await Schedule.findOne({
+          _school: schoolId,
+          [`weekSchedule.${day}`]: {
+            $elemMatch: {
+              _teacher: teacher._id,
+              $or: [
+                { startTime: { $lt: endTime, $gte: startTime } }, // Overlapping time slot
+                { endTime: { $gt: startTime, $lte: endTime } }    // Overlapping time slot
+              ]
+            }
+          }
+        });
+  
+        // If no schedule is found (isAssigned is null), mark the teacher as available
+        const available = !isAssigned;
+  
+        return {
+          teacherId: teacher._id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          // email: teacher.email,
+          subjects: teacher.subject,
+          available
+        };
+      });
+  
+      const teacherAvailability = await Promise.all(availabilityPromises);
+  
+      // If no teacher has been assigned to any class at the given time, mark all teachers as available
+      const availableTeachers = teacherAvailability.filter(teacher => teacher.available);
+
+      // console.log(availableTeachers);
+      
+  
+      // If no teachers are found to be available, all teachers are considered available
+      if (availableTeachers.length === 0) {
+        res.status(200).json(teachers.map(teacher => ({
+          teacherId: teacher._id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          // email: teacher.email,
+          subjects: teacher.subject,
+          available: true // All teachers are available
+        })));
+      } else {
+        res.status(200).json(availableTeachers);
+      }
+      
+    } catch (error) {
+      console.error("Error checking teacher availability:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   }
+  
 
 }
