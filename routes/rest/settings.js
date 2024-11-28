@@ -512,8 +512,8 @@ module.exports = {
     }
   },
 
-  /**
- * @api {put} admin/updatesettings Settings Update with school Details
+ /**
+ * @api {put} /admin/updatesettings Settings Update with School Details
  * @apiName UpdateSettings
  * @apiGroup Settings
  * @apiPermission admin
@@ -521,17 +521,18 @@ module.exports = {
  * @apiDescription Updates various settings for the school, including available classes, bus fees, salary ranges, holidays, leave types, subjects, and school details (e.g., name, registration number, address, contact, etc.).
  * 
  * @apiParam {String} setField The field to update. Possible values: `class`, `busFee`, `salary`, `holidays`, `leave`, `subjects`, `schools`.
+ * 
  * @apiParam {Object} [availableClasses] The available classes to be updated (only if `setField` is `class`).
- * @apiParam {String} [availableClasses.grade] The grade for the class.
- * @apiParam {String[]} [availableClasses.sections] List of sections for the class.
- * @apiParam {Number} [availableClasses.monthlyFee] The monthly fee for the class.
+ * @apiParam {String} availableClasses.grade The grade for the class.
+ * @apiParam {String[]} availableClasses.sections List of sections for the class.
+ * @apiParam {Number} availableClasses.monthlyFee The monthly fee for the class.
  * 
  * @apiParam {Object[]} [busFee] List of bus fee entries (only if `setField` is `busFee`).
- * @apiParam {String} busFee.range The range in the format 'start-end' (e.g., '1-5').
+ * @apiParam {String} busFee.range The range in the format `start-end` (e.g., `1-5`).
  * @apiParam {Number} busFee.fee The bus fee for the range.
  * 
  * @apiParam {Object[]} [salary] List of salary ranges (only if `setField` is `salary`).
- * @apiParam {String} salary.range The salary range in the format 'start-end' (e.g., '12-24').
+ * @apiParam {String} salary.range The salary range in the format `start-end` (e.g., `12-24`).
  * @apiParam {Number} salary.amount The salary amount for the range.
  * 
  * @apiParam {Object[]} [holidays] List of holidays to be updated (only if `setField` is `holidays`).
@@ -539,7 +540,7 @@ module.exports = {
  * @apiParam {String} holidays.date The date of the holiday in `DD/MM/YYYY` format.
  * 
  * @apiParam {Object[]} [leave] List of leave types (only if `setField` is `leave`).
- * @apiParam {String} leave.type The type of leave (e.g., 'CL', 'PL', 'SL').
+ * @apiParam {String} leave.type The type of leave (e.g., `CL`, `PL`, `SL`).
  * @apiParam {Number} leave.days The number of days for the leave type.
  * 
  * @apiParam {String[]} [subjectsArray] List of subjects to be updated (only if `setField` is `subjects` and multiple subjects are provided).
@@ -558,12 +559,12 @@ module.exports = {
  * @apiParam {String} [schools.contact.email] The email of the school.
  * @apiParam {String} [schools.contact.website] The website of the school.
  * @apiParam {Object} [schools.location] The location of the school (latitude and longitude).
- * @apiParam {String} [schools.location.type] The location type (e.g., 'Point').
- * @apiParam {Number[]} [schools.location.coordinates] The coordinates of the school as an array [longitude, latitude].
+ * @apiParam {String} [schools.location.type] The location type (e.g., `Point`).
+ * @apiParam {Number[]} [schools.location.coordinates] The coordinates of the school as an array `[longitude, latitude]`.
  * @apiParam {String} [schools.principalName] The name of the principal.
  * @apiParam {Number} [schools.establishYear] The year the school was established.
- * @apiParam {Boolean} [schools.isActive] The active status of the school (true/false).
- * @apiParam {String} [schools.schoolType] The type of the school (e.g., 'Public', 'Private').
+ * @apiParam {Boolean} [schools.isActive] The active status of the school (`true`/`false`).
+ * @apiParam {String} [schools.schoolType] The type of the school (e.g., `Public`, `Private`).
  * 
  * @apiSuccess {Object} settings The updated settings for the school.
  * @apiSuccess {Array} settings.schoolSubjectsList The updated list of subjects.
@@ -628,6 +629,7 @@ module.exports = {
  *    }
  *  }
  */
+
 
 
   async updateSettings(req, res) {

@@ -8587,8 +8587,8 @@ define({ "api": [
   },
   {
     "type": "put",
-    "url": "admin/updatesettings",
-    "title": "Settings Update with school Details",
+    "url": "/admin/updatesettings",
+    "title": "Settings Update with School Details",
     "name": "UpdateSettings",
     "group": "Settings",
     "permission": [
@@ -8617,21 +8617,21 @@ define({ "api": [
           {
             "group": "Parameter",
             "type": "String",
-            "optional": true,
+            "optional": false,
             "field": "availableClasses.grade",
             "description": "<p>The grade for the class.</p>"
           },
           {
             "group": "Parameter",
             "type": "String[]",
-            "optional": true,
+            "optional": false,
             "field": "availableClasses.sections",
             "description": "<p>List of sections for the class.</p>"
           },
           {
             "group": "Parameter",
             "type": "Number",
-            "optional": true,
+            "optional": false,
             "field": "availableClasses.monthlyFee",
             "description": "<p>The monthly fee for the class.</p>"
           },
@@ -8647,7 +8647,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "busFee.range",
-            "description": "<p>The range in the format 'start-end' (e.g., '1-5').</p>"
+            "description": "<p>The range in the format <code>start-end</code> (e.g., <code>1-5</code>).</p>"
           },
           {
             "group": "Parameter",
@@ -8668,7 +8668,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "salary.range",
-            "description": "<p>The salary range in the format 'start-end' (e.g., '12-24').</p>"
+            "description": "<p>The salary range in the format <code>start-end</code> (e.g., <code>12-24</code>).</p>"
           },
           {
             "group": "Parameter",
@@ -8710,7 +8710,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "leave.type",
-            "description": "<p>The type of leave (e.g., 'CL', 'PL', 'SL').</p>"
+            "description": "<p>The type of leave (e.g., <code>CL</code>, <code>PL</code>, <code>SL</code>).</p>"
           },
           {
             "group": "Parameter",
@@ -8829,14 +8829,14 @@ define({ "api": [
             "type": "String",
             "optional": true,
             "field": "schools.location.type",
-            "description": "<p>The location type (e.g., 'Point').</p>"
+            "description": "<p>The location type (e.g., <code>Point</code>).</p>"
           },
           {
             "group": "Parameter",
             "type": "Number[]",
             "optional": true,
             "field": "schools.location.coordinates",
-            "description": "<p>The coordinates of the school as an array [longitude, latitude].</p>"
+            "description": "<p>The coordinates of the school as an array <code>[longitude, latitude]</code>.</p>"
           },
           {
             "group": "Parameter",
@@ -8857,14 +8857,14 @@ define({ "api": [
             "type": "Boolean",
             "optional": true,
             "field": "schools.isActive",
-            "description": "<p>The active status of the school (true/false).</p>"
+            "description": "<p>The active status of the school (<code>true</code>/<code>false</code>).</p>"
           },
           {
             "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "schools.schoolType",
-            "description": "<p>The type of the school (e.g., 'Public', 'Private').</p>"
+            "description": "<p>The type of the school (e.g., <code>Public</code>, <code>Private</code>).</p>"
           }
         ]
       }
