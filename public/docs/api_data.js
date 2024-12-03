@@ -347,6 +347,105 @@ define({ "api": [
     "groupTitle": "Admin"
   },
   {
+    "type": "POST",
+    "url": "/admin/fetchavailableteachers",
+    "title": "Fetch Available Teachers",
+    "name": "FetchAvailableTeachers",
+    "group": "Admin",
+    "version": "1.0.0",
+    "permission": [
+      {
+        "name": "Admin"
+      }
+    ],
+    "description": "<p>Fetch a list of available teachers for each day and period based on the school's schedule.</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p>Bearer token for admin authentication.</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "examples": [
+        {
+          "title": "Request Example:",
+          "content": "{\n  \"schoolId\": \"6705007aa091352256b07f53\" // This is fetched from the logged-in user's school.\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "availableTeachersList",
+            "description": "<p>A list of available teachers grouped by day.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object[]",
+            "optional": false,
+            "field": "availableTeachersList[day]",
+            "description": "<p>Array of periods for the day.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success Response:",
+          "content": "HTTP/1.1 200 OK\n{\n  \"error\": false,\n  \"availableTeachersList\": {\n    \"mon\": [\n      {\n        \"startTime\": \"10:30\",\n        \"endTime\": \"11:15\",\n        \"availableTeachers\": [\"teacherId1\", \"teacherId2\"]\n      },\n      {\n        \"startTime\": \"11:15\",\n        \"endTime\": \"12:00\",\n        \"availableTeachers\": [\"teacherId3\"]\n      }\n    ],\n    \"tue\": [\n      {\n        \"startTime\": \"10:30\",\n        \"endTime\": \"11:15\",\n        \"availableTeachers\": [\"teacherId4\"]\n      }\n    ]\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "error",
+            "description": "<p>Indicates if there was an error.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message describing the issue.</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Error Response:",
+          "content": "HTTP/1.1 500 Internal Server Error\n{\n  \"error\": true,\n  \"message\": \"Error fetching available teachers\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "filename": "routes/rest/adminSchedules.js",
+    "groupTitle": "Admin"
+  },
+  {
     "type": "post",
     "url": "/admin/find",
     "title": "Find Admins",
