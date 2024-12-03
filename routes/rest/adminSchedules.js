@@ -2,6 +2,64 @@
 const Schedule = require("../../models/schedule")
 const School = require("../../models/school")
 const User = require("../../models/user")
+const Setting  = require("../../models/settings")
+
+
+// Method which will call with start and end time and return a list of teachers Id who are available.
+async function checkAvailability(day, startTime, endTime, schoolId) {
+  
+  try {
+      // Fetch all teachers associated with the school
+      const teachers = await User.find({ _school: schoolId, loginType: "teacher" }).select("_id firstName lastName subject");
+      
+      
+      
+      // Check each teacher's availability
+      const availabilityPromises = teachers.map(async (teacher) => {
+          // Fetch the schedule for the teacher on the specific day and check availability
+          const isAssigned = await Schedule.findOne({
+              _school: schoolId,
+              [`weekSchedule.${day}`]: {
+                  $elemMatch: {
+                      _teacher: teacher._id,
+                      $or: [
+                          { startTime: { $lt: endTime, $gte: startTime } }, // Overlapping time slot
+                          { endTime: { $gt: startTime, $lte: endTime } }    // Overlapping time slot
+                      ]
+                  }
+              }
+          });
+
+          // If no schedule is found (isAssigned is null), mark the teacher as available
+          const available = !isAssigned;
+
+          return {
+              teacherId: teacher._id,
+              name: `${teacher.firstName} ${teacher.lastName}`,
+              subjects: teacher.subject,
+              available
+          };
+      });
+
+      const teacherAvailability = await Promise.all(availabilityPromises);
+
+      // Filter available teachers
+      const availableTeachers = teacherAvailability.filter(teacher => teacher.available);
+
+      // Return available teachers or all teachers if none are marked unavailable
+      return availableTeachers.length === 0 ? teachers.map(teacher => ({
+          teacherId: teacher._id,
+          name: `${teacher.firstName} ${teacher.lastName}`,
+          subjects: teacher.subject,
+          available: true // All teachers are available
+      })) : availableTeachers;
+  } catch (error) {
+      console.error("Error checking teacher availability:", error);
+      throw error;
+  }
+}
+
+
 
 module.exports = {
 
@@ -276,7 +334,7 @@ module.exports = {
    * }
    */
 async post(req,res){
-    const { _school, _class, routine } = req.body;
+    const { _class, routine } = req.body;
 
     try {
         // Check if the user is an admin
@@ -285,7 +343,7 @@ async post(req,res){
         }
 
         // Validate schoolId
-        const schoolExists = await School.findById(_school);
+        const schoolExists = await School.findById(user._school);
         if (!schoolExists) {
             return res.status(404).json({ message: 'School not found' });
         }
@@ -565,117 +623,123 @@ async post(req,res){
     }
   },
 
-  /**
- * @api {post} /admin/fetchavailableteachers Fetch Available Teachers
+  
+/**
+ * @api {POST} /admin/fetchavailableteachers Fetch Available Teachers
  * @apiName FetchAvailableTeachers
  * @apiGroup Admin
- * 
- * @apiParam {String} day The day of the week for which availability is being checked.
- * @apiParam {String} startTime The start time of the requested class.
- * @apiParam {String} endTime The end time of the requested class.
- * 
- * @apiSuccess {Object[]} availableTeachers List of available teachers.
- * @apiSuccess {String} availableTeachers.teacherId Teacher's unique ID.
- * @apiSuccess {String} availableTeachers.name Teacher's full name.
- * @apiSuccess {String} availableTeachers.subject Teacher's subject.
- * @apiSuccess {Boolean} availableTeachers.available Teacher availability status (true means available).
- * 
- * @apiError {Object} error Internal Server Error.
- * @apiErrorExample {json} Error-Response:
- *     HTTP/1.1 500 Internal Server Error
- *     {
- *       "message": "Internal Server Error"
- *     }
- * 
- * @apiExample {json} Request-Example:
- *     {
- *       "day": "Monday",
- *       "startTime": "09:00",
- *       "endTime": "10:00"
- *     }
- * 
- * @apiExample {json} Success-Response:
- *     HTTP/1.1 200 OK
- *     [
+ * @apiVersion 1.0.0
+ * @apiPermission Admin
+ *
+ * @apiDescription Fetch a list of available teachers for each day and period based on the school's schedule.
+ *
+ * @apiHeader {String} Authorization Bearer token for admin authentication.
+ *
+ * @apiParamExample {json} Request Example:
+ * {
+ *   "schoolId": "6705007aa091352256b07f53" // This is fetched from the logged-in user's school.
+ * }
+ *
+ * @apiSuccess {Boolean} error Indicates if there was an error.
+ * @apiSuccess {Object} availableTeachersList A list of available teachers grouped by day.
+ * @apiSuccess {Object[]} availableTeachersList[day] Array of periods for the day.
+ * @apiSuccess {String} availableTeachersList[day].startTime The start time of the period.
+ * @apiSuccess {String} availableTeachersList[day].endTime The end time of the period.
+ * @apiSuccess {String[]} availableTeachersList[day].availableTeachers List of teacher IDs available for the period.
+ *
+ * @apiSuccessExample {json} Success Response:
+ * HTTP/1.1 200 OK
+ * {
+ *   "error": false,
+ *   "availableTeachersList": {
+ *     "mon": [
  *       {
- *         "teacherId": "123456",
- *         "name": "John Doe",
- *         "subjects": "Math",
- *         "available": true
+ *         "startTime": "10:30",
+ *         "endTime": "11:15",
+ *         "availableTeachers": ["teacherId1", "teacherId2"]
  *       },
  *       {
- *         "teacherId": "234567",
- *         "name": "Jane Smith",
- *         "subjects": "Science",
- *         "available": true
+ *         "startTime": "11:15",
+ *         "endTime": "12:00",
+ *         "availableTeachers": ["teacherId3"]
+ *       }
+ *     ],
+ *     "tue": [
+ *       {
+ *         "startTime": "10:30",
+ *         "endTime": "11:15",
+ *         "availableTeachers": ["teacherId4"]
  *       }
  *     ]
+ *   }
+ * }
+ *
+ * @apiError {Boolean} error Indicates if there was an error.
+ * @apiError {String} message Error message describing the issue.
+ *
+ * @apiErrorExample {json} Error Response:
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "error": true,
+ *   "message": "Error fetching available teachers"
+ * }
  */
 
-  async fetchAvailableTeachers(req, res) {
-    const { day, startTime, endTime } = req.body;
-  
-    try {
-      const schoolId = req.user._school;
-      // console.log(schoolId);
-      
-      // Fetch all teachers associated with the school
-      const teachers = await User.find({ _school: schoolId, loginType: "teacher" }).select("_id firstName lastName subject");
-  
-      // Check each teacher's availability
-      const availabilityPromises = teachers.map(async (teacher) => {
-        // Fetch the schedule for the teacher on the specific day and check availability
-        const isAssigned = await Schedule.findOne({
-          _school: schoolId,
-          [`weekSchedule.${day}`]: {
-            $elemMatch: {
-              _teacher: teacher._id,
-              $or: [
-                { startTime: { $lt: endTime, $gte: startTime } }, // Overlapping time slot
-                { endTime: { $gt: startTime, $lte: endTime } }    // Overlapping time slot
-              ]
-            }
-          }
-        });
-  
-        // If no schedule is found (isAssigned is null), mark the teacher as available
-        const available = !isAssigned;
-  
-        return {
-          teacherId: teacher._id,
-          name: `${teacher.firstName} ${teacher.lastName}`,
-          // email: teacher.email,
-          subjects: teacher.subject,
-          available
-        };
-      });
-  
-      const teacherAvailability = await Promise.all(availabilityPromises);
-  
-      // If no teacher has been assigned to any class at the given time, mark all teachers as available
-      const availableTeachers = teacherAvailability.filter(teacher => teacher.available);
 
-      // console.log(availableTeachers);
-      
-  
-      // If no teachers are found to be available, all teachers are considered available
-      if (availableTeachers.length === 0) {
-        res.status(200).json(teachers.map(teacher => ({
-          teacherId: teacher._id,
-          name: `${teacher.firstName} ${teacher.lastName}`,
-          // email: teacher.email,
-          subjects: teacher.subject,
-          available: true // All teachers are available
-        })));
-      } else {
-        res.status(200).json(availableTeachers);
-      }
-      
+  async fetchAvailableTeachers(req, res) {
+    const schoolId = req.user._school; // Assuming the school ID is in the user object
+    const settings = await Setting.findOne({ _school: schoolId }); // Fetching settings for the school
+
+    try {
+        const availableTeachersByDay = {};
+
+        // Loop through each day in the week
+        for (let day of Object.keys(settings.weekSchedule)) {
+            let periods = settings.weekSchedule[day];
+
+            // Handle the case where the day is Saturday and limit to 4 periods
+            const effectivePeriods = day === "sat" ? periods.slice(0, 4) : periods;
+            console.log(day);
+            
+
+            const availableTeachersForDay = [];
+          
+            
+            // Loop through each period for the current day
+            for (let period of effectivePeriods) {
+                const { startTime, endTime, periodType } = period;
+
+                // Skip the period if it is a "break"
+                if (periodType === "break") {
+                    continue;
+                }
+
+                // Call the checkAvailability method to check teacher availability
+                const availableTeachers = await checkAvailability(day, startTime, endTime, schoolId);
+
+                // Store the available teachers for the current period
+                availableTeachersForDay.push({
+                    startTime,
+                    endTime,
+                    availableTeachers: availableTeachers.map(teacher => teacher.teacherId)
+                });
+            }
+
+            // Store the results for the current day
+            availableTeachersByDay[day] = availableTeachersForDay;
+
+            // console.log(`Available teachers for ${day}:`, availableTeachersForDay);
+        }
+
+        // Return the available teachers for all days
+        return res.status(200).json({ error: false, availableTeachersList: availableTeachersByDay });
     } catch (error) {
-      console.error("Error checking teacher availability:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+        console.error("Error fetching available teachers:", error);
+        return res.status(500).json({ error: true, message: error.message });
     }
-  }
+}
+
+
   
 
 }
