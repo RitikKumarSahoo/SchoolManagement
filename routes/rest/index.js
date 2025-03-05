@@ -32,7 +32,7 @@ const leave = require("./leave");
 const video = require("./uploadvideo")
 const upload = multer({ dest: "../public/uploads" });
 
-router.get("/",adminClassRoute.getData)
+router.get("/data",adminClassRoute.getData)
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
