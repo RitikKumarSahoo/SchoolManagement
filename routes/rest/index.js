@@ -29,13 +29,19 @@ const adminClassRoute = require("./adminClass");
 const adminTransaction = require("./adminTransaction");
 const adminStripe = require("../../lib/stripe");
 const leave = require("./leave");
+const video = require("./uploadvideo")
+const upload = multer({ dest: "../public/uploads" });
 
+router.get("/",adminClassRoute.getData)
 router.post("/login", login.post); // UNAUTHENTICATED
 router.post("/forgotpassword", forgotpassword.startWorkflow); // UNAUTHENTICATED; AJAX
 router.post("/resetpassword", forgotpassword.resetPassword); // UNAUTHENTICATED; AJAX
 
 // Leave
 router.get("/leave/:id", leave.get);
+
+// upload video
+router.post("/uploadvideo",upload.single('video'), video.uploadVideoToS3)
 
 router.all("*", checkJwt); // use this auth middleware for ALL subsequent routes
 
@@ -58,7 +64,6 @@ router.delete("/school/delete/:id", school.deleteSchool);
 router.get("/user/:id", users.get);
 router.put("/updateprofile/", users.editData);
 
-const upload = multer({ dest: "../public/uploads" });
 const uplodFile = multer();
 // router.post(
 //   "/progressReport/teachers/create-progress-report",
@@ -139,7 +144,7 @@ router.get("/admin/schedule/get-schedule/", adminScheduleRoutes.get); // Get a s
 router.post("/admin/schedule/create-schedule", adminScheduleRoutes.post); // Create a new schedule
 router.put("/admin/schedule/edit-schedule/:id", adminScheduleRoutes.put); // Edit a schedule by ID
 router.delete("/admin/schedule/:id", adminScheduleRoutes.delete); // Delete a schedule by ID
-router.post("/admin/fetchavailableteachers",adminScheduleRoutes.fetchAvailableTeachers);
+router.post("/admin/fetchavailableteachers", adminScheduleRoutes.fetchAvailableTeachers);
 
 //Progress Report Rooutec
 router.post(
@@ -164,9 +169,9 @@ router.get("/admin/transaction/pendingfee", adminTransaction.pendingPayment);
 router.post("/admin/transaction/paymentfee", adminStripe.pay);
 router.post("/admin/transaction/create", adminTransaction.createTransaction);
 router.put("/admin/transaction/update", adminTransaction.updateTransaction);
-router.post("/admin/salary",adminTransaction.Salary)
-router.post("/user/transaction",adminTransaction.ownTransactionDetails)
-router.post("/admin/transactions",adminTransaction.allTransaction)
+router.post("/admin/salary", adminTransaction.Salary)
+router.post("/user/transaction", adminTransaction.ownTransactionDetails)
+router.post("/admin/transactions", adminTransaction.allTransaction)
 
 // teacher
 router.post("/admin/teachers", adminTeacher.getAllTeachers);
@@ -192,7 +197,7 @@ router.get("/admin/settings", settings.get);
 router.post("/admin/setsettings", settings.settings);
 router.put("/admin/updatesettings", settings.updateSettings);
 router.delete("/admin/deletesetting", settings.deleteSetting);
-router.post("/admin/setscheduletime",settings.setScheduleTime);
+router.post("/admin/setscheduletime", settings.setScheduleTime);
 
 //Leave
 router.post("/teacher/leave", leave.applyLeave);
@@ -201,6 +206,6 @@ router.post("/leave/find", leave.find);
 router.post("/leaves", leave.allLeaves);
 router.post("/leavestatus/:id", leave.leaveStatus);
 router.get("/remainingleave", leave.remainingLeave)
-router.get("/leave/:id",leave.get) // get a leave by ID
+router.get("/leave/:id", leave.get) // get a leave by ID
 
 module.exports = router;

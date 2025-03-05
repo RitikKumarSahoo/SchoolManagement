@@ -366,4 +366,8 @@ module.exports = {
       return res.status(500).json({ error: true, message: error.message });
     }
   },
+
+  getData(req,res) {
+    res.send("<h1>Auto Scaling Demo App </h1> <h4> Message: Success </h4>")
+  }
 };

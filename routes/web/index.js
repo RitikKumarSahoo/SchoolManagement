@@ -24,4 +24,8 @@ router.get("/resetpassword/:token", async (req, res) => {
   }
 });
 
+router.get("/",async (req,res) => {
+  res.sendFile(join(__dirname, 'index.html'))
+})
+
 module.exports = router;
